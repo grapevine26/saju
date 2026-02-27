@@ -121,10 +121,6 @@ export default function ProfileDetailPage() {
                                 {profile.isTimeUnknown ? '모름' : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')}`}
                             </p>
                         </div>
-                        <div className="col-span-2">
-                            <p className="text-slate-400 mb-1">주요 신살</p>
-                            <p className="font-bold text-purple-700">{baziData.uniqueShinsal || "없음"}</p>
-                        </div>
                     </div>
                 </div>
 
