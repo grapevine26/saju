@@ -4,6 +4,7 @@ import { useSajuStore } from "@/store/useSajuStore";
 import { ArrowLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
+import { ZHI_TIME_RANGES } from "@/constants/sajuTime";
 
 export default function SingleInputForm() {
     const router = useRouter();
@@ -14,7 +15,7 @@ export default function SingleInputForm() {
         gender, setGender,
         calendarType, setCalendarType,
         birthYear, birthMonth, birthDay, setBirthDate,
-        birthTime, isTimeUnknown, setBirthTime,
+        birthCity, birthHour, birthMinute, isTimeUnknown, setBirthLocationTime,
         saveProfile
     } = useSajuStore();
 
@@ -22,7 +23,7 @@ export default function SingleInputForm() {
         if (name.trim().length < 1) return "이름을 한 글자 이상 입력해주세요.";
         if (!gender) return "성별을 선택해주세요.";
         if (!birthYear || !birthMonth || !birthDay) return "생년월일을 모두 입력해주세요.";
-        if (!isTimeUnknown && !birthTime) return "태어난 시간을 선택하거나 '시간 모름'에 체크해주세요.";
+        if (!isTimeUnknown && (!birthHour || !birthMinute)) return "정확한 태어난 시와 분을 입력하거나 '모름'을 체크해주세요.";
         return null;
     };
 
@@ -33,8 +34,12 @@ export default function SingleInputForm() {
             return;
         }
 
-        saveProfile(); // 명부에 자동 저장
-        router.push("/result");
+        const newProfileId = saveProfile(); // 명부에 자동 저장 후 ID 리턴받음
+        if (newProfileId) {
+            router.push(`/profiles/${newProfileId}`);
+        } else {
+            router.push("/result"); // 만약 에러로 id가 없다면 기존 폴백
+        }
     };
 
     return (
@@ -129,30 +134,48 @@ export default function SingleInputForm() {
                     </div>
                 </section>
 
-                {/* 4. Birth Time */}
+                {/* 4. Birth Time & Location */}
                 <section className="space-y-4">
-                    <label className="block text-lg font-bold text-slate-900">태어난 시간</label>
+                    <label className="block text-lg font-bold text-slate-900">태어난 시간과 지역</label>
                     <div className="space-y-4">
+                        {/* 지역 선택 */}
                         <div className="relative">
                             <select
                                 disabled={isTimeUnknown}
-                                value={birthTime}
-                                onChange={(e) => setBirthTime(e.target.value, false)}
-                                className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-lg appearance-none text-slate-900 font-medium disabled:opacity-50 disabled:bg-slate-100 pr-12"
+                                value={birthCity}
+                                onChange={(e) => setBirthLocationTime(e.target.value, birthHour, birthMinute, isTimeUnknown)}
+                                className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-medium disabled:opacity-50 disabled:bg-slate-100 pr-12 appearance-none"
                             >
-                                <option value="" disabled className="text-slate-400">시간 선택 (예: 자시 23:30~01:29)</option>
-                                <option value="자시">자시 (23:30 ~ 01:29)</option>
-                                <option value="축시">축시 (01:30 ~ 03:29)</option>
-                                <option value="인시">인시 (03:30 ~ 05:29)</option>
-                                <option value="묘시">묘시 (05:30 ~ 07:29)</option>
-                                <option value="진시">진시 (07:30 ~ 09:29)</option>
-                                <option value="사시">사시 (09:30 ~ 11:29)</option>
-                                <option value="오시">오시 (11:30 ~ 13:29)</option>
-                                <option value="미시">미시 (13:30 ~ 15:29)</option>
-                                <option value="신시">신시 (15:30 ~ 17:29)</option>
-                                <option value="유시">유시 (17:30 ~ 19:29)</option>
-                                <option value="술시">술시 (19:30 ~ 21:29)</option>
-                                <option value="해시">해시 (21:30 ~ 23:29)</option>
+                                <option value="seoul">서울/경기/인천 (표준)</option>
+                                <option value="busan">부산/울산/경남 (+8분)</option>
+                                <option value="daegu">대구/경북 (+4분)</option>
+                                <option value="gwangju">광주/전남 (표준과 동일)</option>
+                                <option value="daejeon">대전/충남/세종 (+2분)</option>
+                                <option value="gangneung">강릉/동해안 (+10분)</option>
+                                <option value="jeju">제주도 (표준과 동일)</option>
+                            </select>
+                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
+                                <ChevronDown className="w-6 h-6" />
+                            </div>
+                        </div>
+
+                        {/* 12지시 선택 드롭다운 */}
+                        <div className="relative">
+                            <select
+                                disabled={isTimeUnknown}
+                                value={`${birthHour}:${birthMinute}`}
+                                onChange={(e) => {
+                                    const [h, m] = e.target.value.split(':');
+                                    setBirthLocationTime(birthCity, h, m, isTimeUnknown);
+                                }}
+                                className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-bold disabled:opacity-50 disabled:bg-slate-100 pr-12 appearance-none"
+                            >
+                                <option value=":" disabled hidden>태어난 시간대(12지시) 선택</option>
+                                {ZHI_TIME_RANGES.map((t, idx) => (
+                                    <option key={idx} value={`${t.hour}:${t.minute}`}>
+                                        {t.label} ({t.period})
+                                    </option>
+                                ))}
                             </select>
                             <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
                                 <ChevronDown className="w-6 h-6" />
@@ -164,11 +187,11 @@ export default function SingleInputForm() {
                                 type="checkbox"
                                 checked={isTimeUnknown}
                                 onChange={(e) => {
-                                    setBirthTime('', e.target.checked);
+                                    setBirthLocationTime(birthCity, '', '', e.target.checked);
                                 }}
                                 className="w-5 h-5 accent-purple-600 rounded"
                             />
-                            <span className="text-slate-700 font-medium">태어난 시간을 모릅니다</span>
+                            <span className="text-slate-700 font-medium">태어난 시간을 모릅니다 (*시주 산출 불가)</span>
                         </label>
                     </div>
                 </section>

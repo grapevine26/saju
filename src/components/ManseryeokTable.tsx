@@ -94,52 +94,74 @@ export default function ManseryeokTable({ data, userInfo }: Props) {
                 ))}
             </div>
 
-            {/* 천간 영역 */}
-            <div className={`${gridClass}`}>
-                <RowLabel text="천간" />
-                {pillars.map((p, idx) => {
-                    const content = p.payload;
-                    if (!content) {
-                        return (
-                            <div key={`gan-empty-${idx}`} className="h-28 bg-slate-50 border-r border-slate-100 flex items-center justify-center last:border-0">
-                                <span className="text-slate-300 text-sm">모름</span>
-                            </div>
-                        );
-                    }
-                    return (
-                        <div key={`gan-${idx}`} className={`h-28 flex flex-col items-center justify-center border-r border-white last:border-0 ${getPastelColor(content.ganOhhaeng)}`}>
-                            <div className="text-3xl font-serif font-bold mb-1">{content.ganHanja}</div>
-                            <div className="flex flex-col items-center text-xs opacity-90 font-medium">
-                                <span>{content.gan}</span>
-                                <span className="mt-1 opacity-80">{content.ganSipsin}</span>
-                            </div>
-                        </div>
-                    );
-                })}
-            </div>
+            {/* 천간 / 지지 영역 (배경 이미지 적용) */}
+            <div className="relative">
+                <div
+                    className="absolute inset-0 opacity-40 pointer-events-none mix-blend-multiply z-20"
+                    style={{ backgroundImage: "url('/images/saju_bg.png')", backgroundSize: "cover", backgroundPosition: "center" }}
+                />
 
-            {/* 지지 영역 */}
-            <div className={`${gridClass} border-t-2 border-white`}>
-                <RowLabel text="지지" />
-                {pillars.map((p, idx) => {
-                    const content = p.payload;
-                    if (!content) {
+                {/* 천간 영역 */}
+                <div className={`${gridClass}`}>
+                    <RowLabel text="천간" />
+                    {pillars.map((p, idx) => {
+                        const content = p.payload;
+                        if (!content) {
+                            return (
+                                <div key={`gan-empty-${idx}`} className="h-[120px] bg-slate-50 border-r border-slate-100 flex items-center justify-center last:border-0">
+                                    <span className="text-slate-300 text-sm">모름</span>
+                                </div>
+                            );
+                        }
                         return (
-                            <div key={`zhi-empty-${idx}`} className="h-28 bg-slate-50 border-r border-slate-100 flex items-center justify-center last:border-0">
-                                <span className="text-slate-300 text-sm">모름</span>
+                            <div key={`gan-${idx}`} className={`h-[120px] flex flex-col items-center justify-center border-r border-white last:border-0 ${getPastelColor(content.ganOhhaeng)}`}>
+                                {/* 한자 (크고 굵고 둥근 명조 스타일) */}
+                                <div className="text-4xl font-serif font-black tracking-widest mb-1" style={{ textShadow: "1px 1px 2px rgba(255,255,255,0.8)" }}>
+                                    {content.ganHanja}
+                                </div>
+                                {/* 한글 (작은 고딕) */}
+                                <div className="text-[13px] font-bold opacity-90 mb-1.5">
+                                    {content.gan}
+                                </div>
+                                {/* 십성 (하단, 조그맣게) */}
+                                <div className="text-[11px] font-medium opacity-80 tracking-tight">
+                                    {content.ganSipsin}
+                                </div>
                             </div>
                         );
-                    }
-                    return (
-                        <div key={`zhi-${idx}`} className={`h-28 flex flex-col items-center justify-center border-r border-white last:border-0 ${getPastelColor(content.zhiOhhaeng)}`}>
-                            <div className="text-3xl font-serif font-bold mb-1">{content.zhiHanja}</div>
-                            <div className="flex flex-col items-center text-xs opacity-90 font-medium">
-                                <span>{content.zhi}</span>
-                                <span className="mt-1 opacity-80">{content.zhiSipsin}</span>
+                    })}
+                </div>
+
+                {/* 지지 영역 */}
+                <div className={`${gridClass} border-t-2 border-white relative z-10`}>
+                    <RowLabel text="지지" />
+                    {pillars.map((p, idx) => {
+                        const content = p.payload;
+                        if (!content) {
+                            return (
+                                <div key={`zhi-empty-${idx}`} className="h-[120px] bg-slate-50 border-r border-slate-100 flex items-center justify-center last:border-0">
+                                    <span className="text-slate-300 text-sm">모름</span>
+                                </div>
+                            );
+                        }
+                        return (
+                            <div key={`zhi-${idx}`} className={`h-[120px] flex flex-col items-center justify-center border-r border-white last:border-0 ${getPastelColor(content.zhiOhhaeng)} mix-blend-multiply`}>
+                                {/* 한자 (크고 굵고 둥근 명조 스타일) */}
+                                <div className="text-4xl font-serif font-black tracking-widest mb-1" style={{ textShadow: "1px 1px 2px rgba(255,255,255,0.8)" }}>
+                                    {content.zhiHanja}
+                                </div>
+                                {/* 한글 (작은 고딕) */}
+                                <div className="text-[13px] font-bold opacity-90 mb-1.5">
+                                    {content.zhi}
+                                </div>
+                                {/* 십성 (하단, 조그맣게) */}
+                                <div className="text-[11px] font-medium opacity-80 tracking-tight">
+                                    {content.zhiSipsin}
+                                </div>
                             </div>
-                        </div>
-                    );
-                })}
+                        );
+                    })}
+                </div>
             </div>
 
             {/* 부가 정보 - 지장간 */}

@@ -5,6 +5,7 @@ import { ArrowLeft, UserPlus, Trash2, Calendar, UserRound } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { useEffect, useState } from "react";
+import AvatarIcon from "@/components/AvatarIcon";
 
 export default function ProfilesPage() {
     const { profiles, removeProfile, loadProfileToInput, resetInput } = useSajuStore();
@@ -15,10 +16,9 @@ export default function ProfilesPage() {
         setIsMounted(true);
     }, []);
 
-    // 특정 프로필 선택 시
+    // 특정 프로필 선택 시 상세 페이지로 이동
     const handleProfileSelect = (profile: any) => {
-        loadProfileToInput(profile);
-        router.push('/input');
+        router.push(`/profiles/${profile.id}`);
     };
 
     const handleAddNew = () => {
@@ -68,9 +68,7 @@ export default function ProfilesPage() {
                             {profiles.map((profile) => (
                                 <div key={profile.id} className="bg-white rounded-2xl p-4 shadow-sm border border-slate-100 flex items-center justify-between group cursor-pointer hover:shadow-md transition-shadow" onClick={() => handleProfileSelect(profile)}>
                                     <div className="flex items-center gap-4">
-                                        <div className="w-12 h-12 bg-slate-100 rounded-full flex items-center justify-center text-slate-500 font-bold text-lg">
-                                            {profile.name[0]}
-                                        </div>
+                                        <AvatarIcon gan={profile.dayGan} zhi={profile.dayZhi} size={48} />
                                         <div>
                                             <h3 className="font-bold text-slate-800 text-lg">{profile.name}</h3>
                                             <div className="flex items-center gap-1.5 text-xs text-slate-500 font-medium">

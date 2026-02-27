@@ -13,8 +13,12 @@ export interface UserProfile {
     birthYear: string;
     birthMonth: string;
     birthDay: string;
-    birthTime: string;
+    birthCity: string;
+    birthHour: string;
+    birthMinute: string;
     isTimeUnknown: boolean;
+    dayGan?: string; // 아바타 표출용 (색상)
+    dayZhi?: string; // 아바타 표출용 (동물)
     updatedAt: string; // 최근 불러오거나 저장된 시간
 }
 
@@ -26,7 +30,8 @@ export interface SavedResult {
         gender: Gender;
         calendarType: CalendarType;
         birthDate: string;
-        birthTime: string;
+        birthCity: string;
+        birthTime: string; // "14:30" 형식의 렌더링용
         isTimeUnknown: boolean;
     };
     resultData: {
@@ -50,8 +55,11 @@ interface SajuState {
     birthYear: string;
     birthMonth: string;
     birthDay: string;
-    birthTime: string;
+    birthCity: string;
+    birthHour: string;
+    birthMinute: string;
     isTimeUnknown: boolean;
+    editingProfileId: string | null; // 현재 수정 중인 프로필 ID (없으면 새 프로필)
 
     history: SavedResult[];
     profiles: UserProfile[]; // 새로 추가된 프로필 목록
@@ -60,13 +68,13 @@ interface SajuState {
     setGender: (gender: Gender) => void;
     setCalendarType: (type: CalendarType) => void;
     setBirthDate: (year: string, month: string, day: string) => void;
-    setBirthTime: (time: string, isUnknown: boolean) => void;
+    setBirthLocationTime: (city: string, hour: string, minute: string, isUnknown: boolean) => void;
 
     // 전체 Input을 특정 프로필 데이터로 덮어씌움 (불러오기)
     loadProfileToInput: (profile: UserProfile) => void;
 
-    // 명부에 프로필 추가 (이미 있으면 업데이트)
-    saveProfile: () => void;
+    // 명부에 프로필 추가 (이미 있으면 업데이트)하고 ID 반환
+    saveProfile: () => string | undefined;
     removeProfile: (id: string) => void;
 
     saveResult: (resultData: SavedResult['resultData']) => string;
@@ -81,9 +89,14 @@ const initialInputState = {
     birthYear: '',
     birthMonth: '',
     birthDay: '',
-    birthTime: '',
+    birthCity: 'seoul',
+    birthHour: '',
+    birthMinute: '',
     isTimeUnknown: false,
+    editingProfileId: null as string | null,
 };
+
+import { calculateBazi } from '@/utils/baziCalc';
 
 export const useSajuStore = create<SajuState>()(
     persist(
@@ -96,7 +109,7 @@ export const useSajuStore = create<SajuState>()(
             setGender: (gender) => set({ gender }),
             setCalendarType: (calendarType) => set({ calendarType }),
             setBirthDate: (birthYear, birthMonth, birthDay) => set({ birthYear, birthMonth, birthDay }),
-            setBirthTime: (birthTime, isTimeUnknown) => set({ birthTime, isTimeUnknown }),
+            setBirthLocationTime: (birthCity, birthHour, birthMinute, isTimeUnknown) => set({ birthCity, birthHour, birthMinute, isTimeUnknown }),
 
             loadProfileToInput: (profile) => set({
                 name: profile.name,
@@ -105,8 +118,11 @@ export const useSajuStore = create<SajuState>()(
                 birthYear: profile.birthYear,
                 birthMonth: profile.birthMonth,
                 birthDay: profile.birthDay,
-                birthTime: profile.birthTime,
-                isTimeUnknown: profile.isTimeUnknown
+                birthCity: profile.birthCity,
+                birthHour: profile.birthHour,
+                birthMinute: profile.birthMinute,
+                isTimeUnknown: profile.isTimeUnknown,
+                editingProfileId: profile.id
             }),
 
             saveProfile: () => {
@@ -114,34 +130,55 @@ export const useSajuStore = create<SajuState>()(
                 // 정보가 너무 부족하면 저장하지 않음
                 if (!state.name || !state.gender || !state.birthYear || !state.birthMonth || !state.birthDay) return;
 
-                set((prev) => {
-                    // 이름과 생년월일이 같으면 동일인물로 간주하여 업데이트
-                    const existingIdx = prev.profiles.findIndex(
-                        p => p.name === state.name && p.birthYear === state.birthYear && p.birthMonth === state.birthMonth && p.birthDay === state.birthDay
-                    );
+                const targetId = state.editingProfileId || Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
 
+                let dayGan = "";
+                let dayZhi = "";
+
+                try {
+                    // 아바타 렌더링에 필요한 일간/일지 데이터를 뽑기 위한 빠른 연산
+                    const result = calculateBazi(
+                        state.gender, state.calendarType, state.birthYear, state.birthMonth, state.birthDay,
+                        state.birthCity, state.birthHour, state.birthMinute, state.isTimeUnknown
+                    );
+                    if (result?.manseryeok?.day) {
+                        dayGan = result.manseryeok.day.gan;
+                        dayZhi = result.manseryeok.day.zhi;
+                    }
+                } catch (e) {
+                    console.error("아바타용 사주 일주 추출 실패:", e);
+                }
+
+                set((prev) => {
                     const newProfile: UserProfile = {
-                        id: existingIdx >= 0 ? prev.profiles[existingIdx].id : Date.now().toString(36),
+                        id: targetId,
                         name: state.name,
                         gender: state.gender,
                         calendarType: state.calendarType,
                         birthYear: state.birthYear,
                         birthMonth: state.birthMonth,
                         birthDay: state.birthDay,
-                        birthTime: state.birthTime,
+                        birthCity: state.birthCity,
+                        birthHour: state.birthHour,
+                        birthMinute: state.birthMinute,
                         isTimeUnknown: state.isTimeUnknown,
+                        dayGan,
+                        dayZhi,
                         updatedAt: new Date().toISOString()
                     };
 
-                    let newProfiles = [...prev.profiles];
-                    if (existingIdx >= 0) {
-                        newProfiles[existingIdx] = newProfile;
+                    let newProfiles;
+                    if (state.editingProfileId) {
+                        // 기존 프로필 수정
+                        newProfiles = prev.profiles.map(p => p.id === state.editingProfileId ? newProfile : p);
                     } else {
-                        newProfiles = [newProfile, ...newProfiles]; // 새 사람은 맨 앞으로
+                        // 새 프로필 추가
+                        newProfiles = [newProfile, ...prev.profiles];
                     }
 
-                    return { profiles: newProfiles };
+                    return { profiles: newProfiles, editingProfileId: null };
                 });
+                return targetId;
             },
 
             removeProfile: (id) => set((state) => ({
@@ -160,7 +197,8 @@ export const useSajuStore = create<SajuState>()(
                         gender: state.gender,
                         calendarType: state.calendarType,
                         birthDate: `${state.birthYear}-${state.birthMonth}-${state.birthDay}`,
-                        birthTime: state.isTimeUnknown ? '모름' : state.birthTime,
+                        birthCity: state.birthCity,
+                        birthTime: state.isTimeUnknown ? '모름' : `${state.birthHour.padStart(2, '0')}:${state.birthMinute.padStart(2, '0')}`,
                         isTimeUnknown: state.isTimeUnknown
                     },
                     resultData

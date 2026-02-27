@@ -15,7 +15,7 @@ import { SavedResult } from "@/store/useSajuStore";
 
 export default function ResultPage() {
     const router = useRouter();
-    const { name, gender, calendarType, birthYear, birthMonth, birthDay, birthTime, isTimeUnknown, saveResult, resetInput } = useSajuStore();
+    const { name, gender, calendarType, birthYear, birthMonth, birthDay, birthCity, birthHour, birthMinute, isTimeUnknown, saveResult, resetInput } = useSajuStore();
     const [result, setResult] = useState<SavedResult['resultData'] | null>(null);
     const [error, setError] = useState<string | null>(null);
 
@@ -40,7 +40,9 @@ export default function ResultPage() {
                         birthYear,
                         birthMonth,
                         birthDay,
-                        birthTime,
+                        birthCity,
+                        birthHour,
+                        birthMinute,
                         isTimeUnknown
                     }),
                 });
@@ -60,7 +62,7 @@ export default function ResultPage() {
         };
 
         fetchSaju();
-    }, [name, gender, calendarType, birthYear, birthMonth, birthDay, birthTime, isTimeUnknown, error, saveResult]);
+    }, [name, gender, calendarType, birthYear, birthMonth, birthDay, birthCity, birthHour, birthMinute, isTimeUnknown, error, saveResult]);
 
     const handleRestart = () => {
         resetInput();
@@ -125,13 +127,13 @@ export default function ResultPage() {
                 {result.manseryeok && (
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                         <ManseryeokTable
-                            data={result.manseryeok}
+                            data={result.manseryeok as any}
                             userInfo={{
                                 name,
                                 gender,
                                 calendarType,
                                 birthDate: `${birthYear}년 ${birthMonth}월 ${birthDay}일`,
-                                birthTime: isTimeUnknown ? "시간 모름" : birthTime
+                                birthTime: isTimeUnknown ? "시간 모름" : `${birthHour.padStart(2, '0')}:${birthMinute.padStart(2, '0')}`
                             }}
                         />
                         <div className="mt-6 mb-6">
