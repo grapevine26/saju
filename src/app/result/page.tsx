@@ -7,6 +7,8 @@ import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import ManseryeokTable from "@/components/ManseryeokTable";
+import OhhaengRadarChart from "@/components/OhhaengRadarChart";
+import SajuAccordion from "@/components/SajuAccordion";
 
 // 더미 데이터 스키마 (기존 잔재 제거)
 import { SavedResult } from "@/store/useSajuStore";
@@ -132,6 +134,9 @@ export default function ResultPage() {
                                 birthTime: isTimeUnknown ? "시간 모름" : birthTime
                             }}
                         />
+                        <div className="mt-6 mb-6">
+                            <OhhaengRadarChart manseryeok={result.manseryeok as any} />
+                        </div>
                     </motion.div>
                 )}
 
@@ -155,25 +160,14 @@ export default function ResultPage() {
                     </div>
                 </motion.div>
 
-                <div className="space-y-4">
-                    {result.details.map((detail, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.1 * (idx + 1) }}
-                            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
-                        >
-                            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                                <span className="w-1.5 h-4 bg-purple-500 rounded-full inline-block" />
-                                {detail.title}
-                            </h3>
-                            <p className="text-slate-600 leading-relaxed text-sm">
-                                {detail.content}
-                            </p>
-                        </motion.div>
-                    ))}
-                </div>
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.2 }}
+                    className="mb-8"
+                >
+                    <SajuAccordion details={result.details} />
+                </motion.div>
             </main>
 
             <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-white/90 backdrop-blur pb-6 border-t border-slate-100">

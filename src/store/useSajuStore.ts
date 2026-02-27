@@ -33,7 +33,7 @@ export interface SavedResult {
         keyword: string;
         score: number;
         summary: string;
-        details: { title: string; content: string }[];
+        details: { title: string; subtitle?: string; content: string }[];
         manseryeok?: {
             year: any;
             month: any;

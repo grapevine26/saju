@@ -40,6 +40,18 @@ interface Props {
 export default function ManseryeokTable({ data, userInfo }: Props) {
     if (!data) return null;
 
+    // 만세력 테이블용 예쁜 파스텔톤 색상 매퍼 함수 (저장된 이전 캐시 기록 덮어쓰기)
+    const getPastelColor = (ohhaeng?: string) => {
+        switch (ohhaeng) {
+            case '목': return 'bg-green-100 text-green-800 border-green-200';
+            case '화': return 'bg-rose-100 text-rose-800 border-rose-200';
+            case '토': return 'bg-orange-100 text-orange-800 border-orange-200';
+            case '금': return 'bg-slate-200 text-slate-700 border-slate-300';
+            case '수': return 'bg-cyan-100 text-cyan-800 border-cyan-200';
+            default: return 'bg-slate-50 text-slate-800 border-slate-100';
+        }
+    };
+
     // 레퍼런스 이미지에 맞춰 좌측부터 시주, 일주, 월주, 연주 순서로 렌더링하도록 배열 구성
     const pillars = [
         { label: "시주", payload: data.time },
@@ -95,7 +107,7 @@ export default function ManseryeokTable({ data, userInfo }: Props) {
                         );
                     }
                     return (
-                        <div key={`gan-${idx}`} className={`h-28 flex flex-col items-center justify-center border-r border-white last:border-0 ${content.ganColor}`}>
+                        <div key={`gan-${idx}`} className={`h-28 flex flex-col items-center justify-center border-r border-white last:border-0 ${getPastelColor(content.ganOhhaeng)}`}>
                             <div className="text-3xl font-serif font-bold mb-1">{content.ganHanja}</div>
                             <div className="flex flex-col items-center text-xs opacity-90 font-medium">
                                 <span>{content.gan}</span>
@@ -119,7 +131,7 @@ export default function ManseryeokTable({ data, userInfo }: Props) {
                         );
                     }
                     return (
-                        <div key={`zhi-${idx}`} className={`h-28 flex flex-col items-center justify-center border-r border-white last:border-0 ${content.zhiColor}`}>
+                        <div key={`zhi-${idx}`} className={`h-28 flex flex-col items-center justify-center border-r border-white last:border-0 ${getPastelColor(content.zhiOhhaeng)}`}>
                             <div className="text-3xl font-serif font-bold mb-1">{content.zhiHanja}</div>
                             <div className="flex flex-col items-center text-xs opacity-90 font-medium">
                                 <span>{content.zhi}</span>

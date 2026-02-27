@@ -2,32 +2,32 @@ export const GAN = ['갑', '을', '병', '정', '무', '기', '경', '신', '임
 export const ZHI = ['자', '축', '인', '묘', '진', '사', '오', '미', '신', '유', '술', '해'];
 
 const GAN_DETAILS: Record<string, { ohhaeng: string, color: string }> = {
-    '갑': { ohhaeng: '목', color: 'bg-green-500 text-white' },
-    '을': { ohhaeng: '목', color: 'bg-green-500 text-white' },
-    '병': { ohhaeng: '화', color: 'bg-red-500 text-white' },
-    '정': { ohhaeng: '화', color: 'bg-red-500 text-white' },
-    '무': { ohhaeng: '토', color: 'bg-yellow-500 text-yellow-900' },
-    '기': { ohhaeng: '토', color: 'bg-yellow-500 text-yellow-900' },
-    '경': { ohhaeng: '금', color: 'bg-slate-300 text-slate-800' },
-    '신': { ohhaeng: '금', color: 'bg-slate-300 text-slate-800' }, // 매핑 주의, 한글이 같음
-    '임': { ohhaeng: '수', color: 'bg-stone-900 text-white' },
-    '계': { ohhaeng: '수', color: 'bg-stone-900 text-white' },
+    '갑': { ohhaeng: '목', color: 'bg-[#86efac]/30 text-emerald-800' },
+    '을': { ohhaeng: '목', color: 'bg-[#86efac]/30 text-emerald-800' },
+    '병': { ohhaeng: '화', color: 'bg-[#fda4af]/30 text-rose-800' },
+    '정': { ohhaeng: '화', color: 'bg-[#fda4af]/30 text-rose-800' },
+    '무': { ohhaeng: '토', color: 'bg-[#fdba74]/30 text-orange-800' },
+    '기': { ohhaeng: '토', color: 'bg-[#fdba74]/30 text-orange-800' },
+    '경': { ohhaeng: '금', color: 'bg-[#d1d5db]/40 text-slate-700' },
+    '신': { ohhaeng: '금', color: 'bg-[#d1d5db]/40 text-slate-700' }, // 매핑 주의, 한글이 같음
+    '임': { ohhaeng: '수', color: 'bg-[#67e8f9]/30 text-cyan-800' },
+    '계': { ohhaeng: '수', color: 'bg-[#67e8f9]/30 text-cyan-800' },
 };
 
 // 지지 오행 및 색상
 const ZHI_DETAILS: Record<string, { ohhaeng: string, color: string }> = {
-    '자': { ohhaeng: '수', color: 'bg-stone-900 text-white' },
-    '축': { ohhaeng: '토', color: 'bg-yellow-500 text-yellow-900' },
-    '인': { ohhaeng: '목', color: 'bg-green-500 text-white' },
-    '묘': { ohhaeng: '목', color: 'bg-green-500 text-white' },
-    '진': { ohhaeng: '토', color: 'bg-yellow-500 text-yellow-900' },
-    '사': { ohhaeng: '화', color: 'bg-red-500 text-white' },
-    '오': { ohhaeng: '화', color: 'bg-red-500 text-white' },
-    '미': { ohhaeng: '토', color: 'bg-yellow-500 text-yellow-900' },
-    '신': { ohhaeng: '금', color: 'bg-slate-300 text-slate-800' },
-    '유': { ohhaeng: '금', color: 'bg-slate-300 text-slate-800' },
-    '술': { ohhaeng: '토', color: 'bg-yellow-500 text-yellow-900' },
-    '해': { ohhaeng: '수', color: 'bg-stone-900 text-white' },
+    '자': { ohhaeng: '수', color: 'bg-[#67e8f9]/30 text-cyan-800' },
+    '축': { ohhaeng: '토', color: 'bg-[#fdba74]/30 text-orange-800' },
+    '인': { ohhaeng: '목', color: 'bg-[#86efac]/30 text-emerald-800' },
+    '묘': { ohhaeng: '목', color: 'bg-[#86efac]/30 text-emerald-800' },
+    '진': { ohhaeng: '토', color: 'bg-[#fdba74]/30 text-orange-800' },
+    '사': { ohhaeng: '화', color: 'bg-[#fda4af]/30 text-rose-800' },
+    '오': { ohhaeng: '화', color: 'bg-[#fda4af]/30 text-rose-800' },
+    '미': { ohhaeng: '토', color: 'bg-[#fdba74]/30 text-orange-800' },
+    '신': { ohhaeng: '금', color: 'bg-[#d1d5db]/40 text-slate-700' },
+    '유': { ohhaeng: '금', color: 'bg-[#d1d5db]/40 text-slate-700' },
+    '술': { ohhaeng: '토', color: 'bg-[#fdba74]/30 text-orange-800' },
+    '해': { ohhaeng: '수', color: 'bg-[#67e8f9]/30 text-cyan-800' },
 };
 
 // 한자 매핑
@@ -391,7 +391,9 @@ export const getManseryeokPillar = ({
         zhiColor: ZHI_DETAILS[zhi]?.color || 'bg-slate-200 text-slate-800',
         zhiSipsin: getSipsin(dayGan, zhi, true),
 
-        jijanggan: hideGan && hideGan.length > 0 ? hideGan.map((h: string) => HANJA_TO_HANGUL[h] || h) : (JIJANGGAN_MAP[zhi] || []),
+        // lunar-javascript의 지장간은 본기-중기-여기 역순이거나 글자가 빠지는 등 한국 명식과 맞지 않음
+        // 따라서 한국에서 통용되는 JIJANGGAN_MAP(여기->중기->정기)을 1순위로 사용하도록 수정
+        jijanggan: JIJANGGAN_MAP[zhi] || (hideGan && hideGan.length > 0 ? hideGan.map((h: string) => HANJA_TO_HANGUL[h] || h) : []),
 
         // 십이운성, 십이신살, 일반신살
         shibiUnsung: diShi ? (DISHI_MAP[diShi] || diShi) : '건록',

@@ -6,6 +6,8 @@ import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
 import ManseryeokTable from "@/components/ManseryeokTable";
+import OhhaengRadarChart from "@/components/OhhaengRadarChart";
+import SajuAccordion from "@/components/SajuAccordion";
 
 export default function HistoryDetailPage() {
     const { history } = useSajuStore();
@@ -44,6 +46,9 @@ export default function HistoryDetailPage() {
                 {resultData.manseryeok && (
                     <motion.div initial={{ y: 20, opacity: 0 }} animate={{ y: 0, opacity: 1 }}>
                         <ManseryeokTable data={resultData.manseryeok} userInfo={userInfo} />
+                        <div className="mt-6 mb-6">
+                            <OhhaengRadarChart manseryeok={resultData.manseryeok as any} />
+                        </div>
                     </motion.div>
                 )}
 
@@ -84,26 +89,14 @@ export default function HistoryDetailPage() {
                     </div>
                 </motion.div>
 
-                {/* 상세 내용 리스트 */}
-                <div className="space-y-4">
-                    {resultData.details.map((detail, idx) => (
-                        <motion.div
-                            key={idx}
-                            initial={{ y: 20, opacity: 0 }}
-                            animate={{ y: 0, opacity: 1 }}
-                            transition={{ delay: 0.1 * (idx + 1) }}
-                            className="bg-white rounded-2xl p-5 shadow-sm border border-slate-100"
-                        >
-                            <h3 className="text-lg font-bold text-slate-900 mb-3 flex items-center gap-2">
-                                <span className="w-1.5 h-4 bg-purple-500 rounded-full inline-block" />
-                                {detail.title}
-                            </h3>
-                            <p className="text-slate-600 leading-relaxed text-sm whitespace-pre-wrap">
-                                {detail.content}
-                            </p>
-                        </motion.div>
-                    ))}
-                </div>
+                <motion.div
+                    initial={{ y: 20, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.1 }}
+                    className="mb-8"
+                >
+                    <SajuAccordion details={resultData.details} />
+                </motion.div>
             </main>
         </div>
     );

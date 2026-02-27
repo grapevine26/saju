@@ -90,27 +90,64 @@ export async function POST(request: Request) {
         };
 
         // 2. Gemini API 호출
-        const model = genAI.getGenerativeModel({ model: "gemini-2.5-flash" });
-        const prompt = `
-너는 MZ세대에게 인기 있는 '사주팝(SajuPop)'이라는 운세/사주 서비스의 1타 사주 마스터야.
+        const model = genAI.getGenerativeModel({
+            model: "gemini-2.5-flash",
+            // 시스템 인스트럭션: AI의 페르소나 및 응답 규칙 지정
+            systemInstruction: `너는 MZ세대에게 인기 있는 '사주팝(SajuPop)'이라는 운세/사주 서비스의 1타 사주 마스터야.
 딱딱한 한자 용어 대신 누구나 알아듣기 쉬운 재치 있고 통통 튀는 말투(해요체, 반말 혼용, 이모지 적극 사용)로 사주를 풀어줘.
-
-[사용자 정보]
+반드시 JSON 형식에 정확히 맞춰서 대답해야 해! 다른 부연 설명이나 마크다운 백틱 없이 순수 JSON 데이터만 반환해.`,
+            generationConfig: {
+                responseMimeType: "application/json",
+                responseSchema: {
+                    type: "object" as any,
+                    properties: {
+                        keyword: { type: "string" as any },
+                        score: { type: "integer" as any },
+                        summary: { type: "string" as any },
+                        details: {
+                            type: "array" as any,
+                            items: {
+                                type: "object" as any,
+                                properties: {
+                                    title: { type: "string" as any },
+                                    subtitle: { type: "string" as any },
+                                    content: { type: "string" as any }
+                                },
+                                required: ["title", "subtitle", "content"]
+                            }
+                        }
+                    },
+                    required: ["keyword", "score", "summary", "details"]
+                }
+            }
+        });
+        console.log(baziStr);
+        // 실제 유저 데이터 프롬프트
+        const prompt = `[사용자 정보]
 - 이름: ${name || "익명"}
 - 성별: ${gender === 'male' ? '남자' : '여자'}
 - 사주팔자(간지): ${baziStr} 
 
-위 정보와 사주팔자를 바탕으로 올해(2026년 기준)의 운세를 분석해서, 다음 JSON 형식에 정확히 맞춰서 대답해줘. 
-꼭! 다른 말은 덧붙이지 말고 JSON 데이터만 반환해.
+위 정보와 사주팔자를 바탕으로, 다음 9가지 섹션을 모두 포함하여 사주를 분석해줘. 
 
 {
-  "keyword": "올해를 대표하는 핵심 키워드 (예: 대기만성형 철학자)",
+  "keyword": "전체 사주를 꿰뚫는 핵심 키워드 한 줄 (예: 무자일주, 재물을 깔고 앉은 황금 거북이)",
   "score": 올해 운세 점수 (0~100 사이의 숫자, 예: 85),
-  "summary": "올해 운세에 대한 직관적이고 톡톡 튀는 2~3줄 요약",
+  "summary": "내 사주의 전체적인 그림을 그리는 직관적인 2~3줄 요약",
   "details": [
-    { "title": "내가 타고난 기운 🌟", "content": "내 사주의 중심이 되는 기운과 성격..." },
-    { "title": "올해의 재물운 💰", "content": "올해는 돈이 어떻게 흐를까?..." },
-    { "title": "올해의 애정/대인운 💖", "content": "솔로는? 커플은? 사람들은 날 어떻게 생각할까?..." }
+    { 
+      "title": "오행분석", 
+      "subtitle": "얼음장 밑으로 흐르는 거대한 황금 물결의 지배자 (이런 식의 호기심을 자극하는 매력적인 소제목)", 
+      "content": "오행의 비율과 그것이 내 뼈대와 기질에 미치는 영향을 자세히 설명해줘." 
+    },
+    { "title": "성격과 기질", "subtitle": "...", "content": "..." },
+    { "title": "연애/결혼", "subtitle": "...", "content": "..." },
+    { "title": "대인관계", "subtitle": "...", "content": "..." },
+    { "title": "적성과 직업", "subtitle": "...", "content": "..." },
+    { "title": "재물운", "subtitle": "...", "content": "..." },
+    { "title": "건강운", "subtitle": "...", "content": "..." },
+    { "title": "대운시기", "subtitle": "...", "content": "인생의 큰 흐름(대운)이 언제 바뀌고, 어떻게 대비해야 하는지" },
+    { "title": "주의시기", "subtitle": "...", "content": "특별히 조심해야 할 년도나 달, 극복 방법" }
   ]
 }
 `;
