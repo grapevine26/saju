@@ -110,6 +110,12 @@ export default function ProfileDetailPage() {
                             </p>
                         </div>
                         <div>
+                            <p className="text-slate-400 mb-1">태어난 장소</p>
+                            <p className="font-semibold text-slate-700 truncate" title={profile.birthCity}>
+                                {profile.birthCity === 'seoul' ? '서울 (대한민국)' : profile.birthCity}
+                            </p>
+                        </div>
+                        <div>
                             <p className="text-slate-400 mb-1">태어난 시간</p>
                             <p className="font-semibold text-slate-700">
                                 {profile.isTimeUnknown ? '모름' : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')}`}
@@ -131,7 +137,7 @@ export default function ProfileDetailPage() {
                         gender: profile.gender,
                         calendarType: profile.calendarType,
                         birthDate: `${profile.birthYear}년 ${profile.birthMonth}월 ${profile.birthDay}일`,
-                        birthTime: profile.isTimeUnknown ? "시간 모름" : profile.birthTime
+                        birthTime: profile.isTimeUnknown ? "시간 모름" : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')} (${profile.birthCity === 'seoul' ? '서울' : profile.birthCity})`
                     }}
                 />
 

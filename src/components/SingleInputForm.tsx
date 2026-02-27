@@ -5,9 +5,12 @@ import { ArrowLeft, ChevronRight, ChevronDown } from "lucide-react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { ZHI_TIME_RANGES } from "@/constants/sajuTime";
+import { useState } from "react";
+import LocationSearch from "./LocationSearch";
 
 export default function SingleInputForm() {
     const router = useRouter();
+    const [showTimeTooltip, setShowTimeTooltip] = useState(false);
 
     // Store values
     const {
@@ -15,7 +18,7 @@ export default function SingleInputForm() {
         gender, setGender,
         calendarType, setCalendarType,
         birthYear, birthMonth, birthDay, setBirthDate,
-        birthCity, birthHour, birthMinute, isTimeUnknown, setBirthLocationTime,
+        birthCity, birthTimezone, birthLongitude, birthHour, birthMinute, isTimeUnknown, setBirthLocationTime,
         saveProfile
     } = useSajuStore();
 
@@ -135,50 +138,93 @@ export default function SingleInputForm() {
                 </section>
 
                 {/* 4. Birth Time & Location */}
-                <section className="space-y-4">
-                    <label className="block text-lg font-bold text-slate-900">태어난 시간과 지역</label>
+                <section className="space-y-4 relative">
+                    <div className="flex items-center justify-between">
+                        <label className="block text-lg font-bold text-slate-900">태어난 시간과 지역</label>
+
+                        {/* 플로팅 툴팁 버튼 영역 */}
+                        <div className="relative">
+                            <button
+                                onClick={() => setShowTimeTooltip(!showTimeTooltip)}
+                                className="text-[13px] font-bold text-slate-600 bg-slate-100 px-3 py-1.5 rounded-lg hover:bg-slate-200 flex items-center gap-1.5 transition-colors border border-slate-200 shadow-sm"
+                            >
+                                <span className="text-sm">💡</span> 12지시 시간표
+                            </button>
+
+                            {/* 플로팅 툴팁 본문 */}
+                            {showTimeTooltip && (
+                                <div className="absolute right-0 top-full mt-2 w-72 bg-white border border-slate-200 shadow-2xl rounded-2xl z-50 p-4 pt-3 origin-top-right animate-fade-in-up">
+                                    <div className="flex justify-between items-center mb-3 border-b border-slate-100 pb-2">
+                                        <span className="font-bold text-slate-800 text-sm">🕰️ 12지시 시기표</span>
+                                        <button onClick={() => setShowTimeTooltip(false)} className="text-slate-400 hover:text-slate-600 text-2xl leading-none px-1">&times;</button>
+                                    </div>
+                                    <div className="grid grid-cols-1 gap-y-2 max-h-[240px] overflow-y-auto pr-2 custom-scrollbar text-sm">
+                                        {ZHI_TIME_RANGES.map((t, idx) => (
+                                            <div key={idx} className="flex justify-between items-center text-slate-600 border-b border-slate-50 pb-1">
+                                                <span className="font-bold">{t.label}</span>
+                                                <span className="text-xs font-mono bg-slate-50 border border-slate-100 px-1.5 py-0.5 rounded text-slate-500">{t.period}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                    <div className="mt-4 bg-purple-50 p-2.5 rounded-xl border border-purple-100/50">
+                                        <p className="text-[11px] text-purple-700 font-semibold text-center break-keep leading-relaxed m-0">
+                                            위 표를 참고하여 해당하는 범위를<br />아래 시/분 칸에 적어주세요.
+                                        </p>
+                                    </div>
+                                </div>
+                            )}
+                        </div>
+                    </div>
+
                     <div className="space-y-4">
                         {/* 지역 선택 */}
-                        <div className="relative">
-                            <select
+                        <div className="relative z-30">
+                            <LocationSearch
                                 disabled={isTimeUnknown}
-                                value={birthCity}
-                                onChange={(e) => setBirthLocationTime(e.target.value, birthHour, birthMinute, isTimeUnknown)}
-                                className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-medium disabled:opacity-50 disabled:bg-slate-100 pr-12 appearance-none"
-                            >
-                                <option value="seoul">서울/경기/인천 (표준)</option>
-                                <option value="busan">부산/울산/경남 (+8분)</option>
-                                <option value="daegu">대구/경북 (+4분)</option>
-                                <option value="gwangju">광주/전남 (표준과 동일)</option>
-                                <option value="daejeon">대전/충남/세종 (+2분)</option>
-                                <option value="gangneung">강릉/동해안 (+10분)</option>
-                                <option value="jeju">제주도 (표준과 동일)</option>
-                            </select>
-                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
-                                <ChevronDown className="w-6 h-6" />
-                            </div>
+                                value={birthCity === 'seoul' ? '서울 (대한민국)' : birthCity}
+                                onSelect={(cityName, tz, lon) => {
+                                    setBirthLocationTime(cityName, birthHour, birthMinute, isTimeUnknown, tz, lon);
+                                }}
+                            />
                         </div>
 
-                        {/* 12지시 선택 드롭다운 */}
-                        <div className="relative">
-                            <select
-                                disabled={isTimeUnknown}
-                                value={`${birthHour}:${birthMinute}`}
-                                onChange={(e) => {
-                                    const [h, m] = e.target.value.split(':');
-                                    setBirthLocationTime(birthCity, h, m, isTimeUnknown);
-                                }}
-                                className="w-full p-4 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-bold disabled:opacity-50 disabled:bg-slate-100 pr-12 appearance-none"
-                            >
-                                <option value=":" disabled hidden>태어난 시간대(12지시) 선택</option>
-                                {ZHI_TIME_RANGES.map((t, idx) => (
-                                    <option key={idx} value={`${t.hour}:${t.minute}`}>
-                                        {t.label} ({t.period})
-                                    </option>
-                                ))}
-                            </select>
-                            <div className="absolute inset-y-0 right-4 flex items-center pointer-events-none text-slate-500">
-                                <ChevronDown className="w-6 h-6" />
+                        {/* 시 / 분 입력 막대 복구본 */}
+                        <div className="flex gap-3">
+                            <div className="relative w-1/2">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="23"
+                                    placeholder="시 (0~23)"
+                                    disabled={isTimeUnknown}
+                                    value={birthHour}
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+                                        if (parseInt(val) > 23) val = "23";
+                                        if (parseInt(val) < 0) val = "0";
+                                        setBirthLocationTime(birthCity, val, birthMinute, isTimeUnknown);
+                                    }}
+                                    className="w-full p-4 text-center rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-bold disabled:opacity-50 disabled:bg-slate-100"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">시</span>
+                            </div>
+                            <div className="relative w-1/2">
+                                <input
+                                    type="number"
+                                    min="0"
+                                    max="59"
+                                    placeholder="분 (0~59)"
+                                    disabled={isTimeUnknown}
+                                    value={birthMinute}
+                                    onChange={(e) => {
+                                        let val = e.target.value;
+                                        if (parseInt(val) > 59) val = "59";
+                                        if (parseInt(val) < 0) val = "0";
+                                        setBirthLocationTime(birthCity, birthHour, val, isTimeUnknown);
+                                    }}
+                                    className="w-full p-4 text-center rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-bold disabled:opacity-50 disabled:bg-slate-100"
+                                />
+                                <span className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 font-medium">분</span>
                             </div>
                         </div>
 

@@ -1,8 +1,10 @@
 @import "tailwindcss";
 
 :root {
-  --background: #f8fafc; /* 매우 연한 푸른빛의 깨끗한 웹앱 배경 */
-  --foreground: #0f172a; /* 텍스트는 진한 슬레이트 컬러 */
+  --background: #f8fafc;
+  /* 매우 연한 푸른빛의 깨끗한 웹앱 배경 */
+  --foreground: #0f172a;
+  /* 텍스트는 진한 슬레이트 컬러 */
 }
 
 @theme inline {
@@ -29,6 +31,7 @@ body {
 ::-webkit-scrollbar {
   display: none;
 }
+
 * {
   -ms-overflow-style: none;
   scrollbar-width: none;
@@ -36,10 +39,21 @@ body {
 
 /* 커스텀 테마 애니메이션 (Landing Page 용) */
 @keyframes blob {
-  0% { transform: translate(0px, 0px) scale(1); }
-  33% { transform: translate(30px, -50px) scale(1.1); }
-  66% { transform: translate(-20px, 20px) scale(0.9); }
-  100% { transform: translate(0px, 0px) scale(1); }
+  0% {
+    transform: translate(0px, 0px) scale(1);
+  }
+
+  33% {
+    transform: translate(30px, -50px) scale(1.1);
+  }
+
+  66% {
+    transform: translate(-20px, 20px) scale(0.9);
+  }
+
+  100% {
+    transform: translate(0px, 0px) scale(1);
+  }
 }
 
 .animate-blob {
@@ -55,10 +69,44 @@ body {
 }
 
 @keyframes fade-in-up {
-  from { opacity: 0; transform: translateY(20px); }
-  to { opacity: 1; transform: translateY(0); }
+  from {
+    opacity: 0;
+    transform: translateY(20px);
+  }
+
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
 }
 
 .animate-fade-in-up {
   animation: fade-in-up 0.5s ease-out forwards;
+}
+
+/* Chrome, Safari, Edge, Opera에서 숫자 입력 스피너 숨기기 */
+input[type="number"]::-webkit-outer-spin-button,
+input[type="number"]::-webkit-inner-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+/* Firefox에서 숫자 입력 스피너 숨기기 */
+input[type="number"] {
+  -moz-appearance: textfield;
+}
+
+/* 커스텀 스크롤바 (툴팁 등 작은 영역용) */
+.custom-scrollbar::-webkit-scrollbar {
+  width: 4px;
+  display: block;
+}
+
+.custom-scrollbar::-webkit-scrollbar-track {
+  background: transparent;
+}
+
+.custom-scrollbar::-webkit-scrollbar-thumb {
+  background-color: #cbd5e1;
+  border-radius: 4px;
 }

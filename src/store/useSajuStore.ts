@@ -14,6 +14,8 @@ export interface UserProfile {
     birthMonth: string;
     birthDay: string;
     birthCity: string;
+    birthTimezone?: string; // (추가) 타임존 (ex. "Asia/Seoul", "America/New_York")
+    birthLongitude?: number; // (추가) 실제 경도
     birthHour: string;
     birthMinute: string;
     isTimeUnknown: boolean;
@@ -31,6 +33,8 @@ export interface SavedResult {
         calendarType: CalendarType;
         birthDate: string;
         birthCity: string;
+        birthTimezone?: string;
+        birthLongitude?: number;
         birthTime: string; // "14:30" 형식의 렌더링용
         isTimeUnknown: boolean;
     };
@@ -56,6 +60,8 @@ interface SajuState {
     birthMonth: string;
     birthDay: string;
     birthCity: string;
+    birthTimezone?: string;
+    birthLongitude?: number;
     birthHour: string;
     birthMinute: string;
     isTimeUnknown: boolean;
@@ -68,7 +74,7 @@ interface SajuState {
     setGender: (gender: Gender) => void;
     setCalendarType: (type: CalendarType) => void;
     setBirthDate: (year: string, month: string, day: string) => void;
-    setBirthLocationTime: (city: string, hour: string, minute: string, isUnknown: boolean) => void;
+    setBirthLocationTime: (city: string, hour: string, minute: string, isUnknown: boolean, timezone?: string, longitude?: number) => void;
 
     // 전체 Input을 특정 프로필 데이터로 덮어씌움 (불러오기)
     loadProfileToInput: (profile: UserProfile) => void;
@@ -90,6 +96,8 @@ const initialInputState = {
     birthMonth: '',
     birthDay: '',
     birthCity: 'seoul',
+    birthTimezone: undefined as string | undefined,
+    birthLongitude: undefined as number | undefined,
     birthHour: '',
     birthMinute: '',
     isTimeUnknown: false,
@@ -109,7 +117,7 @@ export const useSajuStore = create<SajuState>()(
             setGender: (gender) => set({ gender }),
             setCalendarType: (calendarType) => set({ calendarType }),
             setBirthDate: (birthYear, birthMonth, birthDay) => set({ birthYear, birthMonth, birthDay }),
-            setBirthLocationTime: (birthCity, birthHour, birthMinute, isTimeUnknown) => set({ birthCity, birthHour, birthMinute, isTimeUnknown }),
+            setBirthLocationTime: (birthCity, birthHour, birthMinute, isTimeUnknown, birthTimezone, birthLongitude) => set({ birthCity, birthHour, birthMinute, isTimeUnknown, birthTimezone, birthLongitude }),
 
             loadProfileToInput: (profile) => set({
                 name: profile.name,
@@ -119,6 +127,8 @@ export const useSajuStore = create<SajuState>()(
                 birthMonth: profile.birthMonth,
                 birthDay: profile.birthDay,
                 birthCity: profile.birthCity,
+                birthTimezone: profile.birthTimezone,
+                birthLongitude: profile.birthLongitude,
                 birthHour: profile.birthHour,
                 birthMinute: profile.birthMinute,
                 isTimeUnknown: profile.isTimeUnknown,
@@ -139,7 +149,8 @@ export const useSajuStore = create<SajuState>()(
                     // 아바타 렌더링에 필요한 일간/일지 데이터를 뽑기 위한 빠른 연산
                     const result = calculateBazi(
                         state.gender, state.calendarType, state.birthYear, state.birthMonth, state.birthDay,
-                        state.birthCity, state.birthHour, state.birthMinute, state.isTimeUnknown
+                        state.birthCity, state.birthHour, state.birthMinute, state.isTimeUnknown,
+                        state.birthTimezone, state.birthLongitude
                     );
                     if (result?.manseryeok?.day) {
                         dayGan = result.manseryeok.day.gan;
@@ -159,6 +170,8 @@ export const useSajuStore = create<SajuState>()(
                         birthMonth: state.birthMonth,
                         birthDay: state.birthDay,
                         birthCity: state.birthCity,
+                        birthTimezone: state.birthTimezone,
+                        birthLongitude: state.birthLongitude,
                         birthHour: state.birthHour,
                         birthMinute: state.birthMinute,
                         isTimeUnknown: state.isTimeUnknown,
@@ -198,6 +211,8 @@ export const useSajuStore = create<SajuState>()(
                         calendarType: state.calendarType,
                         birthDate: `${state.birthYear}-${state.birthMonth}-${state.birthDay}`,
                         birthCity: state.birthCity,
+                        birthTimezone: state.birthTimezone,
+                        birthLongitude: state.birthLongitude,
                         birthTime: state.isTimeUnknown ? '모름' : `${state.birthHour.padStart(2, '0')}:${state.birthMinute.padStart(2, '0')}`,
                         isTimeUnknown: state.isTimeUnknown
                     },

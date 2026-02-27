@@ -25,7 +25,9 @@ export function calculateBazi(
     birthCity: string,   // "seoul", "busan" 등
     birthHour: string,
     birthMinute: string,
-    isTimeUnknown: boolean
+    isTimeUnknown: boolean,
+    birthTimezone?: string,
+    birthLongitude?: number
 ): BaziCalculationResult {
     // 1. 지역별 경도 시간 보정 로직 (진태양시 계산)
     // 대한민국 표준시는 135도(UTC+9) 기준. 각 도시별 경도차에 따른 보정값(분)
@@ -42,26 +44,56 @@ export function calculateBazi(
     let hour = 12;
     let minute = 0;
 
+    let finalOffsetMinutes = 0;
+    const inputHour = parseInt(birthHour, 10) || 0;
+    const inputMinute = parseInt(birthMinute, 10) || 0;
+    const y = parseInt(birthYear, 10) || 1990;
+    const m = parseInt(birthMonth, 10) || 1;
+    const d = parseInt(birthDay, 10) || 1;
+
     if (!isTimeUnknown && birthHour !== "" && birthMinute !== "") {
-        const offset = cityOffsetMinutes[birthCity] || -32; // 기본값 서울 기준
-        const inputHour = parseInt(birthHour, 10) || 0;
-        const inputMinute = parseInt(birthMinute, 10) || 0;
+        // [새로운 글로벌 타임존 / 경도 보정 로직]
+        if (birthTimezone && birthLongitude !== undefined) {
+            try {
+                // 해당 출생일/타임존 기준의 UTC 오프셋 분(minute) 구하기
+                const dateObj = new Date(Date.UTC(y, m - 1, d, inputHour, inputMinute));
 
-        // 보정분을 입력 시간에 적용
-        const totalMinutes = inputHour * 60 + inputMinute + offset;
+                // Intl을 이용해 해당 타임존의 시간 문자열 추출 (ex: "2000-01-01T10:00:00-05:00" 형태 유도 혹은 부가 수식)
+                // 브라우저마다 파싱이 다를 수 있어 가장 안전한 방법: 
+                // 해당 타임존에서의 표시 시간을 얻고, UTC와의 차이를 분단위로 계산
+                const tzString = dateObj.toLocaleString('en-US', { timeZone: birthTimezone });
+                const tzDate = new Date(tzString);
 
-        // 0시 이전이나 24시 이후로 넘어가는 경우 
-        // lunar-javascript 의 fromYmdHms 에 Date 객체를 사용하거나 직접 일자 보정이 필요할 수 있으나
-        // 라이브러리의 계산식에서는 단순 시, 분을 넣어도 내부적으로 윤달/윤일 등 보정이 됩니다.
-        // 하지만 시주 산출이 목표이므로 시/분만 조정(날짜 경계는 보수적으로 JS Date 사용)
+                // 기준 경도(Standard Longitude) 산출 시 사용하기 위한 대략적인 오프셋 시간 구하기
+                // 정확한 오프셋 분 산출 시, Date 파싱 차이를 피하기 위해 시간차를 비교합니다.
+                const offsetHours = (tzDate.getTime() - dateObj.getTime()) / (1000 * 60 * 60);
+
+                // 글로벌 타임존 기준 경도 = 타임존 오프셋 * 15도
+                const standardLongitude = offsetHours * 15;
+
+                // 진태양시 보정분 = (실제 경도 - 기준 경도) * 4분
+                // (경도 1도당 4분의 시간차 발생. 한국의 경우 127 - 135 = -8 => -32분)
+                finalOffsetMinutes = Math.round((birthLongitude - standardLongitude) * 4);
+
+            } catch (e) {
+                console.error("타임존 보정 계산 실패, 기본 하드코딩된 도시 오프셋으로 폴백합니다.", e);
+                finalOffsetMinutes = cityOffsetMinutes[birthCity] || -32;
+            }
+        } else {
+            // 과거 하드코딩된 대한민국/국내 지역 오프셋
+            finalOffsetMinutes = cityOffsetMinutes[birthCity] || -32;
+        }
+
         return calculateBaziWithCorrectedTime(
-            gender, calendarType, parseInt(birthYear, 10) || 1990, parseInt(birthMonth, 10) || 1, parseInt(birthDay, 10) || 1,
-            inputHour, inputMinute, offset, isTimeUnknown
+            gender, calendarType, y, m, d,
+            inputHour, inputMinute, finalOffsetMinutes, isTimeUnknown,
+            birthTimezone, birthLongitude
         );
     } else {
         return calculateBaziWithCorrectedTime(
-            gender, calendarType, parseInt(birthYear, 10) || 1990, parseInt(birthMonth, 10) || 1, parseInt(birthDay, 10) || 1,
-            12, 0, 0, true
+            gender, calendarType, y, m, d,
+            12, 0, 0, true,
+            birthTimezone, birthLongitude
         );
     }
 }
@@ -71,7 +103,8 @@ function calculateBaziWithCorrectedTime(
     gender: 'male' | 'female' | null, calendarType: 'solar' | 'lunar',
     y: number, m: number, d: number,
     inputHour: number, inputMinute: number, offsetMinutes: number,
-    isTimeUnknown: boolean
+    isTimeUnknown: boolean,
+    timezone?: string, longitude?: number
 ): BaziCalculationResult {
     // 날짜 연산을 통해 정확하게 분단위 시간을 가감하여 날짜가 넘어가는 것도 반영
     const dateObj = new Date(y, m - 1, d, inputHour, inputMinute + offsetMinutes);
