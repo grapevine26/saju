@@ -62,14 +62,15 @@ export default function AnalysisPage() {
             try {
                 const res = await fetch(`/api/job-status?jobId=${pollingJobId}`);
                 const data = await res.json();
-                if (data.success && data.status === 'completed') {
-                    clearInterval(interval);
-                    // localStorage tier를 premium으로 즉시 갱신
                     if (recordId.current) {
-                        updateReunionResult(recordId.current, 'premium', result);
+                        // API에서 준 aiResult(프리미엄 데이터)를 기존 히스토리에 병합
+                        updateReunionResult(recordId.current, 'premium', data.aiResult);
                     }
-                    router.push(`/result/${pollingJobId}`);
-                }
+                    // 잠시 대기 후 결과 페이지로 이동 (DB 반영 시간 확보)
+                    setTimeout(() => {
+                        router.push(`/result/${pollingJobId}`);
+                    }, 500);
+
             } catch (err) {
                 console.error("Polling error:", err);
             }
@@ -234,12 +235,14 @@ export default function AnalysisPage() {
                 }
                 // 환경 무관하게 폴링 시작 (페이지에 머무를 경우 자동 이동)
                 setPollingJobId(data.jobId);
+                
                 if (isDev) {
                     toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
                 } else {
                     toast.success("접수 완료! 분석이 끝나면 자동으로 이동됩니다. 문자로도 알려드릴게요.");
                 }
             } else {
+
                 toast.error(data.error || "요청에 실패했습니다.");
                 if (!isDev) setIsPremiumPending(false);
                 setIsUpgrading(false);

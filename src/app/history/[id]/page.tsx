@@ -40,12 +40,14 @@ export default function HistoryDetailPage() {
                 const data = await res.json();
                 if (data.success && data.status === 'completed') {
                     clearInterval(interval);
-                    // localStorage tier를 premium으로 즉시 갱신
+                    // localStorage tier를 premium으로 즉시 갱신하고 결과 병합
                     const record = reunionHistory.find(r => r.id === id);
                     if (record) {
-                        updateReunionResult(record.id, 'premium', record.resultData);
+                        updateReunionResult(record.id, 'premium', data.aiResult);
                     }
-                    router.push(`/result/${pollingJobId}`);
+                    setTimeout(() => {
+                        router.push(`/result/${pollingJobId}`);
+                    }, 500);
                 }
             } catch (err) {
                 console.error("Polling error:", err);
@@ -86,9 +88,11 @@ export default function HistoryDetailPage() {
                 const res = await fetch(`/api/job-status?jobId=${record.premiumJobId}`);
                 const data = await res.json();
                 if (data.success && data.status === 'completed') {
-                    // tier를 즉시 premium으로 갱신한 뒤 결과 페이지로 이동
-                    updateReunionResult(record.id, 'premium', record.resultData);
-                    router.push(`/result/${record.premiumJobId}`);
+                    // tier를 즉시 premium으로 갱신하고 결과 병합 후 결과 페이지로 이동
+                    updateReunionResult(record.id, 'premium', data.aiResult);
+                    setTimeout(() => {
+                        router.push(`/result/${record.premiumJobId}`);
+                    }, 500);
                 } else if (data.success && data.status === 'processing') {
                     setIsPremiumPending(true);
                     // 아직 처리 중이면 폴링 시작

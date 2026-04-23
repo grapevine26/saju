@@ -12,7 +12,7 @@ export async function GET(request: Request) {
     try {
         const { data: job, error } = await supabaseAdmin
             .from("premium_analysis_jobs")
-            .select("status")
+            .select("status, ai_result")
             .eq("id", jobId)
             .single();
 
@@ -20,7 +20,12 @@ export async function GET(request: Request) {
             return NextResponse.json({ success: false, error: "작업을 찾을 수 없습니다." }, { status: 404 });
         }
 
-        return NextResponse.json({ success: true, status: job.status });
+        // 완료된 작업이면 ai_result도 함께 반환
+        return NextResponse.json({
+            success: true,
+            status: job.status,
+            ...(job.status === 'completed' && job.ai_result ? { aiResult: job.ai_result } : {})
+        });
     } catch (error) {
         console.error("Job Status API 에러:", error);
         return NextResponse.json({ success: false, error: "서버 오류가 발생했습니다." }, { status: 500 });

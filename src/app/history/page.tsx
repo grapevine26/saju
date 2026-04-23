@@ -25,7 +25,7 @@ export default function HistoryPage() {
                     const res = await fetch(`/api/job-status?jobId=${record.premiumJobId}`);
                     const data = await res.json();
                     if (data.success && data.status === 'completed') {
-                        updateReunionResult(record.id, 'premium', record.resultData);
+                        updateReunionResult(record.id, 'premium', data.aiResult);
                     }
                 } catch (err) {
                     // 네트워크 에러는 무시 (다음에 다시 시도)
