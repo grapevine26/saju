@@ -30,11 +30,42 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
         setQuery(value || '');
     }, [value]);
 
-    // 외부 클릭 시 드롭다운 닫기
+    const handleSelect = (loc: GeoLocation) => {
+        let displayName = '';
+        if (loc.admin1 && loc.admin1 !== loc.name && !loc.admin1.includes(loc.name) && !loc.name.includes(loc.admin1)) {
+            displayName = `${loc.name}, ${loc.admin1} (${loc.country})`;
+        } else {
+            displayName = `${loc.name} (${loc.country})`;
+        }
+        setQuery(displayName);
+        setIsOpen(false);
+        onSelect(displayName, loc.timezone, loc.longitude);
+    };
+
+    // 최신 상태를 ref로 관리하여 handleClickOutside에서 참조
+    const stateRef = useRef({ query, results, value, isOpen, handleSelect });
+    useEffect(() => {
+        stateRef.current = { query, results, value, isOpen, handleSelect };
+    }, [query, results, value, isOpen]);
+
+    // 외부 클릭 시 드롭다운 닫기 및 자동 선택 처리
     useEffect(() => {
         function handleClickOutside(event: MouseEvent) {
             if (wrapperRef.current && !wrapperRef.current.contains(event.target as Node)) {
-                setIsOpen(false);
+                const { query: currentQuery, results: currentResults, value: currentValue, isOpen: currentIsOpen, handleSelect: currentHandleSelect } = stateRef.current;
+                
+                if (currentIsOpen) {
+                    if (currentQuery.trim() !== '' && currentQuery !== currentValue && currentResults.length > 0) {
+                        // 입력은 했으나 선택하지 않고 밖을 누른 경우 첫 번째 결과 자동 선택
+                        currentHandleSelect(currentResults[0]);
+                    } else if (currentQuery.trim() !== '' && currentQuery !== currentValue && currentResults.length === 0) {
+                        // 결과가 없으면 기존 값으로 롤백
+                        setQuery(currentValue || '');
+                        setIsOpen(false);
+                    } else {
+                        setIsOpen(false);
+                    }
+                }
             }
         }
         document.addEventListener('mousedown', handleClickOutside);
@@ -183,17 +214,6 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
         return () => clearTimeout(timer);
     }, [query, isOpen]);
 
-    const handleSelect = (loc: GeoLocation) => {
-        let displayName = '';
-        if (loc.admin1 && loc.admin1 !== loc.name && !loc.admin1.includes(loc.name) && !loc.name.includes(loc.admin1)) {
-            displayName = `${loc.name}, ${loc.admin1} (${loc.country})`;
-        } else {
-            displayName = `${loc.name} (${loc.country})`;
-        }
-        setQuery(displayName);
-        setIsOpen(false);
-        onSelect(displayName, loc.timezone, loc.longitude);
-    };
 
     const handleClear = () => {
         setQuery('');

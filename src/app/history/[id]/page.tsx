@@ -106,7 +106,11 @@ export default function HistoryDetailPage() {
             return;
         }
 
-        setIsUpgrading(true);
+        if (isDev) {
+            setIsUpgrading(true);
+        } else {
+            setIsPremiumPending(true);
+        }
         setShowPhoneModal(false);
 
         try {

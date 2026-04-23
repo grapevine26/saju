@@ -187,7 +187,11 @@ export default function AnalysisPage() {
             return;
         }
 
-        setIsUpgrading(true);
+        if (isDev) {
+            setIsUpgrading(true);
+        } else {
+            setIsPremiumPending(true);
+        }
         setShowPhoneModal(false);
 
         try {
@@ -223,19 +227,19 @@ export default function AnalysisPage() {
                 if (isDev) {
                     toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
                     setPollingJobId(data.jobId);
-                    // isUpgrading을 true로 유지하여 로딩 오버레이 계속 표시
+                    // isUpgrading 유지
                 } else {
                     toast.success("접수 완료! 분석이 끝나면 문자로 알려드릴게요.");
-                    setIsPremiumPending(true); // "분석 대기 중" 상태로 전환
-                    setIsUpgrading(false);
                 }
             } else {
                 toast.error(data.error || "요청에 실패했습니다.");
+                if (!isDev) setIsPremiumPending(false);
                 setIsUpgrading(false);
             }
         } catch (err) {
             console.error(err);
             toast.error("네트워크 오류가 발생했습니다.");
+            if (!isDev) setIsPremiumPending(false);
             setIsUpgrading(false);
         }
     };
