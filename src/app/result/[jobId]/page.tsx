@@ -3,12 +3,14 @@ import ResultClient from "./ResultClient";
 
 export const revalidate = 0; // 항상 최신 데이터 Fetch (캐시 방지)
 
-export default async function ResultViewerPage({ params }: { params: { jobId: string } }) {
+export default async function ResultViewerPage({ params }: { params: Promise<{ jobId: string }> }) {
+    const { jobId } = await params;
+    
     // Supabase에서 jobId로 작업 조회
     const { data: job, error } = await supabaseAdmin
         .from("premium_analysis_jobs")
         .select("*")
-        .eq("id", params.jobId)
+        .eq("id", jobId)
         .single();
 
     if (error) {
