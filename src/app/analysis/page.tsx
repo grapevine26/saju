@@ -54,7 +54,7 @@ export default function AnalysisPage() {
 
     const isDev = process.env.NODE_ENV === 'development';
 
-    // 폴링 로직: 로컬 개발 환경에서 백그라운드 작업 완료를 기다림
+    // 폴링 로직: 백그라운드 작업 완료를 기다림 (로컬/운영 모두 동작)
     useEffect(() => {
         if (!pollingJobId) return;
 
@@ -64,6 +64,10 @@ export default function AnalysisPage() {
                 const data = await res.json();
                 if (data.success && data.status === 'completed') {
                     clearInterval(interval);
+                    // localStorage tier를 premium으로 즉시 갱신
+                    if (recordId.current) {
+                        updateReunionResult(recordId.current, 'premium', result);
+                    }
                     router.push(`/result/${pollingJobId}`);
                 }
             } catch (err) {
@@ -72,7 +76,7 @@ export default function AnalysisPage() {
         }, 3000); // 3초마다 확인
 
         return () => clearInterval(interval);
-    }, [pollingJobId, router]);
+    }, [pollingJobId, router, result, updateReunionResult]);
 
     useEffect(() => {
         const date = new Date();
@@ -228,12 +232,12 @@ export default function AnalysisPage() {
                 if (recordId.current) {
                     setPremiumJobId(recordId.current, data.jobId);
                 }
+                // 환경 무관하게 폴링 시작 (페이지에 머무를 경우 자동 이동)
+                setPollingJobId(data.jobId);
                 if (isDev) {
                     toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
-                    setPollingJobId(data.jobId);
-                    // isUpgrading 유지
                 } else {
-                    toast.success("접수 완료! 분석이 끝나면 문자로 알려드릴게요.");
+                    toast.success("접수 완료! 분석이 끝나면 자동으로 이동됩니다. 문자로도 알려드릴게요.");
                 }
             } else {
                 toast.error(data.error || "요청에 실패했습니다.");

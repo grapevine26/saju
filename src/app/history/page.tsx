@@ -4,7 +4,7 @@ import { useSajuStore } from "@/store/useSajuStore";
 import { ArrowLeft, Clock, Trash2, ChevronRight, Sparkles, Lock, CalendarHeart } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import toast from "react-hot-toast";
 import { Route } from "lucide-react";
 import LoadingOverlay from "@/components/LoadingOverlay";
@@ -13,6 +13,28 @@ export default function HistoryPage() {
     const { reunionHistory: history, removeReunionResult: removeResult, updateReunionResult } = useSajuStore();
     const router = useRouter();
     const [upgradingId, setUpgradingId] = useState<string | null>(null);
+
+    // 페이지 진입 시 premiumJobId가 있지만 아직 lite인 레코드들의 상태를 자동 동기화
+    useEffect(() => {
+        const pendingRecords = history.filter(r => r.premiumJobId && r.tier !== 'premium');
+        if (pendingRecords.length === 0) return;
+
+        const syncAll = async () => {
+            for (const record of pendingRecords) {
+                try {
+                    const res = await fetch(`/api/job-status?jobId=${record.premiumJobId}`);
+                    const data = await res.json();
+                    if (data.success && data.status === 'completed') {
+                        updateReunionResult(record.id, 'premium', record.resultData);
+                    }
+                } catch (err) {
+                    // 네트워크 에러는 무시 (다음에 다시 시도)
+                }
+            }
+        };
+
+        syncAll();
+    }, []);
 
     // Lite → Premium 업그레이드 API 호출
     const handleUpgrade = async (record: typeof history[0]) => {
