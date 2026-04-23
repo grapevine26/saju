@@ -1,7 +1,7 @@
 "use client";
 
 import { useSajuStore } from "@/store/useSajuStore";
-import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Lock, RefreshCcw, Share2 } from "lucide-react";
+import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Lock, RefreshCcw, Share2, Route } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -14,8 +14,8 @@ import GoldenWindowTimeline from "@/components/GoldenWindowTimeline";
 import MonthlyEnergyFlow from "@/components/MonthlyEnergyFlow";
 import LongTermRoadmap from "@/components/LongTermRoadmap";
 import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
-import { Route } from "lucide-react";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import PhoneInput from "@/components/PhoneInput";
 
 export default function HistoryDetailPage() {
     const { reunionHistory, updateReunionResult } = useSajuStore();
@@ -23,6 +23,32 @@ export default function HistoryDetailPage() {
     const params = useParams();
     const { id } = params;
     const [isUpgrading, setIsUpgrading] = useState(false);
+    const [showPhoneModal, setShowPhoneModal] = useState(false);
+    const [phoneNumber, setPhoneNumber] = useState('');
+    const [isPremiumPending, setIsPremiumPending] = useState(false);
+    const [pollingJobId, setPollingJobId] = useState<string | null>(null);
+
+    const isDev = process.env.NODE_ENV === 'development';
+
+    // 폴링 로직: 로컬 개발 환경에서 백그라운드 작업 완료를 기다림
+    useEffect(() => {
+        if (!pollingJobId) return;
+
+        const interval = setInterval(async () => {
+            try {
+                const res = await fetch(`/api/job-status?jobId=${pollingJobId}`);
+                const data = await res.json();
+                if (data.success && data.status === 'completed') {
+                    clearInterval(interval);
+                    router.push(`/result/${pollingJobId}`);
+                }
+            } catch (err) {
+                console.error("Polling error:", err);
+            }
+        }, 3000);
+
+        return () => clearInterval(interval);
+    }, [pollingJobId, router]);
     const [discountEndsAt, setDiscountEndsAt] = useState<string>('');
     const [showHeader, setShowHeader] = useState(true);
     const lastScrollY = useRef(0);
@@ -63,61 +89,69 @@ export default function HistoryDetailPage() {
     const compatibility = resultData.compatibility;
     const isLite = tier !== 'premium';
 
-    // Lite → Premium 업그레이드 API 호출
-    const handleUpgrade = async () => {
+    const handleUpgradeClick = () => {
         if (!record.myRawInput || !record.partnerRawInput) {
             toast.error("초기 버전의 데이터는 상세 정보가 부족하여 업그레이드할 수 없습니다. 새로 분석을 진행해주세요.");
             return;
         }
+        if (isDev) {
+            setPhoneNumber('01000000000');
+        }
+        setShowPhoneModal(true);
+    };
+
+    const startPremiumAnalysis = async () => {
+        if (!phoneNumber || phoneNumber.length < 10) {
+            toast.error("올바른 전화번호를 입력해 주세요.");
+            return;
+        }
 
         setIsUpgrading(true);
+        setShowPhoneModal(false);
+
         try {
-            const [goldenRes, premiumRes] = await Promise.all([
-                fetch("/api/golden-window", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        myDayGan: resultData.myManseryeok?.day?.gan,
-                        myDayZhi: resultData.myManseryeok?.day?.zhi,
-                        partnerDayGan: resultData.partnerManseryeok?.day?.gan,
-                        partnerDayZhi: resultData.partnerManseryeok?.day?.zhi,
-                        myName: myInfo.name || "익명",
-                        myGender: myInfo.gender,
-                        partnerName: partnerInfo.name || "그 사람",
-                        partnerGender: partnerInfo.gender,
-                        months: 6
-                    }),
+            const rawData = {
+                myRawInput: record.myRawInput,
+                partnerRawInput: record.partnerRawInput,
+                liteResult: record, // History의 record 전체 (liteResult)
+                myDayGan: resultData.myManseryeok?.day?.gan,
+                myDayZhi: resultData.myManseryeok?.day?.zhi,
+                partnerDayGan: resultData.partnerManseryeok?.day?.gan,
+                partnerDayZhi: resultData.partnerManseryeok?.day?.zhi,
+                metDate: (record as any).metDate || '',
+                breakupDate: (record as any).breakupDate || '',
+                breakupReason: (record as any).breakupReason || '',
+                months: 6
+            };
+
+            const res = await fetch("/api/premium-analysis/start", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    phoneNumber,
+                    rawData
                 }),
-                fetch("/api/reunion", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        my: record.myRawInput,
-                        partner: record.partnerRawInput,
-                        tier: 'premium',
-                    }),
-                })
-            ]);
+            });
 
-            const goldenData = await goldenRes.json();
-            const premiumData = await premiumRes.json();
+            const data = await res.json();
 
-            if (goldenData.success && premiumData.success) {
-                const updatedResult = {
-                    ...resultData,
-                    details: premiumData.data.details,
-                    essenceAnalysis: premiumData.data.essenceAnalysis,
-                    goldenWindows: goldenData.data
-                };
-                updateReunionResult(record.id, 'premium', updatedResult);
-                toast.success("Premium으로 업그레이드 완료! 🔮");
+            if (data.success) {
+                if (isDev) {
+                    toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
+                    setPollingJobId(data.jobId);
+                    // isUpgrading 유지
+                } else {
+                    toast.success("접수 완료! 분석이 끝나면 문자로 알려드릴게요.");
+                    setIsPremiumPending(true); // "분석 대기 중" 상태로 전환
+                    setIsUpgrading(false);
+                }
             } else {
-                toast.error("업그레이드 처리 중 오류가 발생했습니다.");
+                toast.error(data.error || "요청에 실패했습니다.");
+                setIsUpgrading(false);
             }
         } catch (err) {
             console.error(err);
             toast.error("네트워크 오류가 발생했습니다.");
-        } finally {
             setIsUpgrading(false);
         }
     };
@@ -359,13 +393,23 @@ export default function HistoryDetailPage() {
                         <RefreshCcw className="w-5 h-5" />
                         새로운 분석 시작
                     </button>
+                ) : isPremiumPending ? (
+                    <button
+                        disabled
+                        className="w-full bg-white/10 border border-white/20 text-white font-semibold py-4 rounded-2xl flex justify-center items-center gap-2"
+                    >
+                        <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
+                            <RefreshCcw className="w-5 h-5 opacity-70" />
+                        </motion.div>
+                        분석 중입니다. 문자를 기다려주세요!
+                    </button>
                 ) : (
                     <button
-                        onClick={handleUpgrade}
+                        onClick={handleUpgradeClick}
                         disabled={isUpgrading}
                         className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-4 rounded-2xl flex flex-col items-center gap-1 shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] disabled:opacity-50"
                     >
-                        {isUpgrading ? <span>분석 중...</span> : (
+                        {isUpgrading ? <span>분석 준비 중...</span> : (
                             <>
                                 <span className="text-[15px]">Premium 심층 리포트 열람하기</span>
                                 <span className="text-[12px] font-bold text-amber-100/90 tracking-wider">
@@ -376,6 +420,42 @@ export default function HistoryDetailPage() {
                     </button>
                 )}
             </div>
+
+            {/* 전화번호 입력 모달 */}
+            {showPhoneModal && (
+                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
+                    <motion.div
+                        initial={{ opacity: 0, scale: 0.95 }}
+                        animate={{ opacity: 1, scale: 1 }}
+                        className="bg-[#0f1423] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl"
+                    >
+                        <h3 className="text-xl font-bold text-white mb-2 text-center">알림 받으실 연락처</h3>
+                        <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
+                            프리미엄 분석은 약 2~3분이 소요됩니다.<br/>화면을 끄셔도 완성 시 문자로 알려드려요!
+                        </p>
+                        
+                        <PhoneInput 
+                            value={phoneNumber} 
+                            onChange={setPhoneNumber} 
+                        />
+                        
+                        <div className="flex gap-3 mt-2">
+                            <button
+                                onClick={() => setShowPhoneModal(false)}
+                                className="flex-1 py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 font-semibold rounded-xl transition-colors"
+                            >
+                                취소
+                            </button>
+                            <button
+                                onClick={startPremiumAnalysis}
+                                className="flex-1 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-amber-500/20"
+                            >
+                                분석 시작
+                            </button>
+                        </div>
+                    </motion.div>
+                </div>
+            )}
         </div>
     );
 }
