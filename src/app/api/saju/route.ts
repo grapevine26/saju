@@ -100,20 +100,29 @@ export async function POST(request: Request) {
 `;
         console.log(prompt);
 
-        const result = await model.generateContent(prompt);
-        const response = await result.response;
-        let text = response.text();
-
-        // JSON 부분 추출 (마크다운 백틱 제거)
-        text = text.replace(/```json/g, "").replace(/```/g, "").trim();
-
         let parsedData;
-        try {
-            parsedData = JSON.parse(text);
-            parsedData.manseryeok = manseryeok;
-        } catch (e) {
-            console.error(e, text);
-            return NextResponse.json({ success: false, error: "AI 분석 결과를 읽는 데 실패했어요." }, { status: 500 });
+        let attempt = 0;
+        const maxRetries = 2; // 최대 2회 재시도 (총 3회 시도)
+        let success = false;
+
+        while (attempt <= maxRetries && !success) {
+            try {
+                const result = await model.generateContent(prompt);
+                const response = await result.response;
+                let text = response.text().replace(/```json/g, "").replace(/```/g, "").trim();
+
+                parsedData = JSON.parse(text);
+                parsedData.manseryeok = manseryeok;
+                success = true;
+            } catch (e) {
+                attempt++;
+                console.error(`분석 파싱 실패 (시도 ${attempt}/${maxRetries + 1}):`, e);
+                if (attempt > maxRetries) {
+                    return NextResponse.json({ success: false, error: "분석 결과를 읽는 데 실패했어요. 잠시 후 다시 시도해 주세요." }, { status: 500 });
+                }
+                // 짧은 대기 후 재시도
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            }
         }
 
         return NextResponse.json({

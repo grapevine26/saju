@@ -1,6 +1,7 @@
 "use client";
 
 import React from "react";
+import { GAN_COLOR_DESC, ZHI_ANIMAL, cleanDuplicateLocation } from "../utils/sajuMapper";
 
 interface PillarData {
     gan?: string;
@@ -60,6 +61,14 @@ export default function ManseryeokTable({ data, userInfo }: Props) {
         { label: "연주", payload: data.year },
     ];
 
+    // 일주 정보 추출
+    const dayGan = data.day?.gan;
+    const dayZhi = data.day?.zhi;
+    const iljuName = dayGan && dayZhi ? `${dayGan}${dayZhi}` : null;
+    const iljuDesc = (dayGan && dayZhi && GAN_COLOR_DESC[dayGan] && ZHI_ANIMAL[dayZhi])
+        ? `(${GAN_COLOR_DESC[dayGan]} ${ZHI_ANIMAL[dayZhi]})`
+        : '';
+
     const RowLabel = ({ text }: { text: string }) => (
         <div className="flex items-center justify-center border-r border-slate-100 bg-slate-50 h-full w-full py-1">
             <div className="flex flex-col items-center justify-center text-[10px] md:text-xs font-bold text-slate-400 leading-tight">
@@ -74,11 +83,16 @@ export default function ManseryeokTable({ data, userInfo }: Props) {
         <div className="w-full bg-white rounded-2xl overflow-hidden shadow-sm border border-slate-200 mb-6">
             <div className="bg-emerald-600 p-4 text-center text-white">
                 <h3 className="font-bold text-lg mb-2 tracking-wide">{userInfo ? `${userInfo.name || '익명'}님의 사주해설` : '만세력'}</h3>
+                {iljuName && (
+                    <div className="text-sm font-semibold mb-3 text-emerald-100 flex items-center justify-center gap-1">
+                        <span className="bg-white/20 px-2.5 py-1 rounded-full">{iljuName}일주 {iljuDesc}</span>
+                    </div>
+                )}
                 {userInfo && (
                     <div className="flex flex-wrap justify-center gap-1.5 md:gap-2 text-[11px] md:text-xs font-medium">
                         <span className="bg-black/15 px-2.5 py-1 rounded-full">{userInfo.birthDate}</span>
                         <span className="bg-black/15 px-2.5 py-1 rounded-full">{userInfo.calendarType === 'solar' ? '양력' : '음력'}</span>
-                        <span className="bg-black/15 px-2.5 py-1 rounded-full">{userInfo.birthTime}</span>
+                        <span className="bg-black/15 px-2.5 py-1 rounded-full">{cleanDuplicateLocation(userInfo.birthTime)}</span>
                         <span className="bg-black/15 px-2.5 py-1 rounded-full">{userInfo.gender === 'male' ? '남성' : userInfo.gender === 'female' ? '여성' : userInfo.gender}</span>
                     </div>
                 )}

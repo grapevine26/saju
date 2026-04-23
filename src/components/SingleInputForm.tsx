@@ -7,6 +7,7 @@ import Link from "next/link";
 import { ZHI_TIME_RANGES } from "@/constants/sajuTime";
 import { useState } from "react";
 import LocationSearch from "./LocationSearch";
+import toast from "react-hot-toast";
 
 export default function SingleInputForm() {
     const router = useRouter();
@@ -33,7 +34,7 @@ export default function SingleInputForm() {
     const handleNext = () => {
         const errorMessage = validateForm();
         if (errorMessage) {
-            alert(errorMessage);
+            toast.error(errorMessage);
             return;
         }
 

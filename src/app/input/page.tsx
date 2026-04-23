@@ -1,7 +1,7 @@
-import SingleInputForm from "@/components/SingleInputForm";
+import DualInputForm from "@/components/DualInputForm";
 
 export default function InputPage() {
     return (
-        <SingleInputForm />
+        <DualInputForm />
     );
 }

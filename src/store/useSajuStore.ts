@@ -3,6 +3,7 @@ import { persist } from 'zustand/middleware';
 
 export type Gender = 'male' | 'female' | null;
 export type CalendarType = 'solar' | 'lunar';
+export type Tier = 'lite' | 'premium';
 
 // 프로필(명부) 관리를 위한 구조
 export interface UserProfile {
@@ -14,16 +15,37 @@ export interface UserProfile {
     birthMonth: string;
     birthDay: string;
     birthCity: string;
-    birthTimezone?: string; // (추가) 타임존 (ex. "Asia/Seoul", "America/New_York")
-    birthLongitude?: number; // (추가) 실제 경도
+    birthTimezone?: string;
+    birthLongitude?: number;
     birthHour: string;
     birthMinute: string;
     isTimeUnknown: boolean;
-    dayGan?: string; // 아바타 표출용 (색상)
-    dayZhi?: string; // 아바타 표출용 (동물)
-    updatedAt: string; // 최근 불러오거나 저장된 시간
+    dayGan?: string;
+    dayZhi?: string;
+    updatedAt: string;
 }
 
+// 재회 분석 결과 저장용
+export interface ReunionResult {
+    id: string;
+    createdAt: string;
+    tier: Tier;
+    myInfo: {
+        name: string;
+        gender: Gender;
+        birthDate: string;
+    };
+    partnerInfo: {
+        name: string;
+        gender: Gender;
+        birthDate: string;
+    };
+    myRawInput?: any;
+    partnerRawInput?: any;
+    resultData: any; // API 응답 전체
+}
+
+// 기존 SavedResult (호환성 유지)
 export interface SavedResult {
     id: string;
     createdAt: string;
@@ -35,7 +57,7 @@ export interface SavedResult {
         birthCity: string;
         birthTimezone?: string;
         birthLongitude?: number;
-        birthTime: string; // "14:30" 형식의 렌더링용
+        birthTime: string;
         isTimeUnknown: boolean;
     };
     resultData: {
@@ -52,7 +74,8 @@ export interface SavedResult {
     };
 }
 
-interface SajuState {
+// 개인 정보 입력 상태 (나 또는 상대방)
+interface PersonInputState {
     name: string;
     gender: Gender;
     calendarType: CalendarType;
@@ -65,37 +88,105 @@ interface SajuState {
     birthHour: string;
     birthMinute: string;
     isTimeUnknown: boolean;
-    editingProfileId: string | null; // 현재 수정 중인 프로필 ID (없으면 새 프로필)
+}
 
+interface SajuState {
+    // 나의 정보
+    name: string;
+    gender: Gender;
+    calendarType: CalendarType;
+    birthYear: string;
+    birthMonth: string;
+    birthDay: string;
+    birthCity: string;
+    birthTimezone?: string;
+    birthLongitude?: number;
+    birthHour: string;
+    birthMinute: string;
+    isTimeUnknown: boolean;
+    editingProfileId: string | null;
+
+    // 상대방 정보 (재회 분석용)
+    partnerName: string;
+    partnerGender: Gender;
+    partnerCalendarType: CalendarType;
+    partnerBirthYear: string;
+    partnerBirthMonth: string;
+    partnerBirthDay: string;
+    partnerBirthCity: string;
+    partnerBirthTimezone?: string;
+    partnerBirthLongitude?: number;
+    partnerBirthHour: string;
+    partnerBirthMinute: string;
+    partnerIsTimeUnknown: boolean;
+
+    // 이별 컨텍스트
+    metDate: string;           // 만난 날짜 (YYYY-MM)
+    breakupDate: string;       // 이별 날짜 (YYYY-MM 또는 YYYY-MM-DD)
+    breakupReason: string;     // 이별 이유 또는 현재 고민
+
+    // 현재 선택된 tier
+    currentTier: Tier;
+
+    // 데이터 저장
     history: SavedResult[];
-    profiles: UserProfile[]; // 새로 추가된 프로필 목록
+    reunionHistory: ReunionResult[];
+    profiles: UserProfile[];
 
+    // 나의 정보 세터
     setName: (name: string) => void;
     setGender: (gender: Gender) => void;
     setCalendarType: (type: CalendarType) => void;
     setBirthDate: (year: string, month: string, day: string) => void;
     setBirthLocationTime: (city: string, hour: string, minute: string, isUnknown: boolean, timezone?: string, longitude?: number) => void;
 
-    // 전체 Input을 특정 프로필 데이터로 덮어씌움 (불러오기)
-    loadProfileToInput: (profile: UserProfile) => void;
+    // 상대방 정보 세터
+    setPartnerName: (name: string) => void;
+    setPartnerGender: (gender: Gender) => void;
+    setPartnerCalendarType: (type: CalendarType) => void;
+    setPartnerBirthDate: (year: string, month: string, day: string) => void;
+    setPartnerBirthLocationTime: (city: string, hour: string, minute: string, isUnknown: boolean, timezone?: string, longitude?: number) => void;
 
-    // 명부에 프로필 추가 (이미 있으면 업데이트)하고 ID 반환
+    // 이별 컨텍스트 세터
+    setMetDate: (date: string) => void;
+    setBreakupDate: (date: string) => void;
+    setBreakupReason: (reason: string) => void;
+
+    // Tier 선택
+    setCurrentTier: (tier: Tier) => void;
+
+    // 프로필 관리
+    loadProfileToInput: (profile: UserProfile) => void;
     saveProfile: () => string | undefined;
     removeProfile: (id: string) => void;
 
+    // 결과 관리
     saveResult: (resultData: SavedResult['resultData']) => string;
+    saveReunionResult: (tier: Tier, resultData: any) => string;
+    updateReunionResult: (id: string, tier: Tier, resultData: any) => void;
     removeResult: (id: string) => void;
+    removeReunionResult: (id: string) => void;
+
+    // 초기화
     resetInput: () => void;
+    resetPartnerInput: () => void;
+    resetAll: () => void;
 }
 
-const initialInputState = {
+const initialBreakupState = {
+    metDate: '',
+    breakupDate: '',
+    breakupReason: '',
+};
+
+const initialMyInputState = {
     name: '',
     gender: null as Gender,
     calendarType: 'solar' as CalendarType,
     birthYear: '',
     birthMonth: '',
     birthDay: '',
-    birthCity: 'seoul',
+    birthCity: '',
     birthTimezone: undefined as string | undefined,
     birthLongitude: undefined as number | undefined,
     birthHour: '',
@@ -104,21 +195,57 @@ const initialInputState = {
     editingProfileId: null as string | null,
 };
 
+const initialPartnerInputState = {
+    partnerName: '',
+    partnerGender: null as Gender,
+    partnerCalendarType: 'solar' as CalendarType,
+    partnerBirthYear: '',
+    partnerBirthMonth: '',
+    partnerBirthDay: '',
+    partnerBirthCity: '',
+    partnerBirthTimezone: undefined as string | undefined,
+    partnerBirthLongitude: undefined as number | undefined,
+    partnerBirthHour: '',
+    partnerBirthMinute: '',
+    partnerIsTimeUnknown: true, // 상대방 시간은 기본 모름
+};
+
 import { calculateBazi } from '@/utils/baziCalc';
 
 export const useSajuStore = create<SajuState>()(
     persist(
         (set, get) => ({
-            ...initialInputState,
+            ...initialMyInputState,
+            ...initialPartnerInputState,
+            ...initialBreakupState,
+            currentTier: 'lite' as Tier,
             history: [],
+            reunionHistory: [],
             profiles: [],
 
+            // 나의 정보 세터
             setName: (name) => set({ name }),
             setGender: (gender) => set({ gender }),
             setCalendarType: (calendarType) => set({ calendarType }),
             setBirthDate: (birthYear, birthMonth, birthDay) => set({ birthYear, birthMonth, birthDay }),
             setBirthLocationTime: (birthCity, birthHour, birthMinute, isTimeUnknown, birthTimezone, birthLongitude) => set({ birthCity, birthHour, birthMinute, isTimeUnknown, birthTimezone, birthLongitude }),
 
+            // 상대방 정보 세터
+            setPartnerName: (partnerName) => set({ partnerName }),
+            setPartnerGender: (partnerGender) => set({ partnerGender }),
+            setPartnerCalendarType: (partnerCalendarType) => set({ partnerCalendarType }),
+            setPartnerBirthDate: (partnerBirthYear, partnerBirthMonth, partnerBirthDay) => set({ partnerBirthYear, partnerBirthMonth, partnerBirthDay }),
+            setPartnerBirthLocationTime: (partnerBirthCity, partnerBirthHour, partnerBirthMinute, partnerIsTimeUnknown, partnerBirthTimezone, partnerBirthLongitude) => set({ partnerBirthCity, partnerBirthHour, partnerBirthMinute, partnerIsTimeUnknown, partnerBirthTimezone, partnerBirthLongitude }),
+
+            // 이별 컨텍스트 세터
+            setMetDate: (metDate) => set({ metDate }),
+            setBreakupDate: (breakupDate) => set({ breakupDate }),
+            setBreakupReason: (breakupReason) => set({ breakupReason }),
+
+            // Tier 선택
+            setCurrentTier: (currentTier) => set({ currentTier }),
+
+            // 프로필 관리 (기존 로직 유지)
             loadProfileToInput: (profile) => set({
                 name: profile.name,
                 gender: profile.gender,
@@ -137,7 +264,6 @@ export const useSajuStore = create<SajuState>()(
 
             saveProfile: () => {
                 const state = get();
-                // 정보가 너무 부족하면 저장하지 않음
                 if (!state.name || !state.gender || !state.birthYear || !state.birthMonth || !state.birthDay) return;
 
                 const targetId = state.editingProfileId || Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
@@ -146,7 +272,6 @@ export const useSajuStore = create<SajuState>()(
                 let dayZhi = "";
 
                 try {
-                    // 아바타 렌더링에 필요한 일간/일지 데이터를 뽑기 위한 빠른 연산
                     const result = calculateBazi(
                         state.gender, state.calendarType, state.birthYear, state.birthMonth, state.birthDay,
                         state.birthCity, state.birthHour, state.birthMinute, state.isTimeUnknown,
@@ -182,10 +307,8 @@ export const useSajuStore = create<SajuState>()(
 
                     let newProfiles;
                     if (state.editingProfileId) {
-                        // 기존 프로필 수정
                         newProfiles = prev.profiles.map(p => p.id === state.editingProfileId ? newProfile : p);
                     } else {
-                        // 새 프로필 추가
                         newProfiles = [newProfile, ...prev.profiles];
                     }
 
@@ -198,6 +321,7 @@ export const useSajuStore = create<SajuState>()(
                 profiles: state.profiles.filter((p) => p.id !== id)
             })),
 
+            // 기존 결과 관리 (호환성 유지)
             saveResult: (resultData) => {
                 const state = get();
                 const newId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
@@ -223,15 +347,85 @@ export const useSajuStore = create<SajuState>()(
                 return newId;
             },
 
+            // 재회 분석 결과 저장
+            saveReunionResult: (tier, resultData) => {
+                const state = get();
+                const newId = Date.now().toString(36) + Math.random().toString(36).substring(2, 6);
+
+                const newRecord: ReunionResult = {
+                    id: newId,
+                    createdAt: new Date().toISOString(),
+                    tier,
+                    myInfo: {
+                        name: state.name || '익명',
+                        gender: state.gender,
+                        birthDate: `${state.birthYear}-${state.birthMonth}-${state.birthDay}`
+                    },
+                    partnerInfo: {
+                        name: state.partnerName || '그 사람',
+                        gender: state.partnerGender,
+                        birthDate: `${state.partnerBirthYear}-${state.partnerBirthMonth}-${state.partnerBirthDay}`
+                    },
+                    myRawInput: {
+                        name: state.name,
+                        gender: state.gender,
+                        calendarType: state.calendarType,
+                        birthYear: state.birthYear,
+                        birthMonth: state.birthMonth,
+                        birthDay: state.birthDay,
+                        birthCity: state.birthCity,
+                        birthHour: state.birthHour,
+                        birthMinute: state.birthMinute,
+                        isTimeUnknown: state.isTimeUnknown,
+                        birthTimezone: state.birthTimezone,
+                        birthLongitude: state.birthLongitude,
+                    },
+                    partnerRawInput: {
+                        name: state.partnerName,
+                        gender: state.partnerGender,
+                        calendarType: state.partnerCalendarType,
+                        birthYear: state.partnerBirthYear,
+                        birthMonth: state.partnerBirthMonth,
+                        birthDay: state.partnerBirthDay,
+                        birthCity: state.partnerBirthCity,
+                        birthHour: state.partnerBirthHour,
+                        birthMinute: state.partnerBirthMinute,
+                        isTimeUnknown: state.partnerIsTimeUnknown,
+                        birthTimezone: state.partnerBirthTimezone,
+                        birthLongitude: state.partnerBirthLongitude,
+                    },
+                    resultData
+                };
+
+                set((prev) => ({ reunionHistory: [newRecord, ...prev.reunionHistory] }));
+                return newId;
+            },
+
+            updateReunionResult: (id, tier, resultData) => set((state) => ({
+                reunionHistory: state.reunionHistory.map(record =>
+                    record.id === id ? { ...record, tier, resultData } : record
+                )
+            })),
+
             removeResult: (id) => set((state) => ({
                 history: state.history.filter((record) => record.id !== id)
             })),
 
-            resetInput: () => set(initialInputState),
+            removeReunionResult: (id) => set((state) => ({
+                reunionHistory: state.reunionHistory.filter((record) => record.id !== id)
+            })),
+
+            resetInput: () => set(initialMyInputState),
+            resetPartnerInput: () => set(initialPartnerInputState),
+            resetAll: () => set({ ...initialMyInputState, ...initialPartnerInputState, ...initialBreakupState }),
         }),
         {
             name: 'saju-storage',
-            partialize: (state) => ({ history: state.history, profiles: state.profiles })
+            partialize: (state) => ({
+                history: state.history,
+                reunionHistory: state.reunionHistory,
+                profiles: state.profiles
+            })
         }
     )
 );

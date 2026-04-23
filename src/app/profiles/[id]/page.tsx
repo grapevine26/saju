@@ -9,6 +9,7 @@ import { calculateBazi } from "@/utils/baziCalc";
 import ManseryeokTable from "@/components/ManseryeokTable";
 import OhhaengRadarChart from "@/components/OhhaengRadarChart";
 import AvatarIcon from "@/components/AvatarIcon";
+import { GAN_COLOR_DESC, ZHI_ANIMAL, cleanDuplicateLocation } from "@/utils/sajuMapper";
 
 export default function ProfileDetailPage() {
     const params = useParams();
@@ -75,54 +76,54 @@ export default function ProfileDetailPage() {
             </header>
 
             <main className="p-6">
-                <div className="flex items-center justify-between mb-8">
-                    <div className="flex items-center gap-4">
-                        <AvatarIcon gan={profile.dayGan} zhi={profile.dayZhi} size={64} className="shadow-sm" />
-                        <div>
-                            <h1 className="text-2xl font-bold text-slate-900">{profile.name}</h1>
-                            <div className="flex items-center gap-2 mt-1 text-sm font-medium text-slate-500">
-                                <span>{profile.gender === 'male' ? '남자' : '여자'}</span>
-                                <span className="w-1 h-1 rounded-full bg-slate-300"></span>
-                                <span>{baziData.age}세</span>
+                <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-6 mb-8">
+                    <div className="flex items-start gap-4 sm:gap-5">
+                        <div className="flex flex-col items-center gap-2 shrink-0">
+                            <AvatarIcon gan={profile.dayGan} zhi={profile.dayZhi} size={64} className="shadow-sm" />
+                            {profile.dayGan && profile.dayZhi && (
+                                <span className="inline-block bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md border border-slate-200 text-center whitespace-nowrap">
+                                    {profile.dayGan}{profile.dayZhi}일주<br />({GAN_COLOR_DESC[profile.dayGan]} {ZHI_ANIMAL[profile.dayZhi]})
+                                </span>
+                            )}
+                        </div>
+                        <div className="min-w-0">
+                            <div className="flex items-center gap-2 mb-2 flex-wrap">
+                                <h1 className="text-2xl font-bold text-slate-900 whitespace-nowrap">{profile.name}</h1>
+                                <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                                    {profile.gender === 'male' ? '남자' : '여자'}
+                                </span>
+                            </div>
+                            <div className="flex flex-col gap-1.5 text-sm font-medium text-slate-600">
+                                <div className="flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-purple-400"></span>
+                                    <span className="truncate">{profile.calendarType === 'solar' ? '양력' : '음력'} {profile.birthYear}.{profile.birthMonth}.{profile.birthDay}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-blue-400"></span>
+                                    <span className="truncate">{profile.isTimeUnknown ? '시간 모름' : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')} 출생`}</span>
+                                </div>
+                                <div className="flex items-center gap-2">
+                                    <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-emerald-400"></span>
+                                    <span className="truncate" title={profile.birthCity === 'seoul' ? '서울 (대한민국)' : cleanDuplicateLocation(profile.birthCity)}>
+                                        {profile.birthCity === 'seoul' ? '서울 (대한민국)' : cleanDuplicateLocation(profile.birthCity)}
+                                    </span>
+                                </div>
                             </div>
                         </div>
                     </div>
-                </div>
-
-                <div className="bg-white rounded-3xl p-6 shadow-sm border border-slate-100 mb-6">
-                    <div className="flex justify-between items-center mb-6">
-                        <h2 className="text-lg font-bold text-slate-800">기본 정보</h2>
-                        <div className="flex gap-2">
-                            <button onClick={handleEdit} className="p-2 text-slate-400 hover:text-purple-600 hover:bg-purple-50 rounded-full transition-colors">
-                                <Edit3 className="w-5 h-5" />
-                            </button>
-                            <button onClick={handleDelete} className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 rounded-full transition-colors">
-                                <Trash2 className="w-5 h-5" />
-                            </button>
-                        </div>
-                    </div>
-
-                    <div className="grid grid-cols-2 gap-y-4 text-sm">
-                        <div>
-                            <p className="text-slate-400 mb-1">생년월일</p>
-                            <p className="font-semibold text-slate-700">
-                                {profile.calendarType === 'solar' ? '양력' : '음력'} {profile.birthYear}.{profile.birthMonth}.{profile.birthDay}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-slate-400 mb-1">태어난 장소</p>
-                            <p className="font-semibold text-slate-700 truncate" title={profile.birthCity}>
-                                {profile.birthCity === 'seoul' ? '서울 (대한민국)' : profile.birthCity}
-                            </p>
-                        </div>
-                        <div>
-                            <p className="text-slate-400 mb-1">태어난 시간</p>
-                            <p className="font-semibold text-slate-700">
-                                {profile.isTimeUnknown ? '모름' : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')}`}
-                            </p>
-                        </div>
+                    {/* 수정 & 삭제 버튼 영역 */}
+                    <div className="flex gap-1 bg-white shadow-sm border border-slate-200 rounded-xl p-1 w-full sm:w-auto shrink-0 self-start">
+                        <button onClick={handleEdit} className="flex-1 sm:flex-none justify-center px-4 py-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold">
+                            <Edit3 className="w-4 h-4" /> 수정
+                        </button>
+                        <div className="w-[1px] bg-slate-100 my-1"></div>
+                        <button onClick={handleDelete} className="flex-1 sm:flex-none justify-center px-4 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold">
+                            <Trash2 className="w-4 h-4" /> 삭제
+                        </button>
                     </div>
                 </div>
+
+
 
                 <h2 className="text-lg font-bold text-slate-800 mb-4 px-2 mt-8">나의 사주 팔자 (명식)</h2>
                 {/* 만세력 원국 표 */}
@@ -133,7 +134,9 @@ export default function ProfileDetailPage() {
                         gender: profile.gender,
                         calendarType: profile.calendarType,
                         birthDate: `${profile.birthYear}년 ${profile.birthMonth}월 ${profile.birthDay}일`,
-                        birthTime: profile.isTimeUnknown ? "시간 모름" : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')} (${profile.birthCity === 'seoul' ? '서울' : profile.birthCity})`
+                        birthTime: profile.isTimeUnknown
+                            ? "시간 모름"
+                            : `${String(profile.birthHour || '').padStart(2, '0')}:${String(profile.birthMinute || '').padStart(2, '0')} ${profile.birthCity ? `(${profile.birthCity === 'seoul' ? '서울' : (cleanDuplicateLocation(profile.birthCity) || '').split(' (')[0]})` : ''}`
                     }}
                 />
 
@@ -149,7 +152,7 @@ export default function ProfileDetailPage() {
                     className="w-full bg-slate-900 text-white font-bold text-lg py-5 rounded-2xl shadow-lg flex justify-center items-center gap-2 transition-all active:scale-[0.98] hover:bg-slate-800"
                 >
                     <Sparkles className="w-5 h-5 text-yellow-300" />
-                    AI 사주 풀이 보러가기
+                    정밀 사주 분석 보러가기
                 </button>
             </div>
         </div>

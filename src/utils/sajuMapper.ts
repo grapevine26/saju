@@ -30,6 +30,22 @@ const ZHI_DETAILS: Record<string, { ohhaeng: string, color: string }> = {
     '해': { ohhaeng: '수', color: 'bg-[#67e8f9]/30 text-cyan-800' },
 };
 
+// 천간 색상 수식어 매핑
+export const GAN_COLOR_DESC: Record<string, string> = {
+    '갑': '푸른', '을': '푸른', // 목
+    '병': '붉은', '정': '붉은', // 화
+    '무': '황금', '기': '황금', // 토
+    '경': '하얀', '신': '하얀', // 금
+    '임': '검은', '계': '검은'  // 수
+};
+
+// 지지 동물 매핑
+export const ZHI_ANIMAL: Record<string, string> = {
+    '자': '쥐', '축': '소', '인': '호랑이', '묘': '토끼',
+    '진': '용', '사': '뱀', '오': '말', '미': '양',
+    '신': '원숭이', '유': '닭', '술': '개', '해': '돼지'
+};
+
 // 한자 매핑
 export const HANJA_MAP: Record<string, string> = {
     '갑': '甲', '을': '乙', '병': '丙', '정': '丁', '무': '戊', '기': '己', '경': '庚', '신': '辛', '임': '壬', '계': '癸',
@@ -370,6 +386,19 @@ interface PillarParams {
     dayZhi: string;
 }
 
+// 중복된 도시 이름(서울특별시, 서울특별시)을 하나로 줄여주는 유틸 함수
+export const cleanDuplicateLocation = (text?: string | null): string | undefined => {
+    if (!text) return undefined;
+    let cleaned = text;
+    // (CityName, CityName) 혹은 CityName, CityName 형태에서 중복 제거
+    // birthCity 자체가 "서울특별시, 서울특별시 (대한민국)" 저장된 경우
+    const match = cleaned.match(/([^,\s(]+(?: [^,\s(]+)*),\s*\1/);
+    if (match) {
+        cleaned = cleaned.replace(`${match[1]}, ${match[1]}`, match[1]);
+    }
+    return cleaned;
+};
+
 export const getManseryeokPillar = ({
     gan, zhi, dayGan, shiShenGan, shiShenZhi, diShi, hideGan, yearZhi, dayZhi
 }: PillarParams) => {
@@ -401,3 +430,230 @@ export const getManseryeokPillar = ({
         generalShinsal: getGeneralShinsal(gan, zhi, dayGan, yearZhi, dayZhi)
     };
 };
+
+// ========================================================================
+// 궁합 분석용 합(合)/충(沖)/형(刑)/해(害) 계산 함수
+// ========================================================================
+
+/** 천간합 결과 인터페이스 */
+export interface HapResult {
+    type: string;        // '천간합' | '지지육합' | '지지삼합' 등
+    description: string; // "갑기합토" 등 한글 설명
+    element?: string;    // 합화 오행 (토, 금, 수, 목, 화)
+    pair: [string, string]; // 합을 이루는 두 글자
+}
+
+/** 충/형/해 결과 인터페이스 */
+export interface ClashResult {
+    type: string;        // '지지충' | '지지형' | '지지해'
+    description: string; // "자오충" 등 한글 설명
+    pair: [string, string];
+}
+
+/**
+ * 천간합(天干合) 검사 — 두 천간이 합을 이루는지 확인
+ * 갑기합토, 을경합금, 병신합수, 정임합목, 무계합화
+ */
+export const getCheonganHap = (gan1: string, gan2: string): HapResult | null => {
+    const HAP_PAIRS: Record<string, { partner: string; element: string; desc: string }> = {
+        '갑': { partner: '기', element: '토', desc: '갑기합토' },
+        '기': { partner: '갑', element: '토', desc: '갑기합토' },
+        '을': { partner: '경', element: '금', desc: '을경합금' },
+        '경': { partner: '을', element: '금', desc: '을경합금' },
+        '병': { partner: '신', element: '수', desc: '병신합수' },
+        '신': { partner: '병', element: '수', desc: '병신합수' },
+        '정': { partner: '임', element: '목', desc: '정임합목' },
+        '임': { partner: '정', element: '목', desc: '정임합목' },
+        '무': { partner: '계', element: '화', desc: '무계합화' },
+        '계': { partner: '무', element: '화', desc: '무계합화' },
+    };
+
+    if (!gan1 || !gan2 || gan1 === '?' || gan2 === '?') return null;
+    const info = HAP_PAIRS[gan1];
+    if (info && info.partner === gan2) {
+        return { type: '천간합', description: info.desc, element: info.element, pair: [gan1, gan2] };
+    }
+    return null;
+};
+
+/**
+ * 지지육합(地支六合) 검사 — 두 지지가 합을 이루는지 확인
+ * 자축합토, 인해합목, 묘술합화, 진유합금, 사신합수, 오미합(토/화)
+ */
+export const getJijiYukhap = (zhi1: string, zhi2: string): HapResult | null => {
+    const HAP_PAIRS: Record<string, { partner: string; element: string; desc: string }> = {
+        '자': { partner: '축', element: '토', desc: '자축합토' },
+        '축': { partner: '자', element: '토', desc: '자축합토' },
+        '인': { partner: '해', element: '목', desc: '인해합목' },
+        '해': { partner: '인', element: '목', desc: '인해합목' },
+        '묘': { partner: '술', element: '화', desc: '묘술합화' },
+        '술': { partner: '묘', element: '화', desc: '묘술합화' },
+        '진': { partner: '유', element: '금', desc: '진유합금' },
+        '유': { partner: '진', element: '금', desc: '진유합금' },
+        '사': { partner: '신', element: '수', desc: '사신합수' },
+        '신': { partner: '사', element: '수', desc: '사신합수' },
+        '오': { partner: '미', element: '토', desc: '오미합' },
+        '미': { partner: '오', element: '토', desc: '오미합' },
+    };
+
+    if (!zhi1 || !zhi2 || zhi1 === '?' || zhi2 === '?') return null;
+    const info = HAP_PAIRS[zhi1];
+    if (info && info.partner === zhi2) {
+        return { type: '지지육합', description: info.desc, element: info.element, pair: [zhi1, zhi2] };
+    }
+    return null;
+};
+
+/**
+ * 지지충(地支沖) 검사 — 두 지지가 충돌하는지 확인
+ * 자오충, 축미충, 인신충, 묘유충, 진술충, 사해충
+ */
+export const getJijiChung = (zhi1: string, zhi2: string): ClashResult | null => {
+    const CHUNG_PAIRS: Record<string, { partner: string; desc: string }> = {
+        '자': { partner: '오', desc: '자오충' },
+        '오': { partner: '자', desc: '자오충' },
+        '축': { partner: '미', desc: '축미충' },
+        '미': { partner: '축', desc: '축미충' },
+        '인': { partner: '신', desc: '인신충' },
+        '신': { partner: '인', desc: '인신충' },
+        '묘': { partner: '유', desc: '묘유충' },
+        '유': { partner: '묘', desc: '묘유충' },
+        '진': { partner: '술', desc: '진술충' },
+        '술': { partner: '진', desc: '진술충' },
+        '사': { partner: '해', desc: '사해충' },
+        '해': { partner: '사', desc: '사해충' },
+    };
+
+    if (!zhi1 || !zhi2 || zhi1 === '?' || zhi2 === '?') return null;
+    const info = CHUNG_PAIRS[zhi1];
+    if (info && info.partner === zhi2) {
+        return { type: '지지충', description: info.desc, pair: [zhi1, zhi2] };
+    }
+    return null;
+};
+
+/**
+ * 지지형(地支刑) 검사 — 두 지지가 형을 이루는지 확인
+ * 인사형, 사신형, 인신형 (무은지형/삼형)
+ * 축술형, 술미형, 축미형 (지세지형/삼형)
+ * 자묘형 (무례지형)
+ * 진진, 오오, 유유, 해해 (자형 — 같은 글자끼리)
+ */
+export const getJijiHyeong = (zhi1: string, zhi2: string): ClashResult | null => {
+    if (!zhi1 || !zhi2 || zhi1 === '?' || zhi2 === '?') return null;
+
+    const HYEONG_PAIRS: [string, string, string][] = [
+        // 무은지형 (恃勢之刑)
+        ['인', '사', '인사형(무은지형)'],
+        ['사', '신', '사신형(무은지형)'],
+        ['인', '신', '인신형(무은지형)'],
+        // 지세지형 (持勢之刑)
+        ['축', '술', '축술형(지세지형)'],
+        ['술', '미', '술미형(지세지형)'],
+        ['축', '미', '축미형(지세지형)'],
+        // 무례지형 (無禮之刑)
+        ['자', '묘', '자묘형(무례지형)'],
+    ];
+
+    for (const [a, b, desc] of HYEONG_PAIRS) {
+        if ((zhi1 === a && zhi2 === b) || (zhi1 === b && zhi2 === a)) {
+            return { type: '지지형', description: desc, pair: [zhi1, zhi2] };
+        }
+    }
+
+    // 자형 (自刑) — 같은 글자끼리
+    const SELF_HYEONG = ['진', '오', '유', '해'];
+    if (zhi1 === zhi2 && SELF_HYEONG.includes(zhi1)) {
+        return { type: '지지형', description: `${zhi1}${zhi2}자형`, pair: [zhi1, zhi2] };
+    }
+
+    return null;
+};
+
+/**
+ * 지지해(地支害, 六害) 검사 — 두 지지가 해(파)를 이루는지 확인
+ * 자미해, 축오해, 인사해, 묘진해, 신해해, 유술해
+ */
+export const getJijiHae = (zhi1: string, zhi2: string): ClashResult | null => {
+    const HAE_PAIRS: Record<string, { partner: string; desc: string }> = {
+        '자': { partner: '미', desc: '자미해' },
+        '미': { partner: '자', desc: '자미해' },
+        '축': { partner: '오', desc: '축오해' },
+        '오': { partner: '축', desc: '축오해' },
+        '인': { partner: '사', desc: '인사해' },
+        '사': { partner: '인', desc: '인사해' },
+        '묘': { partner: '진', desc: '묘진해' },
+        '진': { partner: '묘', desc: '묘진해' },
+        '신': { partner: '해', desc: '신해해' },
+        '해': { partner: '신', desc: '신해해' },
+        '유': { partner: '술', desc: '유술해' },
+        '술': { partner: '유', desc: '유술해' },
+    };
+
+    if (!zhi1 || !zhi2 || zhi1 === '?' || zhi2 === '?') return null;
+    const info = HAE_PAIRS[zhi1];
+    if (info && info.partner === zhi2) {
+        return { type: '지지해', description: info.desc, pair: [zhi1, zhi2] };
+    }
+    return null;
+};
+
+/**
+ * 오행 보완도 계산 — 두 사람의 오행 분포가 서로를 보완하는 정도
+ * 한 쪽이 부족한 오행을 다른 쪽이 채워주면 높은 점수
+ * @returns 0~100 점수 (높을수록 보완적)
+ */
+export const getOhhaengBalance = (
+    counts1: Record<string, number>,
+    counts2: Record<string, number>
+): { score: number; analysis: string } => {
+    const ohhaengs = ['목', '화', '토', '금', '수'];
+    let complementScore = 0;
+    const details: string[] = [];
+
+    for (const oh of ohhaengs) {
+        const c1 = counts1[oh] || 0;
+        const c2 = counts2[oh] || 0;
+
+        // 한쪽이 0이고 다른쪽이 2이상이면 완벽한 보완 (+20)
+        // 한쪽이 0이고 다른쪽이 1이면 부분 보완 (+10)
+        // 한쪽이 1이고 다른쪽이 3이상이면 좋은 보완 (+8)
+        // 둘 다 0이면 공동 부족 (-5)
+        // 둘 다 3이상이면 공동 과다 (-3)
+        if (c1 === 0 && c2 >= 2) {
+            complementScore += 20;
+            details.push(`${oh}: 상대방이 부족한 ${oh}을 채워줌`);
+        } else if (c2 === 0 && c1 >= 2) {
+            complementScore += 20;
+            details.push(`${oh}: 내가 상대방의 부족한 ${oh}을 채워줌`);
+        } else if (c1 === 0 && c2 === 1) {
+            complementScore += 10;
+        } else if (c2 === 0 && c1 === 1) {
+            complementScore += 10;
+        } else if ((c1 <= 1 && c2 >= 3) || (c2 <= 1 && c1 >= 3)) {
+            complementScore += 8;
+        } else if (c1 === 0 && c2 === 0) {
+            complementScore -= 5;
+            details.push(`${oh}: 둘 다 ${oh}이 부족 (공동 약점)`);
+        } else if (c1 >= 3 && c2 >= 3) {
+            complementScore -= 3;
+        } else {
+            complementScore += 5; // 적당히 균형
+        }
+    }
+
+    // 점수를 0~100 범위로 정규화 (최대 100, 최소 -25 → 0~100 매핑)
+    const normalized = Math.max(0, Math.min(100, Math.round(((complementScore + 25) / 125) * 100)));
+
+    return {
+        score: normalized,
+        analysis: details.length > 0 ? details.join(' / ') : '오행 분포가 비슷한 구성'
+    };
+};
+
+/**
+ * 천간의 오행 정보를 외부에서 참조할 수 있도록 export
+ */
+export const getGanOhhaeng = (gan: string): string => GAN_DETAILS[gan]?.ohhaeng || '';
+export const getZhiOhhaeng = (zhi: string): string => ZHI_DETAILS[zhi]?.ohhaeng || '';
+export { GAN_DETAILS, ZHI_DETAILS, JIJANGGAN_MAP };
