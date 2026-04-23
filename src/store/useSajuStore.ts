@@ -42,6 +42,7 @@ export interface ReunionResult {
     };
     myRawInput?: any;
     partnerRawInput?: any;
+    premiumJobId?: string; // Inngest 백그라운드 작업 ID (프리미엄 접수 시 저장)
     resultData: any; // API 응답 전체
 }
 
@@ -164,6 +165,7 @@ interface SajuState {
     saveResult: (resultData: SavedResult['resultData']) => string;
     saveReunionResult: (tier: Tier, resultData: any) => string;
     updateReunionResult: (id: string, tier: Tier, resultData: any) => void;
+    setPremiumJobId: (recordId: string, jobId: string) => void;
     removeResult: (id: string) => void;
     removeReunionResult: (id: string) => void;
 
@@ -404,6 +406,12 @@ export const useSajuStore = create<SajuState>()(
             updateReunionResult: (id, tier, resultData) => set((state) => ({
                 reunionHistory: state.reunionHistory.map(record =>
                     record.id === id ? { ...record, tier, resultData } : record
+                )
+            })),
+
+            setPremiumJobId: (recordId, jobId) => set((state) => ({
+                reunionHistory: state.reunionHistory.map(record =>
+                    record.id === recordId ? { ...record, premiumJobId: jobId } : record
                 )
             })),
 

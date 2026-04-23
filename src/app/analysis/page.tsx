@@ -32,7 +32,7 @@ export default function AnalysisPage() {
         partnerBirthYear, partnerBirthMonth, partnerBirthDay,
         partnerBirthCity, partnerBirthHour, partnerBirthMinute, partnerIsTimeUnknown,
         partnerBirthTimezone, partnerBirthLongitude,
-        currentTier, saveReunionResult, updateReunionResult, resetAll,
+        currentTier, saveReunionResult, updateReunionResult, setPremiumJobId, resetAll,
         metDate, breakupDate, breakupReason, reunionHistory,
     } = useSajuStore();
 
@@ -224,6 +224,10 @@ export default function AnalysisPage() {
             const data = await res.json();
 
             if (data.success) {
+                // localStorage에 jobId 기록 (웹으로 돌아왔을 때 자동 확인용)
+                if (recordId.current) {
+                    setPremiumJobId(recordId.current, data.jobId);
+                }
                 if (isDev) {
                     toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
                     setPollingJobId(data.jobId);

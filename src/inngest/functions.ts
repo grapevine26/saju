@@ -282,8 +282,10 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
 
     // 4. Solapi로 완료 알림 문자 발송 (임시로 발송 중지 - 콘솔 로그로 대체)
     await step.run("send-completion-sms", async () => {
-      // 프론트엔드 URL 확인 (로컬인지 운영인지)
-      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL || "http://localhost:3000";
+      // 프론트엔드 URL 확인 (운영 > Vercel 자동 > 로컬 순서)
+      const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+        || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+        || "http://localhost:3000";
       const resultUrl = `${baseUrl}/result/${jobId}`;
 
       const message = `[다시, 우리]

@@ -18,7 +18,7 @@ import LoadingOverlay from "@/components/LoadingOverlay";
 import PhoneInput from "@/components/PhoneInput";
 
 export default function HistoryDetailPage() {
-    const { reunionHistory, updateReunionResult } = useSajuStore();
+    const { reunionHistory, updateReunionResult, setPremiumJobId } = useSajuStore();
     const router = useRouter();
     const params = useParams();
     const { id } = params;
@@ -71,6 +71,29 @@ export default function HistoryDetailPage() {
 
     // URL id를 바탕으로 기록 찾기
     const record = reunionHistory.find(r => r.id === id);
+
+    // 페이지 진입 시 premiumJobId가 있으면 자동으로 완료 여부 확인
+    useEffect(() => {
+        if (!record || record.tier === 'premium' || !record.premiumJobId) return;
+
+        const checkPremiumStatus = async () => {
+            try {
+                const res = await fetch(`/api/job-status?jobId=${record.premiumJobId}`);
+                const data = await res.json();
+                if (data.success && data.status === 'completed') {
+                    // 완료되었으면 결과 페이지로 안내
+                    toast.success("프리미엄 분석이 완료되었습니다! 결과를 확인해보세요.");
+                    router.push(`/result/${record.premiumJobId}`);
+                } else if (data.success && data.status === 'processing') {
+                    setIsPremiumPending(true);
+                }
+            } catch (err) {
+                console.error("프리미엄 상태 확인 실패:", err);
+            }
+        };
+
+        checkPremiumStatus();
+    }, [record, router]);
 
     if (!record) {
         return (
@@ -140,13 +163,15 @@ export default function HistoryDetailPage() {
             const data = await res.json();
 
             if (data.success) {
+                // localStorage에 jobId 기록
+                setPremiumJobId(record.id, data.jobId);
                 if (isDev) {
                     toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
                     setPollingJobId(data.jobId);
                     // isUpgrading 유지
                 } else {
                     toast.success("접수 완료! 분석이 끝나면 문자로 알려드릴게요.");
-                    setIsPremiumPending(true); // "분석 대기 중" 상태로 전환
+                    setIsPremiumPending(true);
                     setIsUpgrading(false);
                 }
             } else {
