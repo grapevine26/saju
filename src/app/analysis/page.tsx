@@ -82,12 +82,8 @@ export default function AnalysisPage() {
         if (recentHistory
             && recentHistory.myInfo.name === name
             && recentHistory.partnerInfo.name === partnerName
-            && recentHistory.myInfo.birthYear === birthYear
-            && recentHistory.myInfo.birthMonth === birthMonth
-            && recentHistory.myInfo.birthDay === birthDay
-            && recentHistory.partnerInfo.birthYear === partnerBirthYear
-            && recentHistory.partnerInfo.birthMonth === partnerBirthMonth
-            && recentHistory.partnerInfo.birthDay === partnerBirthDay
+            && recentHistory.myInfo.birthDate === `${birthYear}-${birthMonth}-${birthDay}`
+            && recentHistory.partnerInfo.birthDate === `${partnerBirthYear}-${partnerBirthMonth}-${partnerBirthDay}`
         ) {
             setResult(recentHistory.resultData);
             setIsPremium(recentHistory.tier === 'premium');
