@@ -251,7 +251,99 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
           }
       }
 
-      // --- 2-4. 최종 병합 (Lite Data + Premium Details + Roadmap/Energies) ---
+      // --- 2-4. Prompt4 (궁합 패키지) 호출 ---
+      let compatibilityReport = null;
+      if (raw_data.packageId === 'premium') {
+          const systemInstruction4 = `
+# Role
+너는 남녀의 사주와 궁합을 분석하여 직관적인 데이터(점수)와 대립되는 성향(VS 카드), 그리고 심층 분석을 도출하는 궁합 전문 AI야.
+
+# Response Rules
+1. 'radarChart' 항목: 5가지 지표(communication, affection, intimacy, future, conflict)에 대해 0~100점 사이의 객관적 점수를 부여하고, 전체 궁합을 한 줄로 요약해.
+2. 'vsCards' 항목: 두 사람의 사주를 비교하여 가장 극명하게 대비되는 성향 차이 3가지를 뽑아내. (topic, myTrait, partnerTrait, explanation)
+3. 'compatibilityDetails' 항목: 지정된 9가지 주제에 대해 각각 최소 400자 이상의 심층 분석 텍스트를 작성해. 단락을 잘 나누고 이모지를 적절히 사용해.
+4. 오직 JSON 형식으로만 반환해.
+`.trim();
+
+          const schema4 = {
+              type: "object" as any,
+              properties: {
+                  radarChart: {
+                      type: "object" as any,
+                      properties: {
+                          communication: { type: "number" as any },
+                          affection: { type: "number" as any },
+                          intimacy: { type: "number" as any },
+                          future: { type: "number" as any },
+                          conflict: { type: "number" as any },
+                          summary: { type: "string" as any }
+                      },
+                      required: ["communication", "affection", "intimacy", "future", "conflict", "summary"]
+                  },
+                  vsCards: {
+                      type: "array" as any,
+                      items: {
+                          type: "object" as any,
+                          properties: {
+                              topic: { type: "string" as any },
+                              myTrait: { type: "string" as any },
+                              partnerTrait: { type: "string" as any },
+                              explanation: { type: "string" as any }
+                          },
+                          required: ["topic", "myTrait", "partnerTrait", "explanation"]
+                      }
+                  },
+                  compatibilityDetails: {
+                      type: "array" as any,
+                      items: {
+                          type: "object" as any,
+                          properties: {
+                              title: { type: "string" as any },
+                              content: { type: "string" as any }
+                          },
+                          required: ["title", "content"]
+                      }
+                  }
+              },
+              required: ["radarChart", "vsCards", "compatibilityDetails"]
+          };
+
+          const model4 = genAI.getGenerativeModel({
+              model: "gemini-3.1-pro-preview",
+              systemInstruction: systemInstruction4,
+              generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
+          });
+
+          const prompt4 = `${commonPrompt}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 아래 9가지 주제에 맞춰 작성해줘. JSON 포맷:
+1. 🌌 전생부터 이어진 우리의 카르마 (우리는 전생에 어떤 인연이었길래 끌렸을까?)
+2. 👼 서로에게 귀인일까 악연일까 (서로의 에너지를 채워주는지 갉아먹는지)
+3. 🔞 은밀한 속궁합과 스킨십 리듬 (육체적 케미와 애정 방식)
+4. 😈 상대방의 숨겨진 무의식적 욕망 (나에게 바라는 진짜 욕망)
+5. ⚖️ 애정의 무게 추 (누가 더 많이 좋아하고 더 의존하는가?)
+6. 🔗 이 관계의 진짜 주도권은 누구에게? (평소와 결정적 순간의 권력 역학)
+7. 🪃 영원한 평행선 (평생을 만나도 절대 타협할 수 없는 성향 차이)
+8. 💍 만약 우리가 동거/결혼을 한다면? (다툼 원인, 생활 패턴 시뮬레이션)
+9. 💸 재물 시너지 (함께하면 돈이 불어날까 깎일까?)
+
+각 주제(title)와 그에 대한 심층 분석(content, 최소 400자 이상)을 compatibilityDetails 배열에 순서대로 담아줘.
+`;
+          let parsedData4: any = null;
+          attempt = 0;
+          success = false;
+          while (attempt <= maxRetries && !success) {
+              try {
+                  const res4 = await model4.generateContent(prompt4);
+                  parsedData4 = JSON.parse(res4.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
+                  success = true;
+              } catch (e) {
+                  attempt++;
+                  await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+              }
+          }
+          compatibilityReport = parsedData4;
+      }
+
+      // --- 2-5. 최종 병합 (Lite Data + Premium Details + Roadmap/Energies + Compatibility) ---
       // liteResult 에는 기존의 details (2개) 가 있음. Premium 8개를 뒤에 합칩니다.
       const liteDetails = liteResult.resultData?.details || [];
       const premiumDetails = parsedData2.details || [];
@@ -260,13 +352,17 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
       return {
           ...liteResult.resultData, // 기존 호환성, 점수, 요약, 사주 등 유지
           details: allDetails,      // 총 10개의 프리미엄 아코디언 항목
-          windows: result.windows,
-          bestMonth: result.bestMonth,
-          worstMonth: result.worstMonth,
-          monthlyEnergies: parsedData3.monthlyEnergies,
-          roadmapStages: parsedData3.roadmapStages,
-          goldenWindowMonths: parsedData3.goldenWindowMonths || []
+          goldenWindows: {
+              windows: result.windows,
+              bestMonth: result.bestMonth,
+              worstMonth: result.worstMonth,
+              monthlyEnergies: parsedData3.monthlyEnergies,
+              roadmapStages: parsedData3.roadmapStages,
+              goldenWindowMonths: parsedData3.goldenWindowMonths || []
+          },
+          compatibilityReport
       };
+
     });
 
     // 3. 분석 결과 DB 저장
@@ -282,6 +378,11 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
 
     // 4. Solapi로 완료 알림 문자 발송 (임시로 발송 중지 - 콘솔 로그로 대체)
     await step.run("send-completion-sms", async () => {
+      if (!phone_number) {
+        console.log("전화번호가 없습니다. (로그인 유저) SMS 발송 생략.");
+        return { success: true, message: "No phone number, skipped SMS." };
+      }
+
       // 프론트엔드 URL 확인 (운영 > Vercel 자동 > 로컬 순서)
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
         || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)

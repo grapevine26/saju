@@ -15,7 +15,11 @@ import MonthlyEnergyFlow from "@/components/MonthlyEnergyFlow";
 import LongTermRoadmap from "@/components/LongTermRoadmap";
 import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import PhoneInput from "@/components/PhoneInput";
+import UpgradeModal from "@/components/UpgradeModal";
+import PaymentModal from "@/components/PaymentModal";
+import PremiumRadarChart from "@/components/PremiumRadarChart";
+import VsCard from "@/components/VsCard";
+
 
 export default function HistoryDetailPage() {
     const { reunionHistory, updateReunionResult, setPremiumJobId } = useSajuStore();
@@ -23,8 +27,11 @@ export default function HistoryDetailPage() {
     const params = useParams();
     const { id } = params;
     const [isUpgrading, setIsUpgrading] = useState(false);
-    const [showPhoneModal, setShowPhoneModal] = useState(false);
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [selectedPackageId, setSelectedPackageId] = useState<string>('basic');
+    const [activeTab, setActiveTab] = useState<'personal' | 'compatibility'>('personal');
+
     const [isPremiumPending, setIsPremiumPending] = useState(false);
     const [pollingJobId, setPollingJobId] = useState<string | null>(null);
 
@@ -128,14 +135,18 @@ export default function HistoryDetailPage() {
             toast.error("초기 버전의 데이터는 상세 정보가 부족하여 업그레이드할 수 없습니다. 새로 분석을 진행해주세요.");
             return;
         }
-        if (isDev) {
-            setPhoneNumber('01000000000');
-        }
-        setShowPhoneModal(true);
+        setShowPaymentModal(true);
     };
 
-    const startPremiumAnalysis = async () => {
-        if (!phoneNumber || phoneNumber.length < 10) {
+    const handlePaymentSelect = (method: 'kakao' | 'naver' | 'general', packageId: string) => {
+        setSelectedPackageId(packageId);
+        setShowPaymentModal(false);
+        setShowUpgradeModal(true);
+    }
+
+    const startPremiumAnalysis = async (identifier: { type: 'guest' | 'member', value: string }) => {
+
+        if (identifier.type === 'guest' && (!identifier.value || identifier.value.length < 10)) {
             toast.error("올바른 전화번호를 입력해 주세요.");
             return;
         }
@@ -145,7 +156,8 @@ export default function HistoryDetailPage() {
         } else {
             setIsPremiumPending(true);
         }
-        setShowPhoneModal(false);
+        setShowUpgradeModal(false);
+
 
         try {
             const rawData = {
@@ -162,14 +174,19 @@ export default function HistoryDetailPage() {
                 months: 6
             };
 
+            const payload: any = { rawData, packageId: selectedPackageId };
+            if (identifier.type === 'guest') {
+                payload.phoneNumber = identifier.value;
+            } else {
+                payload.userId = identifier.value;
+            }
+
             const res = await fetch("/api/premium-analysis/start", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    phoneNumber,
-                    rawData
-                }),
+                body: JSON.stringify(payload),
             });
+
 
             const data = await res.json();
 
@@ -209,7 +226,27 @@ export default function HistoryDetailPage() {
             </header>
 
             <main className="p-6 pt-20 space-y-8">
-                {/* 1. 재회 가능성 게이지 */}
+                {/* 탭 헤더 (궁합 패키지 데이터가 있을 때만 노출) */}
+                {resultData.compatibilityReport && (
+                    <div className="flex bg-white/5 rounded-2xl p-1 mb-6 border border-white/10">
+                        <button
+                            onClick={() => setActiveTab('personal')}
+                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            🔮 심리 & 타이밍
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('compatibility')}
+                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            💫 1:1 궁합 리포트
+                        </button>
+                    </div>
+                )}
+
+                <div className={activeTab === 'personal' ? 'block' : 'hidden'}>
+                    <div className="space-y-8">
+                        {/* 1. 재회 가능성 게이지 */}
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
@@ -378,6 +415,46 @@ export default function HistoryDetailPage() {
                         </div>
                     </motion.div>
                 ) : null}
+                    </div>
+                </div>
+
+                {activeTab === 'compatibility' && resultData.compatibilityReport && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* 레이더 차트 */}
+                        <section>
+                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-indigo-400" />
+                                5대 궁합 지표 분석
+                            </h2>
+                            <PremiumRadarChart data={resultData.compatibilityReport.radarChart} />
+                        </section>
+
+                        {/* VS 카드 */}
+                        <section>
+                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <Heart className="w-4 h-4 text-rose-400" />
+                                극과 극 성향 비교
+                            </h2>
+                            <div className="space-y-4">
+                                {resultData.compatibilityReport.vsCards.map((card: any, idx: number) => (
+                                    <VsCard key={idx} index={idx} {...card} />
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* 궁합 디테일 (9개 아코디언) */}
+                        <section>
+                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-amber-400" />
+                                심층 궁합 해부 리포트
+                            </h2>
+                            <SajuAccordion 
+                                details={resultData.compatibilityReport.compatibilityDetails} 
+                                isPremium={true} 
+                            />
+                        </section>
+                    </div>
+                )}
 
                 {/* 힐링 아웃트로 (Premium 전용) */}
                 {!isLite && (
@@ -461,40 +538,22 @@ export default function HistoryDetailPage() {
                 )}
             </div>
 
-            {/* 전화번호 입력 모달 */}
-            {showPhoneModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-[#0f1423] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl"
-                    >
-                        <h3 className="text-xl font-bold text-white mb-2 text-center">알림 받으실 연락처</h3>
-                        <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
-                            프리미엄 분석은 약 2~3분이 소요됩니다.<br/>화면을 끄셔도 완성 시 문자로 알려드려요!
-                        </p>
-                        
-                        <PhoneInput 
-                            value={phoneNumber} 
-                            onChange={setPhoneNumber} 
-                        />
-                        
-                        <div className="flex gap-3 mt-2">
-                            <button
-                                onClick={() => setShowPhoneModal(false)}
-                                className="flex-1 py-3.5 bg-white/5 hover:bg-white/10 text-slate-300 font-semibold rounded-xl transition-colors"
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={startPremiumAnalysis}
-                                className="flex-1 py-3.5 bg-amber-500 hover:bg-amber-600 text-white font-bold rounded-xl transition-colors shadow-lg shadow-amber-500/20"
-                            >
-                                분석 시작
-                            </button>
-                        </div>
-                    </motion.div>
-                </div>
+            {/* 1단계: 결제 패키지 선택 모달 */}
+            {showPaymentModal && (
+                <PaymentModal
+                    onClose={() => setShowPaymentModal(false)}
+                    onSelectPayment={handlePaymentSelect}
+                />
+            )}
+
+            {/* 2단계: 결제 전 선택 모달 (로그인/비회원) */}
+            {showUpgradeModal && (
+
+                <UpgradeModal 
+                    onClose={() => setShowUpgradeModal(false)}
+                    onStartGuest={(phone) => startPremiumAnalysis({ type: 'guest', value: phone })}
+                    onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId })}
+                />
             )}
         </div>
     );

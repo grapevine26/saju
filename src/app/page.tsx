@@ -415,7 +415,7 @@ export default function Home() {
                             <div className="w-full bg-[#0a0e1a]/95 py-3.5 px-5 border-b border-white/10 z-20 shadow-md">
                                 <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5"><FileText className="w-4 h-4 text-amber-400" /> 8,000자 심층 분석 리포트</h3>
                             </div>
-                            
+
                             {/* 상/하단 그라데이션 페이드 효과 */}
                             <div className="absolute top-[48px] inset-x-0 h-10 bg-gradient-to-b from-[#0a0e1a] to-transparent z-10 pointer-events-none" />
                             <div className="absolute bottom-0 inset-x-0 h-28 bg-gradient-to-t from-[#0a0e1a] via-[#0a0e1a]/90 to-transparent z-10 pointer-events-none flex items-end justify-center pb-6">
@@ -507,7 +507,7 @@ export default function Home() {
                                 <CalendarHeart className="w-4 h-4 text-amber-500" />
                                 <h3 className="text-[14px] font-black text-amber-300 tracking-tight">연락 최적기 캘린더 제공</h3>
                             </div>
-                            
+
                             <div className="grid grid-cols-7 gap-1.5 text-center text-[10px] mb-2 text-slate-500 font-bold">
                                 <div>일</div><div>월</div><div>화</div><div>수</div><div>목</div><div>금</div><div>토</div>
                             </div>
@@ -568,7 +568,7 @@ export default function Home() {
                                 <div className="text-right flex flex-col items-end">
                                     <span className="text-[10px] font-bold text-rose-400 mb-0.5 bg-rose-500/10 px-2 py-0.5 rounded-md">🔥 런칭 특가 (~ {discountEndsAt} 마감)</span>
                                     <div>
-                                        <span className="text-sm text-slate-500 line-through mr-1 shadow-none">39,900원</span>
+                                        <span className="text-sm text-slate-500 line-through mr-1 shadow-none">29,900원</span>
                                         <span className="text-2xl font-black text-gradient-gold">13,900원</span>
                                     </div>
                                 </div>

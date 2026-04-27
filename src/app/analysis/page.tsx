@@ -20,7 +20,9 @@ import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
 import { Route } from "lucide-react";
 import toast from "react-hot-toast";
 import LoadingOverlay from "@/components/LoadingOverlay";
-import PhoneInput from "@/components/PhoneInput";
+import UpgradeModal from "@/components/UpgradeModal";
+import PaymentModal from "@/components/PaymentModal";
+
 
 export default function AnalysisPage() {
     const router = useRouter();
@@ -47,9 +49,12 @@ export default function AnalysisPage() {
     const lastScrollY = useRef(0);
 
     // 프리미엄 백그라운드 처리 관련 상태
-    const [showPhoneModal, setShowPhoneModal] = useState(false);
-    const [phoneNumber, setPhoneNumber] = useState('');
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+    const [selectedPackageId, setSelectedPackageId] = useState<string>('basic');
+
     const [isPremiumPending, setIsPremiumPending] = useState(false);
+
     const [pollingJobId, setPollingJobId] = useState<string | null>(null);
 
     const isDev = process.env.NODE_ENV === 'development';
@@ -180,14 +185,20 @@ export default function AnalysisPage() {
 
     const handleUpgradeClick = () => {
         if (!result) return;
-        if (isDev) {
-            setPhoneNumber('01000000000');
-        }
-        setShowPhoneModal(true);
+        setShowPaymentModal(true);
     };
 
-    const startPremiumAnalysis = async () => {
-        if (!phoneNumber || phoneNumber.length < 10) {
+    const handlePaymentSelect = (method: 'kakao' | 'naver' | 'general', packageId: string) => {
+        // 실제 운영 시엔 여기서 PG사(토스/포트원) 결제창을 먼저 띄우거나, 결제 데이터(packageId, method)를 state에 저장
+        // 현재는 결제 수단 클릭 시 다음 단계인 '로그인/비회원 선택 모달'을 엽니다.
+        setSelectedPackageId(packageId);
+        setShowPaymentModal(false);
+        setShowUpgradeModal(true);
+    }
+
+    const startPremiumAnalysis = async (identifier: { type: 'guest' | 'member', value: string }) => {
+
+        if (identifier.type === 'guest' && (!identifier.value || identifier.value.length < 10)) {
             toast.error("올바른 전화번호를 입력해 주세요.");
             return;
         }
@@ -197,7 +208,8 @@ export default function AnalysisPage() {
         } else {
             setIsPremiumPending(true);
         }
-        setShowPhoneModal(false);
+        setShowUpgradeModal(false);
+
 
         try {
             const myRawInput = { name, gender, calendarType, birthYear, birthMonth, birthDay, birthCity, birthHour, birthMinute, isTimeUnknown, birthTimezone, birthLongitude };
@@ -217,14 +229,19 @@ export default function AnalysisPage() {
                 months: 6
             };
 
+            const payload: any = { rawData, packageId: selectedPackageId };
+            if (identifier.type === 'guest') {
+                payload.phoneNumber = identifier.value;
+            } else {
+                payload.userId = identifier.value;
+            }
+
             const res = await fetch("/api/premium-analysis/start", {
                 method: "POST",
                 headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    phoneNumber,
-                    rawData
-                }),
+                body: JSON.stringify(payload),
             });
+
 
             const data = await res.json();
 
@@ -609,40 +626,22 @@ export default function AnalysisPage() {
                 )}
             </div>
 
-            {/* 전화번호 입력 모달 */}
-            {showPhoneModal && (
-                <div className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/80 backdrop-blur-sm">
-                    <motion.div
-                        initial={{ opacity: 0, scale: 0.95 }}
-                        animate={{ opacity: 1, scale: 1 }}
-                        className="bg-[#0f1423] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl"
-                    >
-                        <h3 className="text-xl font-bold text-white mb-2 text-center">알림 받으실 연락처</h3>
-                        <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
-                            프리미엄 분석은 약 2~3분이 소요됩니다.<br/>화면을 끄셔도 완성 시 문자로 알려드려요!
-                        </p>
-                        
-                        <PhoneInput 
-                            value={phoneNumber} 
-                            onChange={setPhoneNumber} 
-                        />
-                        
-                        <div className="flex gap-3 mt-2">
-                            <button
-                                onClick={() => setShowPhoneModal(false)}
-                                className="flex-1 py-3.5 rounded-xl font-semibold bg-white/5 text-slate-300 active:bg-white/10"
-                            >
-                                취소
-                            </button>
-                            <button
-                                onClick={startPremiumAnalysis}
-                                className="flex-1 py-3.5 rounded-xl font-bold bg-amber-500 text-white shadow-[0_4px_20px_rgba(245,158,11,0.3)] active:bg-amber-600"
-                            >
-                                분석 시작
-                            </button>
-                        </div>
-                    </motion.div>
-                </div>
+            {/* 1단계: 결제 패키지 선택 모달 */}
+            {showPaymentModal && (
+                <PaymentModal
+                    onClose={() => setShowPaymentModal(false)}
+                    onSelectPayment={handlePaymentSelect}
+                />
+            )}
+
+            {/* 2단계: 결제 전 선택 모달 (로그인/비회원) */}
+            {showUpgradeModal && (
+
+                <UpgradeModal 
+                    onClose={() => setShowUpgradeModal(false)}
+                    onStartGuest={(phone) => startPremiumAnalysis({ type: 'guest', value: phone })}
+                    onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId })}
+                />
             )}
         </div>
     );

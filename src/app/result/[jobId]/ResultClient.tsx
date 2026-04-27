@@ -11,9 +11,12 @@ import GoldenWindowTimeline from "@/components/GoldenWindowTimeline";
 import MonthlyEnergyFlow from "@/components/MonthlyEnergyFlow";
 import LongTermRoadmap from "@/components/LongTermRoadmap";
 import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
+import PremiumRadarChart from "@/components/PremiumRadarChart";
+import VsCard from "@/components/VsCard";
 
 export default function ResultClient({ job }: { job: any }) {
     const [showHeader, setShowHeader] = useState(true);
+    const [activeTab, setActiveTab] = useState<'personal' | 'compatibility'>('personal');
     const lastScrollY = useRef(0);
 
     useEffect(() => {
@@ -81,8 +84,28 @@ export default function ResultClient({ job }: { job: any }) {
             </header>
 
             <main className="p-6 pt-20 space-y-8">
-                {/* 1. 재회 가능성 게이지 */}
-                <motion.div
+                {/* 탭 헤더 (궁합 패키지 데이터가 있을 때만 노출) */}
+                {resultData.compatibilityReport && (
+                    <div className="flex bg-white/5 rounded-2xl p-1 mb-6 border border-white/10">
+                        <button
+                            onClick={() => setActiveTab('personal')}
+                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            🔮 심리 & 타이밍
+                        </button>
+                        <button
+                            onClick={() => setActiveTab('compatibility')}
+                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+                        >
+                            💫 1:1 궁합 리포트
+                        </button>
+                    </div>
+                )}
+
+                <div className={activeTab === 'personal' ? 'block' : 'hidden'}>
+                    <div className="space-y-8">
+                        {/* 1. 재회 가능성 게이지 */}
+                        <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", damping: 15 }}
@@ -183,35 +206,79 @@ export default function ResultClient({ job }: { job: any }) {
                         <CalendarHeart className="w-4 h-4 text-amber-400" />
                         골든 윈도우 캘린더
                     </h2>
-                    {resultData.windows && (
+                    { (resultData.goldenWindows?.windows || resultData.windows) && (
                         <GoldenWindowTimeline
-                            windows={resultData.windows}
-                            bestMonth={resultData.bestMonth}
+                            windows={resultData.goldenWindows?.windows || resultData.windows}
+                            bestMonth={resultData.goldenWindows?.bestMonth || resultData.bestMonth}
                         />
                     )}
 
-                    {resultData.monthlyEnergies && resultData.monthlyEnergies.length > 0 && (
+
+                    { (resultData.goldenWindows?.monthlyEnergies || resultData.monthlyEnergies)?.length > 0 && (
                         <div className="mt-8">
                             <h3 className="text-sm font-bold text-slate-300 mb-4 px-2 tracking-tight">월별 에너지 흐름</h3>
-                            <MonthlyEnergyFlow energies={resultData.monthlyEnergies} />
+                            <MonthlyEnergyFlow energies={resultData.goldenWindows?.monthlyEnergies || resultData.monthlyEnergies} />
                         </div>
                     )}
 
+
                     {/* 연락 최적기 캘린더 */}
-                    {resultData.goldenWindowMonths && resultData.goldenWindowMonths.length > 0 && (
-                        <GoldenWindowCalendar months={resultData.goldenWindowMonths} />
+                    { (resultData.goldenWindows?.goldenWindowMonths || resultData.goldenWindowMonths)?.length > 0 && (
+                        <GoldenWindowCalendar months={resultData.goldenWindows?.goldenWindowMonths || resultData.goldenWindowMonths} />
                     )}
 
-                    {resultData.roadmapStages && resultData.roadmapStages.length > 0 && (
+
+                    { (resultData.goldenWindows?.roadmapStages || resultData.roadmapStages)?.length > 0 && (
                         <div className="mt-10 mb-2 p-1">
                             <h3 className="text-sm font-bold text-slate-300 mb-5 px-1 tracking-tight flex items-center gap-2">
                                 <Route className="w-4 h-4 text-emerald-400" />
                                 장기 전략 로드맵
                             </h3>
-                            <LongTermRoadmap stages={resultData.roadmapStages} />
+                            <LongTermRoadmap stages={resultData.goldenWindows?.roadmapStages || resultData.roadmapStages} />
                         </div>
                     )}
+
                 </motion.div>
+                </div>
+                </div>
+
+                {activeTab === 'compatibility' && resultData.compatibilityReport && (
+                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* 레이더 차트 */}
+                        <section>
+                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-indigo-400" />
+                                5대 궁합 지표 분석
+                            </h2>
+                            <PremiumRadarChart data={resultData.compatibilityReport.radarChart} />
+                        </section>
+
+                        {/* VS 카드 */}
+                        <section>
+                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <Heart className="w-4 h-4 text-rose-400" />
+                                극과 극 성향 비교
+                            </h2>
+                            <div className="space-y-4">
+                                {resultData.compatibilityReport.vsCards.map((card: any, idx: number) => (
+                                    <VsCard key={idx} index={idx} {...card} />
+                                ))}
+                            </div>
+                        </section>
+
+                        {/* 궁합 디테일 (9개 아코디언) */}
+                        <section>
+                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-amber-400" />
+                                심층 궁합 해부 리포트
+                            </h2>
+                            <SajuAccordion 
+                                details={resultData.compatibilityReport.compatibilityDetails} 
+                                isPremium={true} 
+                            />
+                        </section>
+                    </div>
+                )}
 
                 {/* ─── 클로징 아웃트로: 힐링 위로 섹션 ─── */}
                 <motion.div
