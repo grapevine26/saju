@@ -154,38 +154,12 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
 
                     {/* 간편 결제 버튼 */}
                     <div className="space-y-3 pt-2 pb-6">
-                        <div className="flex gap-3">
-                            <button 
-                                onClick={() => handlePaymentClick('kakao')}
-                                className="flex-1 py-3.5 bg-[#FEE500] hover:bg-[#FEE500]/90 rounded-[12px] flex items-center justify-center active:scale-[0.98] transition-transform"
-                            >
-                                <Image 
-                                    src="/images/kakao_pay_icon.png" 
-                                    alt="카카오페이" 
-                                    width={90} 
-                                    height={28} 
-                                    className="h-[26px] w-auto object-contain" 
-                                />
-                            </button>
-                            <button 
-                                onClick={() => handlePaymentClick('naver')}
-                                className="flex-1 py-3.5 bg-[#00DE5A] hover:bg-[#00DE5A]/90 rounded-[12px] flex items-center justify-center active:scale-[0.98] transition-transform"
-                            >
-                                <Image 
-                                    src="/naver_pay.svg" 
-                                    alt="네이버페이" 
-                                    width={90} 
-                                    height={24} 
-                                    className="h-5 w-auto object-contain" 
-                                />
-                            </button>
-                        </div>
                         <button 
                             onClick={() => handlePaymentClick('general')}
-                            className="w-full py-3.5 bg-white/10 hover:bg-white/15 text-white font-bold rounded-[12px] flex items-center justify-center gap-2 border border-white/10 active:scale-[0.98] transition-all text-[15px]"
+                            className="w-full py-4 bg-gradient-to-r from-blue-500 to-blue-600 hover:from-blue-600 hover:to-blue-700 text-white font-bold rounded-[12px] flex items-center justify-center gap-2 shadow-[0_8px_32px_rgba(59,130,246,0.3)] active:scale-[0.98] transition-all text-[16px]"
                         >
-                            <CreditCard className="w-4 h-4" />
-                            일반 결제
+                            <CreditCard className="w-5 h-5" />
+                            {currentPackage.price.toLocaleString()}원 결제하기
                         </button>
                     </div>
 

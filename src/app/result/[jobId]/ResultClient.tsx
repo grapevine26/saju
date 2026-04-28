@@ -86,19 +86,21 @@ export default function ResultClient({ job }: { job: any }) {
             <main className="p-6 pt-20 space-y-8">
                 {/* 탭 헤더 (궁합 패키지 데이터가 있을 때만 노출) */}
                 {resultData.compatibilityReport && (
-                    <div className="flex bg-white/5 rounded-2xl p-1 mb-6 border border-white/10">
-                        <button
-                            onClick={() => setActiveTab('personal')}
-                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            🔮 심리 & 타이밍
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('compatibility')}
-                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            💫 1:1 궁합 리포트
-                        </button>
+                    <div className="sticky top-[60px] z-40 bg-[#0a0e1a]/95 backdrop-blur-xl py-2 -mx-2 px-2 shadow-lg">
+                        <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10">
+                            <button
+                                onClick={() => setActiveTab('personal')}
+                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                🔮 재회 리포트
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('compatibility')}
+                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                💫 1:1 궁합 리포트
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -275,6 +277,7 @@ export default function ResultClient({ job }: { job: any }) {
                             <SajuAccordion 
                                 details={resultData.compatibilityReport.compatibilityDetails} 
                                 isPremium={true} 
+                                mode="compatibility"
                             />
                         </section>
                     </div>

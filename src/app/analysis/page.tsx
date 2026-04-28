@@ -67,15 +67,23 @@ export default function AnalysisPage() {
             try {
                 const res = await fetch(`/api/job-status?jobId=${pollingJobId}`);
                 const data = await res.json();
+
+                if (data.success && data.status === 'completed') {
                     if (recordId.current) {
                         // API에서 준 aiResult(프리미엄 데이터)를 기존 히스토리에 병합
                         updateReunionResult(recordId.current, 'premium', data.aiResult);
                     }
+                    clearInterval(interval);
                     // 잠시 대기 후 결과 페이지로 이동 (DB 반영 시간 확보)
                     setTimeout(() => {
                         router.push(`/result/${pollingJobId}`);
                     }, 500);
-
+                } else if (data.success && data.status === 'failed') {
+                    clearInterval(interval);
+                    toast.error("분석 중 오류가 발생했습니다. 잠시 후 다시 시도해 주세요.");
+                    setIsPremiumPending(false);
+                    setIsUpgrading(false);
+                }
             } catch (err) {
                 console.error("Polling error:", err);
             }
@@ -203,72 +211,47 @@ export default function AnalysisPage() {
             return;
         }
 
-        if (isDev) {
-            setIsUpgrading(true);
-        } else {
-            setIsPremiumPending(true);
-        }
         setShowUpgradeModal(false);
 
-
         try {
-            const myRawInput = { name, gender, calendarType, birthYear, birthMonth, birthDay, birthCity, birthHour, birthMinute, isTimeUnknown, birthTimezone, birthLongitude };
-            const partnerRawInput = { name: partnerName, gender: partnerGender, calendarType: partnerCalendarType, birthYear: partnerBirthYear, birthMonth: partnerBirthMonth, birthDay: partnerBirthDay, birthCity: partnerBirthCity, birthHour: partnerBirthHour, birthMinute: partnerBirthMinute, isTimeUnknown: partnerIsTimeUnknown, birthTimezone: partnerBirthTimezone, birthLongitude: partnerBirthLongitude };
+            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+            const { loadTossPayments } = await import('@tosspayments/tosspayments-sdk');
+            const tossPayments = await loadTossPayments(clientKey);
 
-            const rawData = {
-                myRawInput,
-                partnerRawInput,
-                liteResult: result, // Lite 단계에서 생성된 결과 전체
-                myDayGan: result.myManseryeok?.day?.gan,
-                myDayZhi: result.myManseryeok?.day?.zhi,
-                partnerDayGan: result.partnerManseryeok?.day?.gan,
-                partnerDayZhi: result.partnerManseryeok?.day?.zhi,
+            const amount = selectedPackageId === 'premium' ? 19900 : 13900;
+            const orderName = selectedPackageId === 'premium' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
+            const customerMobilePhone = identifier.value.replace(/[^0-9]/g, '');
+
+            const orderId = `${recordId.current}_${Date.now()}`;
+
+            // localStorage에 임시 저장 (결제 성공 페이지에서 꺼내서 사용)
+            localStorage.setItem('pendingTossPayment', JSON.stringify({
+                orderId,
+                packageId: selectedPackageId,
+                identifier,
+                recordId: recordId.current,
                 metDate,
                 breakupDate,
-                breakupReason,
-                months: 6
-            };
+                breakupReason
+            }));
 
-            const payload: any = { rawData, packageId: selectedPackageId };
-            if (identifier.type === 'guest') {
-                payload.phoneNumber = identifier.value;
-            } else {
-                payload.userId = identifier.value;
-            }
-
-            const res = await fetch("/api/premium-analysis/start", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+            await tossPayments.payment({ customerKey: identifier.value || 'ANONYMOUS' }).requestPayment({
+                method: 'CARD',
+                amount: { currency: 'KRW', value: amount },
+                orderId,
+                orderName,
+                customerName: name || '익명',
+                successUrl: `${window.location.origin}/payment/success`,
+                failUrl: `${window.location.origin}/payment/fail`,
+                customerMobilePhone
             });
 
-
-            const data = await res.json();
-
-            if (data.success) {
-                // localStorage에 jobId 기록 (웹으로 돌아왔을 때 자동 확인용)
-                if (recordId.current) {
-                    setPremiumJobId(recordId.current, data.jobId);
-                }
-                // 환경 무관하게 폴링 시작 (페이지에 머무를 경우 자동 이동)
-                setPollingJobId(data.jobId);
-                
-                if (isDev) {
-                    toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
-                } else {
-                    toast.success("접수 완료! 분석이 끝나면 자동으로 이동됩니다. 문자로도 알려드릴게요.");
-                }
-            } else {
-
-                toast.error(data.error || "요청에 실패했습니다.");
-                if (!isDev) setIsPremiumPending(false);
-                setIsUpgrading(false);
-            }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            toast.error("네트워크 오류가 발생했습니다.");
+            if (err.code !== 'USER_CANCEL') {
+                toast.error("결제창 호출에 실패했습니다.");
+            }
             if (!isDev) setIsPremiumPending(false);
-            setIsUpgrading(false);
         }
     };
 

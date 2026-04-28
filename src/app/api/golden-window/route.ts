@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
+import { BASE_SYSTEM_INSTRUCTION } from "@/constants/aiPrompts";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(apiKey);
@@ -22,15 +23,7 @@ export async function POST(request: Request) {
 
         // 2. Gemini AI 월별 흐름 및 장기 전략 로드맵 생성 (reunion과 동일한 구조)
         const systemInstruction = `
-# Role
-너는 '다시, 우리'라는 데이터 기반 전문 재회 컨설팅 서비스의 분석 전문가야.
-명리학(사주팔자) 데이터와 골든 윈도우 분석을 결합하여 두 사람의 향후 관계 흐름을 객관적으로 분석하고 전략을 제시해.
-
-# Principles
-1. **톤**: 따뜻하지만 논리적이며 현실적.
-2. **이모지**: 적절히 사용 (문단당 1~2개).
-3. **분량**: 각 섹션은 최소 350자 이상, 2~3개 문단으로 깊이 있게 분석.
-4. **한자 금지**: 한자를 섞어 쓰지 마 (예: '戊토' → '무토'로 표기)
+${BASE_SYSTEM_INSTRUCTION}
 
 # Response Rules
 1. 반드시 아래 JSON 스키마에 정확히 맞춰서 대답해. 마크다운 백틱이나 부연 설명 없이 순수 JSON만.

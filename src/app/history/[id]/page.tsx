@@ -151,65 +151,46 @@ export default function HistoryDetailPage() {
             return;
         }
 
-        if (isDev) {
-            setIsUpgrading(true);
-        } else {
-            setIsPremiumPending(true);
-        }
         setShowUpgradeModal(false);
 
-
         try {
-            const rawData = {
-                myRawInput: record.myRawInput,
-                partnerRawInput: record.partnerRawInput,
-                liteResult: record, // History의 record 전체 (liteResult)
-                myDayGan: resultData.myManseryeok?.day?.gan,
-                myDayZhi: resultData.myManseryeok?.day?.zhi,
-                partnerDayGan: resultData.partnerManseryeok?.day?.gan,
-                partnerDayZhi: resultData.partnerManseryeok?.day?.zhi,
+            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+            const { loadTossPayments } = await import('@tosspayments/tosspayments-sdk');
+            const tossPayments = await loadTossPayments(clientKey);
+
+            const amount = selectedPackageId === 'premium' ? 19900 : 13900;
+            const orderName = selectedPackageId === 'premium' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
+            const customerMobilePhone = identifier.value.replace(/[^0-9]/g, '');
+
+            const orderId = `${record.id}_${Date.now()}`;
+
+            localStorage.setItem('pendingTossPayment', JSON.stringify({
+                orderId,
+                packageId: selectedPackageId,
+                identifier,
+                recordId: record.id,
                 metDate: (record as any).metDate || '',
                 breakupDate: (record as any).breakupDate || '',
-                breakupReason: (record as any).breakupReason || '',
-                months: 6
-            };
+                breakupReason: (record as any).breakupReason || ''
+            }));
 
-            const payload: any = { rawData, packageId: selectedPackageId };
-            if (identifier.type === 'guest') {
-                payload.phoneNumber = identifier.value;
-            } else {
-                payload.userId = identifier.value;
-            }
-
-            const res = await fetch("/api/premium-analysis/start", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify(payload),
+            await tossPayments.payment({ customerKey: identifier.value || 'ANONYMOUS' }).requestPayment({
+                method: 'CARD',
+                amount: { currency: 'KRW', value: amount },
+                orderId,
+                orderName,
+                customerName: myInfo.name || '익명',
+                successUrl: `${window.location.origin}/payment/success`,
+                failUrl: `${window.location.origin}/payment/fail`,
+                customerMobilePhone
             });
 
-
-            const data = await res.json();
-
-            if (data.success) {
-                // localStorage에 jobId 기록
-                setPremiumJobId(record.id, data.jobId);
-                // 환경 무관하게 폴링 시작
-                setPollingJobId(data.jobId);
-                if (isDev) {
-                    toast.success("로컬 테스트: 백그라운드 분석을 시작합니다. 화면을 유지해주세요.");
-                } else {
-                    toast.success("접수 완료! 분석이 끝나면 자동으로 이동됩니다. 문자로도 알려드릴게요.");
-                    setIsPremiumPending(true);
-                    setIsUpgrading(false);
-                }
-            } else {
-                toast.error(data.error || "요청에 실패했습니다.");
-                setIsUpgrading(false);
-            }
-        } catch (err) {
+        } catch (err: any) {
             console.error(err);
-            toast.error("네트워크 오류가 발생했습니다.");
-            setIsUpgrading(false);
+            if (err.code !== 'USER_CANCEL') {
+                toast.error("결제창 호출에 실패했습니다.");
+            }
+            if (!isDev) setIsPremiumPending(false);
         }
     };
 
@@ -228,19 +209,21 @@ export default function HistoryDetailPage() {
             <main className="p-6 pt-20 space-y-8">
                 {/* 탭 헤더 (궁합 패키지 데이터가 있을 때만 노출) */}
                 {resultData.compatibilityReport && (
-                    <div className="flex bg-white/5 rounded-2xl p-1 mb-6 border border-white/10">
-                        <button
-                            onClick={() => setActiveTab('personal')}
-                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            🔮 심리 & 타이밍
-                        </button>
-                        <button
-                            onClick={() => setActiveTab('compatibility')}
-                            className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
-                        >
-                            💫 1:1 궁합 리포트
-                        </button>
+                    <div className="sticky top-[60px] z-40 bg-[#0a0e1a]/95 backdrop-blur-xl py-2 -mx-2 px-2 shadow-lg">
+                        <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10">
+                            <button
+                                onClick={() => setActiveTab('personal')}
+                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                🔮 재회 리포트
+                            </button>
+                            <button
+                                onClick={() => setActiveTab('compatibility')}
+                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+                            >
+                                💫 1:1 궁합 리포트
+                            </button>
+                        </div>
                     </div>
                 )}
 
@@ -451,6 +434,7 @@ export default function HistoryDetailPage() {
                             <SajuAccordion 
                                 details={resultData.compatibilityReport.compatibilityDetails} 
                                 isPremium={true} 
+                                mode="compatibility"
                             />
                         </section>
                     </div>

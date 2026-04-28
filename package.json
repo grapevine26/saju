@@ -12,6 +12,7 @@
     "@google/generative-ai": "^0.24.1",
     "@supabase/ssr": "^0.10.2",
     "@supabase/supabase-js": "^2.104.0",
+    "@tosspayments/tosspayments-sdk": "^2.7.0",
     "framer-motion": "^12.34.3",
     "inngest": "^4.2.4",
     "lucide-react": "^0.575.0",

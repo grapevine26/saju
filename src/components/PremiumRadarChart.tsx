@@ -1,5 +1,5 @@
 import React from 'react';
-import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer } from 'recharts';
+import { Radar, RadarChart, PolarGrid, PolarAngleAxis, PolarRadiusAxis, ResponsiveContainer, Tooltip } from 'recharts';
 
 interface RadarData {
     communication: number;
@@ -7,6 +7,7 @@ interface RadarData {
     intimacy: number;
     future: number;
     conflict: number;
+    subtitle?: string;
     summary: string;
 }
 
@@ -30,6 +31,11 @@ export default function PremiumRadarChart({ data }: { data: RadarData }) {
                             tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 600 }}
                         />
                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
+                        <Tooltip 
+                            contentStyle={{ backgroundColor: 'rgba(10, 14, 26, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
+                            itemStyle={{ color: '#F59E0B', fontWeight: 'bold' }}
+                            formatter={(value: number) => [`${value}점`, '점수']}
+                        />
                         <Radar
                             name="우리 궁합"
                             dataKey="A"
@@ -37,12 +43,20 @@ export default function PremiumRadarChart({ data }: { data: RadarData }) {
                             strokeWidth={2}
                             fill="#F59E0B"
                             fillOpacity={0.4}
+                            label={{ position: 'outside', fill: '#FCD34D', fontSize: 12, fontWeight: 'bold', formatter: (val: number) => `${val}점` }}
                         />
                     </RadarChart>
                 </ResponsiveContainer>
             </div>
-            <div className="mt-4 p-4 bg-white/5 rounded-xl border border-white/10 w-full text-center">
-                <p className="text-[14px] text-amber-400 font-bold leading-relaxed break-keep">
+            <div className="mt-4 p-5 bg-white/5 rounded-xl border border-white/10 w-full text-center">
+                {data.subtitle && (
+                    <div className="mb-3 pb-3 border-b border-white/5">
+                        <span className="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-rose-400">
+                            ✨ {data.subtitle}
+                        </span>
+                    </div>
+                )}
+                <p className="text-[14px] text-slate-300 font-medium leading-[1.8] break-keep text-left">
                     {data.summary}
                 </p>
             </div>

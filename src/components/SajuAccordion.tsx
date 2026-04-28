@@ -13,6 +13,7 @@ interface Props {
     details: SajuDetail[];
     isPremium?: boolean;
     onUpgrade?: () => void;
+    mode?: 'reunion' | 'compatibility';
 }
 
 const PREMIUM_DUMMY_DETAILS: SajuDetail[] = [
@@ -26,14 +27,20 @@ const PREMIUM_DUMMY_DETAILS: SajuDetail[] = [
     { title: "🌸 [선택] 재회 성공 후 미래 vs 더 좋은 새로운 인연", content: "Premium 분석 시 공개됩니다." }
 ];
 
-// 챕터 구분 정보 (9개 섹션 기준 — 본질은 독립 카드로 분리됨)
-const CHAPTER_DIVIDERS: Record<number, { label: string; emoji: string; color: string; chapter: string }> = {
+const REUNION_CHAPTER_DIVIDERS: Record<number, { label: string; emoji: string; color: string; chapter: string }> = {
     0: { label: "왜 우리는 헤어졌을까?", emoji: "💔", color: "from-rose-500/20 to-transparent", chapter: "1" },
     4: { label: "그 사람, 아직 미련이 있을까?", emoji: "🔮", color: "from-purple-500/20 to-transparent", chapter: "2" },
     6: { label: "다시, 우리: 완벽한 재회 전략", emoji: "🚀", color: "from-emerald-500/20 to-transparent", chapter: "3" },
 };
 
-export default function SajuAccordion({ details, isPremium = true, onUpgrade }: Props) {
+const COMPAT_CHAPTER_DIVIDERS: Record<number, { label: string; emoji: string; color: string; chapter: string }> = {
+    0: { label: "운명과 영혼의 연결고리", emoji: "🌌", color: "from-purple-500/20 to-transparent", chapter: "1" },
+    2: { label: "본능과 숨겨진 욕망", emoji: "❤️‍🔥", color: "from-rose-500/20 to-transparent", chapter: "2" },
+    5: { label: "주도권과 영원한 평행선", emoji: "⚔️", color: "from-orange-500/20 to-transparent", chapter: "3" },
+    7: { label: "우리가 만들어갈 현실과 미래", emoji: "💍", color: "from-emerald-500/20 to-transparent", chapter: "4" },
+};
+
+export default function SajuAccordion({ details, isPremium = true, onUpgrade, mode = 'reunion' }: Props) {
     const [openIndex, setOpenIndex] = useState<number | null>(null);
 
     const displayDetails = !isPremium && details.length < 10 
@@ -48,7 +55,18 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade }: 
     };
 
     const getIcon = (title: string) => {
-        // 10개 챕터 매핑
+        // 궁합(Compatibility) 패키지 전용 아이콘
+        if (title.includes("카르마")) return <Sparkles className="w-5 h-5 text-purple-400" />;
+        if (title.includes("귀인") || title.includes("악연")) return <Users className="w-5 h-5 text-blue-400" />;
+        if (title.includes("속궁합") || title.includes("스킨십")) return <Flame className="w-5 h-5 text-rose-500" />;
+        if (title.includes("욕망")) return <Eye className="w-5 h-5 text-indigo-400" />;
+        if (title.includes("무게 추") || title.includes("애정")) return <Heart className="w-5 h-5 text-pink-500" />;
+        if (title.includes("주도권")) return <Zap className="w-5 h-5 text-amber-400" />;
+        if (title.includes("평행선") || title.includes("타협")) return <HeartCrack className="w-5 h-5 text-orange-500" />;
+        if (title.includes("동거") || title.includes("결혼")) return <CalendarHeart className="w-5 h-5 text-emerald-400" />;
+        if (title.includes("재물") || title.includes("돈")) return <Coins className="w-5 h-5 text-yellow-400" />;
+
+        // 기존 10개 챕터 매핑
         if (title.includes("본질") || title.includes("운명")) return <Heart className="w-5 h-5 text-rose-400" />;
         if (title.includes("심리") || title.includes("회피") || title.includes("방어")) return <Shield className="w-5 h-5 text-orange-400" />;
         if (title.includes("애착") || title.includes("끊어")) return <HeartCrack className="w-5 h-5 text-pink-400" />;
@@ -81,13 +99,14 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade }: 
 
     // 챕터 섹션 나뉘는 기준 (10개 기준이 아닐 때는 구분선 없이 렌더링)
     const showChapters = displayDetails.length >= 8;
+    const activeDividers = mode === 'compatibility' ? COMPAT_CHAPTER_DIVIDERS : REUNION_CHAPTER_DIVIDERS;
 
     return (
         <div className="space-y-5">
             {displayDetails.map((detail, idx) => {
                 const isOpen = openIndex === idx;
                 const isLocked = !isPremium && idx >= details.length;
-                const chapterInfo = showChapters ? CHAPTER_DIVIDERS[idx] : undefined;
+                const chapterInfo = showChapters ? activeDividers[idx] : undefined;
 
                 return (
                     <div key={idx}>

@@ -1,4 +1,5 @@
 import { inngest } from "./client";
+import { BASE_SYSTEM_INSTRUCTION } from "@/constants/aiPrompts";
 import { supabaseAdmin } from "@/lib/supabase";
 import { GoogleGenerativeAI } from "@google/generative-ai";
 import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
@@ -18,7 +19,7 @@ const apiKey = process.env.GEMINI_API_KEY || "";
 const genAI = new GoogleGenerativeAI(apiKey);
 
 export const processPremiumAnalysis = inngest.createFunction(
-  { 
+  {
     id: "process-premium-analysis",
     triggers: [{ event: "analysis.premium.requested" }]
   },
@@ -45,57 +46,48 @@ export const processPremiumAnalysis = inngest.createFunction(
 
       // --- 2-1. 만세력 및 궁합 데이터 계산 ---
       const myBazi = calculateBazi(
-          myRawInput.gender, myRawInput.calendarType,
-          myRawInput.birthYear, myRawInput.birthMonth, myRawInput.birthDay,
-          myRawInput.birthCity, myRawInput.birthHour || '', myRawInput.birthMinute || '',
-          myRawInput.isTimeUnknown, myRawInput.birthTimezone, myRawInput.birthLongitude
+        myRawInput.gender, myRawInput.calendarType,
+        myRawInput.birthYear, myRawInput.birthMonth, myRawInput.birthDay,
+        myRawInput.birthCity, myRawInput.birthHour || '', myRawInput.birthMinute || '',
+        myRawInput.isTimeUnknown, myRawInput.birthTimezone, myRawInput.birthLongitude
       );
       const partnerBazi = calculateBazi(
-          partnerRawInput.gender, partnerRawInput.calendarType,
-          partnerRawInput.birthYear, partnerRawInput.birthMonth, partnerRawInput.birthDay,
-          partnerRawInput.birthCity || 'seoul', partnerRawInput.birthHour || '', partnerRawInput.birthMinute || '',
-          partnerRawInput.isTimeUnknown, partnerRawInput.birthTimezone, partnerRawInput.birthLongitude
+        partnerRawInput.gender, partnerRawInput.calendarType,
+        partnerRawInput.birthYear, partnerRawInput.birthMonth, partnerRawInput.birthDay,
+        partnerRawInput.birthCity || 'seoul', partnerRawInput.birthHour || '', partnerRawInput.birthMinute || '',
+        partnerRawInput.isTimeUnknown, partnerRawInput.birthTimezone, partnerRawInput.birthLongitude
       );
       const compatibility = calculateCompatibility(myBazi, partnerBazi);
 
       // --- 2-2. Prompt2 (프리미엄 8개 상세 항목) 호출 ---
       const detailItemSchema = {
-          type: "object" as any,
-          properties: {
-              title: { type: "string" as any },
-              subtitle: { type: "string" as any },
-              content: { type: "string" as any }
-          },
-          required: ["title", "subtitle", "content"]
+        type: "object" as any,
+        properties: {
+          title: { type: "string" as any },
+          subtitle: { type: "string" as any },
+          content: { type: "string" as any }
+        },
+        required: ["title", "subtitle", "content"]
       };
 
       const systemInstruction2 = `
-# Role
-너는 '다시, 우리'라는 데이터 기반 전문 재회 컨설팅 서비스의 분석 전문가야.
-명리학(사주팔자) 데이터 분석과 현대 심리학을 결합하여 두 사람의 관계를 객관적으로 분석하고, 재회를 위한 구체적이고 실현 가능한 전략을 제시해.
-
-# Principles
-1. **톤**: 따뜻하지만 논리적. 단순한 위로가 아닌 '데이터 기반 면죄부'를 제공한다.
-2. **이모지**: 적절히 사용하되 과하지 않게.
-3. **팩트폭행**: 때때로 뼈 때리는 돌직구 조언을 섞어서 현실적으로 알려줘.
-4. **분량 (★ 매우 중요)**: 각 섹션의 content는 반드시 최소 500~600자 이상 작성.
-5. **한자 금지**: 한자를 섞어 쓰지 마 (예: '戊토' → '무토'로 표기)
+${BASE_SYSTEM_INSTRUCTION}
 
 # Response Rules
 1. 반드시 아래 JSON 스키마에 정확히 맞춰서 대답해. 마크다운 백틱이나 부연 설명 없이 순수 JSON만.`.trim();
 
       const schema2 = {
-          type: "object" as any,
-          properties: {
-              details: { type: "array" as any, items: detailItemSchema }
-          },
-          required: ["details"]
+        type: "object" as any,
+        properties: {
+          details: { type: "array" as any, items: detailItemSchema }
+        },
+        required: ["details"]
       };
 
       const model2 = genAI.getGenerativeModel({
-          model: "gemini-3.1-pro-preview",
-          systemInstruction: systemInstruction2,
-          generationConfig: { responseMimeType: "application/json", responseSchema: schema2 }
+        model: "gemini-3.1-pro-preview",
+        systemInstruction: systemInstruction2,
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema2 }
       });
 
       const commonPrompt = `[분석 대상]
@@ -135,32 +127,9 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중
   ]
 }`;
 
-      let parsedData2: any = { details: [] };
-      let attempt = 0;
-      let maxRetries = 2;
-      let success = false;
-      while (attempt <= maxRetries && !success) {
-          try {
-              const res2 = await model2.generateContent(prompt2);
-              parsedData2 = JSON.parse(res2.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-              success = true;
-          } catch (e) {
-              attempt++;
-              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-          }
-      }
-
-      // --- 2-3. 로드맵 및 월별 에너지 흐름 호출 ---
+      // --- 2-3. 로드맵 및 월별 에너지 흐름 준비 ---
       const systemInstruction3 = `
-# Role
-너는 '다시, 우리'라는 데이터 기반 전문 재회 컨설팅 서비스의 분석 전문가야.
-명리학(사주팔자) 데이터와 골든 윈도우 분석을 결합하여 두 사람의 향후 관계 흐름을 객관적으로 분석하고 전략을 제시해.
-
-# Principles
-1. **톤**: 따뜻하지만 논리적이며 현실적.
-2. **이모지**: 적절히 사용 (문단당 1~2개).
-3. **분량**: 각 섹션은 최소 350자 이상, 2~3개 문단으로 깊이 있게 분석.
-4. **한자 금지**: 한자를 섞어 쓰지 마 (예: '戊토' → '무토'로 표기)
+${BASE_SYSTEM_INSTRUCTION}
 
 # Response Rules
 1. 반드시 아래 JSON 스키마에 정확히 맞춰서 대답해. 마크다운 백틱이나 부연 설명 없이 순수 JSON만.
@@ -168,48 +137,48 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중
 `.trim();
 
       const schema3 = {
-          type: "object" as any,
-          properties: {
-              monthlyEnergies: {
-                  type: "array" as any,
-                  items: {
-                      type: "object" as any,
-                      properties: { month: { type: "string" as any }, theme: { type: "string" as any }, advice: { type: "string" as any } },
-                      required: ["month", "theme", "advice"]
-                  }
-              },
-              roadmapStages: {
-                  type: "array" as any,
-                  items: {
-                      type: "object" as any,
-                      properties: { step: { type: "string" as any }, title: { type: "string" as any }, action: { type: "string" as any } },
-                      required: ["step", "title", "action"]
-                  }
-              },
-              goldenWindowMonths: {
-                  type: "array" as any,
-                  items: {
-                      type: "object" as any,
-                      properties: {
-                          month: { type: "string" as any },
-                          goodDates: { type: "array" as any, items: { type: "number" as any } },
-                          badDates: { type: "array" as any, items: { type: "number" as any } }
-                      },
-                      required: ["month", "goodDates", "badDates"]
-                  }
-              }
+        type: "object" as any,
+        properties: {
+          monthlyEnergies: {
+            type: "array" as any,
+            items: {
+              type: "object" as any,
+              properties: { month: { type: "string" as any }, theme: { type: "string" as any }, advice: { type: "string" as any } },
+              required: ["month", "theme", "advice"]
+            }
           },
-          required: ["monthlyEnergies", "roadmapStages", "goldenWindowMonths"]
+          roadmapStages: {
+            type: "array" as any,
+            items: {
+              type: "object" as any,
+              properties: { step: { type: "string" as any }, title: { type: "string" as any }, action: { type: "string" as any } },
+              required: ["step", "title", "action"]
+            }
+          },
+          goldenWindowMonths: {
+            type: "array" as any,
+            items: {
+              type: "object" as any,
+              properties: {
+                month: { type: "string" as any },
+                goodDates: { type: "array" as any, items: { type: "number" as any } },
+                badDates: { type: "array" as any, items: { type: "number" as any } }
+              },
+              required: ["month", "goodDates", "badDates"]
+            }
+          }
+        },
+        required: ["monthlyEnergies", "roadmapStages", "goldenWindowMonths"]
       };
 
       const model3 = genAI.getGenerativeModel({
-          model: "gemini-3.1-pro-preview",
-          systemInstruction: systemInstruction3,
-          generationConfig: { responseMimeType: "application/json", responseSchema: schema3 }
+        model: "gemini-3.1-pro-preview",
+        systemInstruction: systemInstruction3,
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema3 }
       });
 
       const windowSummary = result.windows.map(w =>
-          `- ${w.year}년 ${w.month}월 (에너지 점수: ${w.score}점, 골든 여부: ${w.isGolden}): ${w.reasons.join(', ')}`
+        `- ${w.year}년 ${w.month}월 (에너지 점수: ${w.score}점, 골든 여부: ${w.isGolden}): ${w.reasons.join(', ')}`
       ).join('\n');
 
       const prompt3 = `[분석 대상]
@@ -237,84 +206,108 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
 
 반드시 위 스키마 포맷을 준수할 것.`;
 
+      // --- 병렬 처리 시작 (Promise.all) ---
+      let parsedData2: any = { details: [] };
       let parsedData3: any = { monthlyEnergies: [], roadmapStages: [], goldenWindowMonths: [] };
-      attempt = 0;
-      success = false;
-      while (attempt <= maxRetries && !success) {
-          try {
-              const res3 = await model3.generateContent(prompt3);
-              parsedData3 = JSON.parse(res3.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
+      let compatibilityReport: any = null;
+
+      await Promise.all([
+        // 1. 기본 심층 분석 8개 (model2)
+        (async () => {
+          let attempt = 0;
+          let success = false;
+          while (attempt <= 2 && !success) {
+            try {
+              const res = await model2.generateContent(prompt2);
+              parsedData2 = JSON.parse(res.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
               success = true;
-          } catch (e) {
+            } catch (e) {
               attempt++;
               await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            }
           }
-      }
+        })(),
 
-      // --- 2-4. Prompt4 (궁합 패키지) 호출 ---
-      let compatibilityReport = null;
-      if (raw_data.packageId === 'premium') {
-          const systemInstruction4 = `
-# Role
-너는 남녀의 사주와 궁합을 분석하여 직관적인 데이터(점수)와 대립되는 성향(VS 카드), 그리고 심층 분석을 도출하는 궁합 전문 AI야.
+        // 2. 로드맵 및 캘린더 (model3)
+        (async () => {
+          let attempt = 0;
+          let success = false;
+          while (attempt <= 2 && !success) {
+            try {
+              const res = await model3.generateContent(prompt3);
+              parsedData3 = JSON.parse(res.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
+              success = true;
+            } catch (e) {
+              attempt++;
+              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+            }
+          }
+        })(),
+
+        // 3. 궁합 패키지 (model4 - 조건부 실행)
+        (async () => {
+          if (raw_data.packageId === 'premium') {
+            const systemInstruction4 = `
+${BASE_SYSTEM_INSTRUCTION}
 
 # Response Rules
-1. 'radarChart' 항목: 5가지 지표(communication, affection, intimacy, future, conflict)에 대해 0~100점 사이의 객관적 점수를 부여하고, 전체 궁합을 한 줄로 요약해.
-2. 'vsCards' 항목: 두 사람의 사주를 비교하여 가장 극명하게 대비되는 성향 차이 3가지를 뽑아내. (topic, myTrait, partnerTrait, explanation)
-3. 'compatibilityDetails' 항목: 지정된 9가지 주제에 대해 각각 최소 400자 이상의 심층 분석 텍스트를 작성해. 단락을 잘 나누고 이모지를 적절히 사용해.
+1. 'radarChart' 항목: 5가지 지표(communication, affection, intimacy, future, conflict)에 대해 0~100점 사이의 객관적 점수를 부여하고, 전체 궁합을 관통하는 매력적인 소제목(subtitle)을 작성한 뒤, 150~200자 분량으로 아주 상세하게 요약해.
+2. 'vsCards' 항목: 두 사람의 사주를 비교하여 가장 극명하게 대비되는 성향 차이 3가지를 뽑아내. (topic, myTrait, partnerTrait, explanation). 'explanation'은 실제 연애에서 어떻게 충돌하는지 300자 이상으로 매우 구체적이고 길게 설명해.
+3. 'compatibilityDetails' 항목: 지정된 9가지 주제에 대해 각각 최소 300자 이상의 심층 분석 텍스트를 작성해. 단락을 잘 나누고 이모지를 적절히 사용해.
 4. 오직 JSON 형식으로만 반환해.
 `.trim();
 
-          const schema4 = {
+            const schema4 = {
               type: "object" as any,
               properties: {
-                  radarChart: {
-                      type: "object" as any,
-                      properties: {
-                          communication: { type: "number" as any },
-                          affection: { type: "number" as any },
-                          intimacy: { type: "number" as any },
-                          future: { type: "number" as any },
-                          conflict: { type: "number" as any },
-                          summary: { type: "string" as any }
-                      },
-                      required: ["communication", "affection", "intimacy", "future", "conflict", "summary"]
+                radarChart: {
+                  type: "object" as any,
+                  properties: {
+                    communication: { type: "number" as any },
+                    affection: { type: "number" as any },
+                    intimacy: { type: "number" as any },
+                    future: { type: "number" as any },
+                    conflict: { type: "number" as any },
+                    subtitle: { type: "string" as any },
+                    summary: { type: "string" as any }
                   },
-                  vsCards: {
-                      type: "array" as any,
-                      items: {
-                          type: "object" as any,
-                          properties: {
-                              topic: { type: "string" as any },
-                              myTrait: { type: "string" as any },
-                              partnerTrait: { type: "string" as any },
-                              explanation: { type: "string" as any }
-                          },
-                          required: ["topic", "myTrait", "partnerTrait", "explanation"]
-                      }
-                  },
-                  compatibilityDetails: {
-                      type: "array" as any,
-                      items: {
-                          type: "object" as any,
-                          properties: {
-                              title: { type: "string" as any },
-                              content: { type: "string" as any }
-                          },
-                          required: ["title", "content"]
-                      }
+                  required: ["communication", "affection", "intimacy", "future", "conflict", "subtitle", "summary"]
+                },
+                vsCards: {
+                  type: "array" as any,
+                  items: {
+                    type: "object" as any,
+                    properties: {
+                      topic: { type: "string" as any },
+                      myTrait: { type: "string" as any },
+                      partnerTrait: { type: "string" as any },
+                      explanation: { type: "string" as any }
+                    },
+                    required: ["topic", "myTrait", "partnerTrait", "explanation"]
                   }
+                },
+                compatibilityDetails: {
+                  type: "array" as any,
+                  items: {
+                    type: "object" as any,
+                    properties: {
+                      title: { type: "string" as any },
+                      content: { type: "string" as any }
+                    },
+                    required: ["title", "content"]
+                  }
+                }
               },
               required: ["radarChart", "vsCards", "compatibilityDetails"]
-          };
+            };
 
-          const model4 = genAI.getGenerativeModel({
+            const model4 = genAI.getGenerativeModel({
               model: "gemini-3.1-pro-preview",
               systemInstruction: systemInstruction4,
               generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
-          });
+            });
 
-          const prompt4 = `${commonPrompt}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 아래 9가지 주제에 맞춰 작성해줘. JSON 포맷:
+            const prompt4 = `${commonPrompt}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 아래 9가지 주제에 맞춰 작성해줘. JSON 포맷:
 1. 🌌 전생부터 이어진 우리의 카르마 (우리는 전생에 어떤 인연이었길래 끌렸을까?)
 2. 👼 서로에게 귀인일까 악연일까 (서로의 에너지를 채워주는지 갉아먹는지)
 3. 🔞 은밀한 속궁합과 스킨십 리듬 (육체적 케미와 애정 방식)
@@ -325,55 +318,60 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
 8. 💍 만약 우리가 동거/결혼을 한다면? (다툼 원인, 생활 패턴 시뮬레이션)
 9. 💸 재물 시너지 (함께하면 돈이 불어날까 깎일까?)
 
-각 주제(title)와 그에 대한 심층 분석(content, 최소 400자 이상)을 compatibilityDetails 배열에 순서대로 담아줘.
-`;
-          let parsedData4: any = null;
-          attempt = 0;
-          success = false;
-          while (attempt <= maxRetries && !success) {
+각 주제(title)와 그에 대한 심층 분석(content, 최소 300자 이상)을 compatibilityDetails 배열에 순서대로 담아줘.`;
+
+            let attempt = 0;
+            let success = false;
+            while (attempt <= 2 && !success) {
               try {
-                  const res4 = await model4.generateContent(prompt4);
-                  parsedData4 = JSON.parse(res4.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-                  success = true;
+                const res = await model4.generateContent(prompt4);
+                compatibilityReport = JSON.parse(res.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
+                success = true;
               } catch (e) {
-                  attempt++;
-                  await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
+                attempt++;
+                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
               }
+            }
           }
-          compatibilityReport = parsedData4;
-      }
+        })()
+      ]);
 
       // --- 2-5. 최종 병합 (Lite Data + Premium Details + Roadmap/Energies + Compatibility) ---
       // liteResult 에는 기존의 details (2개) 가 있음. Premium 8개를 뒤에 합칩니다.
-      const liteDetails = liteResult.resultData?.details || [];
+      const liteDetails = liteResult.details || [];
       const premiumDetails = parsedData2.details || [];
       const allDetails = [...liteDetails, ...premiumDetails];
 
       return {
-          ...liteResult.resultData, // 기존 호환성, 점수, 요약, 사주 등 유지
-          details: allDetails,      // 총 10개의 프리미엄 아코디언 항목
-          goldenWindows: {
-              windows: result.windows,
-              bestMonth: result.bestMonth,
-              worstMonth: result.worstMonth,
-              monthlyEnergies: parsedData3.monthlyEnergies,
-              roadmapStages: parsedData3.roadmapStages,
-              goldenWindowMonths: parsedData3.goldenWindowMonths || []
-          },
-          compatibilityReport
+        ...liteResult, // 기존 호환성, 점수, 요약, 사주 등 유지
+        details: allDetails,      // 총 10개의 프리미엄 아코디언 항목
+        goldenWindows: {
+          windows: result.windows,
+          bestMonth: result.bestMonth,
+          worstMonth: result.worstMonth,
+          monthlyEnergies: parsedData3.monthlyEnergies,
+          roadmapStages: parsedData3.roadmapStages,
+          goldenWindowMonths: parsedData3.goldenWindowMonths || []
+        },
+        compatibilityReport
       };
 
     });
 
     // 3. 분석 결과 DB 저장
     await step.run("save-result-to-supabase", async () => {
-      await supabaseAdmin
+      const { error } = await supabaseAdmin
         .from("premium_analysis_jobs")
         .update({
           status: "completed",
           ai_result: aiResult
         })
         .eq("id", jobId);
+      
+      if (error) {
+        console.error("Supabase update error:", error);
+        throw new Error(error.message);
+      }
     });
 
     // 4. Solapi로 완료 알림 문자 발송 (임시로 발송 중지 - 콘솔 로그로 대체)
@@ -419,9 +417,9 @@ ${resultUrl}
       } catch (error: any) {
         console.error("Solapi SMS 발송 에러:", error.message);
         if (error.failedMessageList) {
-            console.error("실패 상세 사유:", JSON.stringify(error.failedMessageList, null, 2));
+          console.error("실패 상세 사유:", JSON.stringify(error.failedMessageList, null, 2));
         } else {
-            console.error("에러 객체:", error);
+          console.error("에러 객체:", error);
         }
       }
     });

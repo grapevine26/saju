@@ -125,19 +125,38 @@ export default function Home() {
                         {"다시,\n우리"}
                     </h1>
 
-                    <p className="text-slate-400 text-base mb-10 font-medium leading-[1.7] max-w-xs">
-                        다시 연락해도 될까?{'\n'}
-                        사주 데이터가 <span className="text-amber-400 font-bold">최적의 타이밍</span>과{'\n'}
-                        <span className="text-amber-400 font-bold">성공 전략</span>을 알려드립니다.
+                    <p className="text-slate-400 text-[15px] mb-10 font-medium leading-[1.7] max-w-sm break-keep">
+                        시간이 약이라는 착각이 재회를 망칩니다.<br />
+                        <span className="text-amber-400 font-bold">골든 윈도우가 닫히기 전</span>에<br />
+                        도박을 멈추고 정확한 타이밍을 확인하세요.
                     </p>
 
-                    <Link href="/input" className="w-full max-w-xs">
-                        <button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-lg flex items-center justify-center gap-2 py-4 rounded-2xl shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] hover:shadow-[0_8px_40px_rgba(245,158,11,0.4)]">
-                            재회 가능성 분석하기
+                    <Link href="/input" className="w-full max-w-sm">
+                        <button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-[17px] flex items-center justify-center gap-2 py-4 rounded-2xl shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] hover:shadow-[0_8px_40px_rgba(245,158,11,0.4)]">
+                            내 골든 윈도우 닫히기 전에 확인하기
                             <ArrowRight className="w-5 h-5" />
                         </button>
                     </Link>
-                    <p className="text-sm text-slate-600 mt-3 font-medium">✨ 회원가입 없이 바로 시작</p>
+                    <p className="text-sm text-slate-600 mt-3 font-medium">✨ 회원가입 없이 익명으로 안전하게 시작</p>
+                </div>
+
+                {/* 실시간 대기 현황 배너 (FOMO) */}
+                <div className="relative z-10 mt-12 w-full max-w-sm mx-auto">
+                    <motion.div 
+                        initial={{ opacity: 0, y: 10 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.5 }}
+                        className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex items-center gap-3"
+                    >
+                        <div className="relative flex h-3 w-3 shrink-0 ml-1">
+                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                        </div>
+                        <p className="text-[12px] text-rose-200 font-medium text-left leading-tight">
+                            현재 <span className="font-bold text-white">124명</span>이 타이밍을 분석 중입니다.<br/>
+                            <span className="text-rose-400">이번 달 골든 윈도우가 얼마 남지 않았을 수 있습니다.</span>
+                        </p>
+                    </motion.div>
                 </div>
             </section>
 
@@ -172,6 +191,32 @@ export default function Home() {
                 </div>
             </section>
 
+            {/* 1.8. 도박 프레임 (시간의 두 얼굴) */}
+            <section className="px-6 py-8">
+                <div className="max-w-sm mx-auto glass-card border border-rose-500/20 overflow-hidden relative">
+                    <div className="absolute top-0 right-0 bg-rose-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl">WARNING</div>
+                    <div className="p-6">
+                        <h2 className="text-[19px] font-black text-white mb-4 leading-snug">
+                            어떤 이별은 시간이 약이지만,<br />
+                            <span className="text-rose-400">어떤 이별은 시간이 독입니다.</span>
+                        </h2>
+                        <div className="space-y-4 mb-6">
+                            <div className="bg-[#0a0e1a]/50 p-4 rounded-xl border border-white/5">
+                                <p className="text-[13px] text-slate-300 font-medium leading-relaxed">
+                                    기다려야 할 때 연락하면 <span className="text-white font-bold">차단당하고</span>,<br />
+                                    연락해야 할 때 기다리면 <span className="text-white font-bold">새 인연이 생깁니다</span>.
+                                </p>
+                            </div>
+                            <p className="text-[13px] text-slate-400 font-medium leading-relaxed">
+                                상대의 상태를 모른 채 움직이는 것은<br />
+                                <span className="text-rose-400 font-bold">영원히 끝날 수도 있는 50% 확률의 도박</span>입니다.<br />
+                                간절한 사람에게 도박은 필요하지 않습니다.
+                            </p>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
             {/* 2. 핵심 가치 제안 */}
             <section className="px-6 py-10">
                 <div className="max-w-sm mx-auto grid grid-cols-3 gap-3 text-center">
@@ -198,15 +243,15 @@ export default function Home() {
             {/* 3. 서비스 소개 */}
             <section className="px-6 py-10">
                 <div className="max-w-sm mx-auto">
-                    <h2 className="text-xl font-black text-white mb-2 text-center">어떻게 분석하나요?</h2>
-                    <p className="text-slate-500 text-sm text-center mb-8 font-medium">사주 데이터 + 전문 컨설팅이 만나면</p>
+                    <h2 className="text-xl font-black text-white mb-2 text-center">골든 윈도우 분석 시스템</h2>
+                    <p className="text-slate-500 text-[13px] text-center mb-8 font-medium">명리학 빅데이터를 딥러닝한 독자적인 분석 로직</p>
 
                     <div className="space-y-4">
                         {[
-                            { icon: Heart, color: "text-rose-400 bg-rose-500/10", title: "이별 원인 심층 분석", desc: "사주 성향, 방어기제, 타이밍까지 — 왜 헤어졌는지 완전 해부합니다." },
-                            { icon: Shield, color: "text-purple-400 bg-purple-500/10", title: "상대방 속마음 투시", desc: "지금 그 사람이 나를 어떻게 생각하는지, 미련이 남아있는지 분석합니다." },
-                            { icon: MessageCircle, color: "text-emerald-400 bg-emerald-500/10", title: "맞춤형 재회 전략", desc: "최적의 연락 시기, 유혹 비법, 치명적 실수 회피까지 올인원 가이드." },
-                            { icon: CalendarHeart, color: "text-amber-400 bg-amber-500/10", title: "골든 윈도우 캘린더", desc: "향후 6개월간 연락 최적기 + 월별 에너지 흐름 + 장기 로드맵을 제공합니다." },
+                            { icon: Heart, color: "text-rose-400 bg-rose-500/10", title: "진짜 이별 이유 심층 분석", desc: "표면적 이유가 아닌 진짜 원인, 왜 그 순간 폭발했는지 완전 해부합니다." },
+                            { icon: Shield, color: "text-purple-400 bg-purple-500/10", title: "현재 속마음 & 미련 지수", desc: "지금 상대방이 당신을 어떻게 생각하는지 객관적인 수치로 투시합니다." },
+                            { icon: CalendarHeart, color: "text-amber-400 bg-amber-500/10", title: "연락 최적기 '골든 윈도우'", desc: "다시 연락 닿을 정확한 길일과 절대 하면 안 되는 치명적 실수를 알려줍니다." },
+                            { icon: MessageCircle, color: "text-emerald-400 bg-emerald-500/10", title: "3단계 재회 장기 로드맵", desc: "단순한 예측을 넘어, 확실하게 재회까지 골인하기 위한 행동 지침입니다." },
                         ].map((item, i) => (
                             <motion.div
                                 key={i}
