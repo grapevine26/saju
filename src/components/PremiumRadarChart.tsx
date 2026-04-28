@@ -34,7 +34,7 @@ export default function PremiumRadarChart({ data }: { data: RadarData }) {
                         <Tooltip 
                             contentStyle={{ backgroundColor: 'rgba(10, 14, 26, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
                             itemStyle={{ color: '#F59E0B', fontWeight: 'bold' }}
-                            formatter={(value: number) => [`${value}점`, '점수']}
+                            formatter={(value: any) => [`${value}점`, '점수']}
                         />
                         <Radar
                             name="우리 궁합"
@@ -43,7 +43,7 @@ export default function PremiumRadarChart({ data }: { data: RadarData }) {
                             strokeWidth={2}
                             fill="#F59E0B"
                             fillOpacity={0.4}
-                            label={{ position: 'outside', fill: '#FCD34D', fontSize: 12, fontWeight: 'bold', formatter: (val: number) => `${val}점` }}
+                            label={{ position: 'outside', fill: '#FCD34D', fontSize: 12, fontWeight: 'bold', formatter: (val: any) => `${val}점` }}
                         />
                     </RadarChart>
                 </ResponsiveContainer>
