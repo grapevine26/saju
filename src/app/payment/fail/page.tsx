@@ -1,8 +1,9 @@
 "use client";
 
 import { useRouter, useSearchParams } from "next/navigation";
+import { Suspense } from "react";
 
-export default function PaymentFailPage() {
+function FailContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const message = searchParams.get("message") || "결제를 취소했거나 오류가 발생했습니다.";
@@ -23,5 +24,13 @@ export default function PaymentFailPage() {
                 </button>
             </div>
         </div>
+    );
+}
+
+export default function PaymentFailPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#0a0e1a]"></div>}>
+            <FailContent />
+        </Suspense>
     );
 }

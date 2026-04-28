@@ -4,9 +4,9 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSajuStore } from "@/store/useSajuStore";
-import toast from "react-hot-toast";
+import toast from "react-hot-toast";import { Suspense } from "react";
 
-export default function PaymentSuccessPage() {
+function PaymentSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
     const paymentKey = searchParams.get("paymentKey");
@@ -220,5 +220,13 @@ export default function PaymentSuccessPage() {
                 </div>
             )}
         </div>
+    );
+}
+
+export default function PaymentSuccessPage() {
+    return (
+        <Suspense fallback={<div className="min-h-screen bg-[#0a0e1a]"></div>}>
+            <PaymentSuccessContent />
+        </Suspense>
     );
 }
