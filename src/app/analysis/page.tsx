@@ -214,19 +214,15 @@ export default function AnalysisPage() {
         setShowUpgradeModal(false);
 
         try {
-            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
-            const { loadTossPayments } = await import('@tosspayments/tosspayments-sdk');
-            const tossPayments = await loadTossPayments(clientKey);
-
             const amount = selectedPackageId === 'premium' ? 19900 : 13900;
             const orderName = selectedPackageId === 'premium' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
             const customerMobilePhone = identifier.value.replace(/[^0-9]/g, '');
 
-            const orderId = `${recordId.current}_${Date.now()}`;
+            const orderId = `${recordId.current}${Date.now()}`;
 
             // localStorage에 임시 저장 (결제 성공 페이지에서 꺼내서 사용)
-            localStorage.setItem('pendingTossPayment', JSON.stringify({
-                orderId,
+            localStorage.setItem('pendingPortOnePayment', JSON.stringify({
+                paymentId: orderId, // PortOne v2 에서는 paymentId 사용
                 packageId: selectedPackageId,
                 identifier,
                 recordId: recordId.current,
@@ -235,16 +231,36 @@ export default function AnalysisPage() {
                 breakupReason
             }));
 
-            await tossPayments.payment({ customerKey: identifier.value || 'ANONYMOUS' }).requestPayment({
-                method: 'CARD',
-                amount: { currency: 'KRW', value: amount },
-                orderId,
+            const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || 'store-e1332c86-53fa-4ab8-aca7-085909baaebf';
+            const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-819c3a5b-c1a6-4381-aa9a-29c19b34345b';
+
+            const PortOne = await import('@portone/browser-sdk/v2');
+            
+            const response = await PortOne.requestPayment({
+                storeId,
+                channelKey,
+                paymentId: orderId,
                 orderName,
-                customerName: name || '익명',
-                successUrl: `${window.location.origin}/payment/success`,
-                failUrl: `${window.location.origin}/payment/fail`,
-                customerMobilePhone
+                totalAmount: amount,
+                currency: "CURRENCY_KRW",
+                payMethod: "CARD",
+                customer: {
+                    customerId: identifier.value || 'ANONYMOUS',
+                    fullName: name || '익명',
+                    phoneNumber: customerMobilePhone,
+                    email: 'guest@sajupop.com'
+                },
+                redirectUrl: `${window.location.origin}/payment/success`
             });
+
+            if (response?.code != null) {
+                throw new Error(response.message || "결제에 실패했습니다.");
+            }
+
+            // PC 브라우저: 팝업 결제 완료 후 직접 success 페이지로 이동
+            if (response?.paymentId) {
+                window.location.href = `/payment/success?paymentId=${encodeURIComponent(response.paymentId)}`;
+            }
 
         } catch (err: any) {
             console.error(err);
@@ -316,6 +332,7 @@ export default function AnalysisPage() {
             </header>
 
             <main className="p-6 pt-20 space-y-8">
+
                 {/* 1. 재회 가능성 게이지 */}
                 <motion.div
                     initial={{ scale: 0.8, opacity: 0 }}
@@ -387,6 +404,51 @@ export default function AnalysisPage() {
                         </div>
                     </motion.div>
                 )}
+
+                {/* 2.8. 시크릿 티저 (Lite 전용 블러, Premium 전용 언블러) */}
+                <motion.div
+                    initial={{ y: 30, opacity: 0 }}
+                    animate={{ y: 0, opacity: 1 }}
+                    transition={{ delay: 0.28 }}
+                >
+                    <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        {isPremium ? <Sparkles className="w-4 h-4 text-amber-400" /> : <Lock className="w-4 h-4 text-rose-400" />}
+                        {isPremium ? "핵심 행동 지침 요약" : "핵심 행동 지침"}
+                    </h2>
+                    <div className={`glass-card p-5 relative overflow-hidden ${isPremium ? 'border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : 'border-rose-500/20 shadow-[0_0_20px_rgba(225,29,72,0.05)]'}`}>
+                        {!isPremium && <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />}
+                        {isPremium && <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />}
+                        <div className="text-[14px] leading-[1.8] text-slate-300 font-medium whitespace-pre-wrap break-keep relative z-10">
+                            {(result.secretTeaser || `분석 결과, 두 사람의 재회 타이밍은 앞으로 [BLUR]1개월 내[/BLUR]에 찾아옵니다. 이때 상대방의 감정 변화는 [BLUR]그리움과 미련[/BLUR] 상태로 접어들며, 먼저 연락을 [BLUR]기다리는[/BLUR] 것이 핵심 전략입니다.`).split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part: string, i: number) => {
+                                if (part.startsWith('[BLUR]') && part.endsWith('[/BLUR]')) {
+                                    const blurredText = part.replace('[BLUR]', '').replace('[/BLUR]', '');
+                                    return isPremium ? (
+                                        <span key={i} className="text-amber-400 font-bold mx-1">
+                                            {blurredText || '절대하면안되는행동'}
+                                        </span>
+                                    ) : (
+                                        <span key={i} className="inline-flex relative mx-1 align-middle translate-y-[-1px]">
+                                            <span className="blur-[4px] select-none opacity-60 bg-slate-700 text-transparent rounded px-2">{blurredText || '절대하면안되는행동'}</span>
+                                            <span className="absolute inset-0 flex items-center justify-center">
+                                                <Lock className="w-3.5 h-3.5 text-amber-400 drop-shadow-md" />
+                                            </span>
+                                        </span>
+                                    );
+                                }
+                                return <span key={i}>{part}</span>;
+                            })}
+                        </div>
+                        {!isPremium && (
+                            <button
+                                onClick={handleUpgradeClick}
+                                className="mt-5 w-full bg-white/5 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 transition-all text-[14px] active:scale-[0.98] relative z-10"
+                            >
+                                <Lock className="w-4 h-4" />
+                                가려진 내용 확인하기
+                            </button>
+                        )}
+                    </div>
+                </motion.div>
 
                 {/* 3. AI 재회 전략 리포트 */}
                 <motion.div
@@ -599,7 +661,7 @@ export default function AnalysisPage() {
                     >
                         {isUpgrading ? <span>요청 중...</span> : (
                             <>
-                                <span className="text-[15px]">Premium 심층 리포트 열람하기</span>
+                                <span className="text-[15px]">Premium 심층 리포트 즉시 열람하기</span>
                                 <span className="text-[12px] font-bold text-amber-100/90 tracking-wider">
                                     <span className="line-through opacity-70 mr-1">39,900원</span>13,900원 (~{discountEndsAt} 마감)
                                 </span>

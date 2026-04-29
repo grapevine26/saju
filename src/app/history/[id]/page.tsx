@@ -154,18 +154,14 @@ export default function HistoryDetailPage() {
         setShowUpgradeModal(false);
 
         try {
-            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
-            const { loadTossPayments } = await import('@tosspayments/tosspayments-sdk');
-            const tossPayments = await loadTossPayments(clientKey);
-
             const amount = selectedPackageId === 'premium' ? 19900 : 13900;
             const orderName = selectedPackageId === 'premium' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
             const customerMobilePhone = identifier.value.replace(/[^0-9]/g, '');
 
-            const orderId = `${record.id}_${Date.now()}`;
+            const orderId = `${record.id}${Date.now()}`;
 
-            localStorage.setItem('pendingTossPayment', JSON.stringify({
-                orderId,
+            localStorage.setItem('pendingPortOnePayment', JSON.stringify({
+                paymentId: orderId, // PortOne v2 에서는 paymentId 사용
                 packageId: selectedPackageId,
                 identifier,
                 recordId: record.id,
@@ -174,16 +170,36 @@ export default function HistoryDetailPage() {
                 breakupReason: (record as any).breakupReason || ''
             }));
 
-            await tossPayments.payment({ customerKey: identifier.value || 'ANONYMOUS' }).requestPayment({
-                method: 'CARD',
-                amount: { currency: 'KRW', value: amount },
-                orderId,
+            const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || 'store-e1332c86-53fa-4ab8-aca7-085909baaebf';
+            const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-819c3a5b-c1a6-4381-aa9a-29c19b34345b';
+
+            const PortOne = await import('@portone/browser-sdk/v2');
+            
+            const response = await PortOne.requestPayment({
+                storeId,
+                channelKey,
+                paymentId: orderId,
                 orderName,
-                customerName: myInfo.name || '익명',
-                successUrl: `${window.location.origin}/payment/success`,
-                failUrl: `${window.location.origin}/payment/fail`,
-                customerMobilePhone
+                totalAmount: amount,
+                currency: "CURRENCY_KRW",
+                payMethod: "CARD",
+                customer: {
+                    customerId: identifier.value || 'ANONYMOUS',
+                    fullName: myInfo.name || '익명',
+                    phoneNumber: customerMobilePhone,
+                    email: 'guest@sajupop.com'
+                },
+                redirectUrl: `${window.location.origin}/payment/success`
             });
+
+            if (response?.code != null) {
+                throw new Error(response.message || "결제에 실패했습니다.");
+            }
+
+            // PC 브라우저: 팝업 결제 완료 후 직접 success 페이지로 이동
+            if (response?.paymentId) {
+                window.location.href = `/payment/success?paymentId=${encodeURIComponent(response.paymentId)}`;
+            }
 
         } catch (err: any) {
             console.error(err);
@@ -403,6 +419,36 @@ export default function HistoryDetailPage() {
 
                 {activeTab === 'compatibility' && resultData.compatibilityReport && (
                     <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                        {/* 커플 유형 진단 */}
+                        {resultData.compatibilityReport.coupleType && (
+                            <section>
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <span className="text-lg">💘</span>
+                                    커플 유형 진단
+                                </h2>
+                                <motion.div
+                                    initial={{ scale: 0.95, opacity: 0 }}
+                                    animate={{ scale: 1, opacity: 1 }}
+                                    transition={{ type: "spring", damping: 15 }}
+                                    className="relative overflow-hidden rounded-2xl border border-indigo-500/20"
+                                    style={{ background: 'linear-gradient(145deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.05) 50%, rgba(15,23,42,0.95) 100%)' }}
+                                >
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/30 to-transparent" />
+                                    <div className="p-6 text-center">
+                                        <div className="text-5xl mb-3">{resultData.compatibilityReport.coupleType.emoji}</div>
+                                        <h3 className="text-xl font-black text-white mb-1">
+                                            {resultData.compatibilityReport.coupleType.label}
+                                        </h3>
+                                        <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto my-4 rounded-full" />
+                                        <p className="text-[13px] text-slate-300 leading-[1.85] whitespace-pre-wrap font-medium text-left">
+                                            {resultData.compatibilityReport.coupleType.description}
+                                        </p>
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-purple-500/20 to-transparent" />
+                                </motion.div>
+                            </section>
+                        )}
+
                         {/* 레이더 차트 */}
                         <section>
                             <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
@@ -437,6 +483,67 @@ export default function HistoryDetailPage() {
                                 mode="compatibility"
                             />
                         </section>
+
+                        {/* 궁합 종합 등급 */}
+                        {resultData.compatibilityReport.overallGrade && (
+                            <section>
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <span className="text-lg">📊</span>
+                                    궁합 종합 등급
+                                </h2>
+                                <motion.div
+                                    initial={{ y: 20, opacity: 0 }}
+                                    animate={{ y: 0, opacity: 1 }}
+                                    className="relative overflow-hidden rounded-2xl border border-amber-500/20"
+                                    style={{ background: 'linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(244,63,94,0.04) 40%, rgba(15,23,42,0.95) 100%)' }}
+                                >
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+                                    <div className="p-6">
+                                        {/* 등급 뱃지 */}
+                                        <div className="text-center mb-5">
+                                            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl font-black mb-2 ${
+                                                resultData.compatibilityReport.overallGrade.grade === 'S' ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 text-amber-400 border border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.15)]' :
+                                                resultData.compatibilityReport.overallGrade.grade === 'A' ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 text-emerald-400 border border-emerald-500/30' :
+                                                resultData.compatibilityReport.overallGrade.grade === 'B' ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-blue-400 border border-blue-500/30' :
+                                                resultData.compatibilityReport.overallGrade.grade === 'C' ? 'bg-gradient-to-br from-slate-500/20 to-slate-600/10 text-slate-400 border border-slate-500/30' :
+                                                'bg-gradient-to-br from-rose-500/20 to-rose-600/10 text-rose-400 border border-rose-500/30'
+                                            }`}>
+                                                {resultData.compatibilityReport.overallGrade.grade}
+                                            </div>
+                                            <p className="text-sm font-bold text-white">{resultData.compatibilityReport.overallGrade.label}</p>
+                                        </div>
+
+                                        {/* 강점/약점 */}
+                                        <div className="grid grid-cols-2 gap-3 mb-5">
+                                            <div className="bg-emerald-500/[0.06] border border-emerald-500/15 rounded-xl p-3.5">
+                                                <p className="text-[11px] font-bold text-emerald-400 mb-2.5 tracking-wide">✦ 강점</p>
+                                                <div className="space-y-1.5">
+                                                    {resultData.compatibilityReport.overallGrade.strengths.map((s: string, i: number) => (
+                                                        <p key={i} className="text-[12px] text-slate-300 leading-snug">• {s}</p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                            <div className="bg-rose-500/[0.06] border border-rose-500/15 rounded-xl p-3.5">
+                                                <p className="text-[11px] font-bold text-rose-400 mb-2.5 tracking-wide">✦ 약점</p>
+                                                <div className="space-y-1.5">
+                                                    {resultData.compatibilityReport.overallGrade.weaknesses.map((w: string, i: number) => (
+                                                        <p key={i} className="text-[12px] text-slate-300 leading-snug">• {w}</p>
+                                                    ))}
+                                                </div>
+                                            </div>
+                                        </div>
+
+                                        {/* 최종 메시지 */}
+                                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
+                                            <p className="text-[13px] text-slate-300 leading-[1.8] whitespace-pre-wrap font-medium">
+                                                {resultData.compatibilityReport.overallGrade.finalMessage}
+                                            </p>
+                                        </div>
+                                    </div>
+                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+                                </motion.div>
+                            </section>
+                        )}
                     </div>
                 )}
 

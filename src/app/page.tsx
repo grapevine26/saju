@@ -36,11 +36,35 @@ export default function Home() {
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
     const [discountEndsAt, setDiscountEndsAt] = useState<string>('');
 
+    const [currentAnalyzers, setCurrentAnalyzers] = useState(124);
+    const [showSticky, setShowSticky] = useState(false);
+
+    useEffect(() => {
+        const handleScroll = () => {
+            setShowSticky(window.scrollY > 300);
+        };
+        window.addEventListener('scroll', handleScroll);
+        return () => window.removeEventListener('scroll', handleScroll);
+    }, []);
+
     useEffect(() => {
         setIsMounted(true);
         const date = new Date();
         date.setDate(date.getDate() + 7);
         setDiscountEndsAt(`${date.getMonth() + 1}월 ${date.getDate()}일`);
+
+        // 랜덤하게 접속자 수 변동 (110 ~ 145 사이에서 부드럽게 변동)
+        setCurrentAnalyzers(Math.floor(Math.random() * (135 - 115 + 1)) + 115);
+        const interval = setInterval(() => {
+            setCurrentAnalyzers(prev => {
+                const diff = Math.floor(Math.random() * 5) - 2; // -2 to +2
+                let next = prev + diff;
+                if (next < 110) next = 110;
+                if (next > 145) next = 145;
+                return next;
+            });
+        }, 3500);
+        return () => clearInterval(interval);
     }, []);
 
     const toggleFaq = (index: number) => setOpenFaqIndex(openFaqIndex === index ? null : index);
@@ -125,40 +149,65 @@ export default function Home() {
                         {"다시,\n우리"}
                     </h1>
 
-                    <p className="text-slate-400 text-[15px] mb-10 font-medium leading-[1.7] max-w-sm break-keep">
+                    <p className="text-slate-400 text-[15px] mb-8 font-medium leading-[1.7] max-w-sm break-keep">
                         시간이 약이라는 착각이 재회를 망칩니다.<br />
                         <span className="text-amber-400 font-bold">골든 윈도우가 닫히기 전</span>에<br />
                         도박을 멈추고 정확한 타이밍을 확인하세요.
                     </p>
 
-                    <Link href="/input" className="w-full max-w-sm">
-                        <button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-[17px] flex items-center justify-center gap-2 py-4 rounded-2xl shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] hover:shadow-[0_8px_40px_rgba(245,158,11,0.4)]">
-                            내 골든 윈도우 닫히기 전에 확인하기
-                            <ArrowRight className="w-5 h-5" />
-                        </button>
-                    </Link>
-                    <p className="text-sm text-slate-600 mt-3 font-medium">✨ 회원가입 없이 익명으로 안전하게 시작</p>
-                </div>
-
-                {/* 실시간 대기 현황 배너 (FOMO) */}
-                <div className="relative z-10 mt-12 w-full max-w-sm mx-auto">
-                    <motion.div 
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-rose-500/10 border border-rose-500/20 rounded-xl p-3 flex items-center gap-3"
-                    >
-                        <div className="relative flex h-3 w-3 shrink-0 ml-1">
-                            <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
-                            <span className="relative inline-flex rounded-full h-3 w-3 bg-rose-500"></span>
+                    {/* 1.2 골든 윈도우란? (버튼 위로 이동) */}
+                    <div className="w-full max-w-sm mx-auto glass-card p-6 border-amber-500/30 relative overflow-hidden shadow-[0_0_20px_rgba(245,158,11,0.05)] mb-8 text-left">
+                        <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                        <div className="flex items-center gap-2 mb-3">
+                            <CalendarHeart className="w-5 h-5 text-amber-400" />
+                            <h2 className="text-[17px] font-black text-white">골든 윈도우란?</h2>
                         </div>
-                        <p className="text-[12px] text-rose-200 font-medium text-left leading-tight">
-                            현재 <span className="font-bold text-white">124명</span>이 타이밍을 분석 중입니다.<br/>
-                            <span className="text-rose-400">이번 달 골든 윈도우가 얼마 남지 않았을 수 있습니다.</span>
+                        <p className="text-[13.5px] text-slate-300 font-medium leading-relaxed break-keep">
+                            상대방의 <span className="text-amber-400 font-bold">방어기제가 가장 낮아지고, 나에 대한 그리움이 극대화되는 시기</span>를 뜻합니다.
                         </p>
-                    </motion.div>
+                        <div className="mt-4 p-3.5 bg-[#0a0e1a]/50 rounded-xl border border-white/5 space-y-2.5">
+                            <div className="flex items-start gap-2 text-[12.5px] font-medium text-slate-400">
+                                <span className="text-rose-400 shrink-0 mt-0.5">❌</span>
+                                <span className="break-keep leading-snug">윈도우가 닫혀있을 때 연락하면 <br /><strong className="text-white">집착과 미련</strong>으로 보입니다.</span>
+                            </div>
+                            <div className="flex items-start gap-2 text-[12.5px] font-medium text-slate-400">
+                                <span className="text-emerald-400 shrink-0 mt-0.5">⭕</span>
+                                <span className="break-keep leading-snug">윈도우가 열렸을 때 연락하면 <br /><strong className="text-white">거부감 없이 자연스럽게 대화가 이어집니다.</strong></span>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div className="w-full max-w-sm flex flex-col items-center">
+                        <motion.div
+                            initial={{ opacity: 0, y: 10 }}
+                            animate={{ opacity: 1, y: 0 }}
+                            transition={{ delay: 0.3 }}
+                            className="inline-flex items-center gap-1.5 bg-amber-500/20 text-amber-300 text-[11px] font-bold px-3 py-1.5 rounded-t-lg mb-[-4px] border border-amber-500/30 border-b-0 relative z-0"
+                        >
+                            <FileText className="w-3 h-3" />
+                            수만 건의 데이터 기반, 15장 분량의 심층 리포트 제공
+                        </motion.div>
+                        <Link href="/input" className="w-full relative z-10">
+                            <button className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold text-[17px] flex items-center justify-center gap-2 py-4 rounded-2xl shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] hover:shadow-[0_8px_40px_rgba(245,158,11,0.4)]">
+                                내 골든 윈도우 닫히기 전에 확인하기
+                                <ArrowRight className="w-5 h-5" />
+                            </button>
+                        </Link>
+                        <div className="mt-4 flex flex-col items-center gap-2">
+                            <div className="flex items-center gap-2 text-[12px] text-slate-400 font-medium bg-white/[0.03] px-3 py-1.5 rounded-full border border-white/[0.05]">
+                                <div className="relative flex h-1.5 w-1.5 shrink-0">
+                                    <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-rose-400 opacity-75"></span>
+                                    <span className="relative inline-flex rounded-full h-1.5 w-1.5 bg-rose-500"></span>
+                                </div>
+                                <span>현재 <strong className="text-slate-300">{currentAnalyzers}명</strong>이 타이밍을 분석 중입니다</span>
+                            </div>
+                            <p className="text-[11.5px] text-slate-500">✨ 회원가입 없이 익명으로 안전하게 시작</p>
+                        </div>
+                    </div>
                 </div>
             </section>
+
+
 
             {/* 1.5. 공감 체크리스트 */}
             <section className="px-6 py-6 pb-2">
@@ -673,8 +722,10 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 6. FAQ */}
-            <section className="px-6 py-10 pb-36">
+
+
+            {/* 7. FAQ */}
+            <section className="px-6 py-10 pb-32">
                 <div className="max-w-sm mx-auto">
                     <h2 className="text-xl font-black text-white mb-8 text-center">자주 묻는 질문 🤔</h2>
                     <div className="space-y-3">
@@ -698,8 +749,29 @@ export default function Home() {
                 </div>
             </section>
 
-            {/* 7. Sticky Bottom CTA */}
-            <div className="fixed bottom-0 left-0 right-0 p-4 bg-[#0a0e1a]/90 backdrop-blur-md border-t border-white/5 z-50 animate-fade-in-up md:hidden">
+            {/* Footer */}
+            <footer className="border-t border-white/5 bg-[#0a0e1a]/80 py-8 px-6 text-center mt-10">
+                <div className="max-w-sm mx-auto space-y-4">
+                    <div className="flex items-center justify-center gap-4 text-[13px] font-medium text-slate-400 mb-6">
+                        <Link href="/legal/terms" className="hover:text-amber-400 transition-colors">이용약관</Link>
+                        <div className="w-[1px] h-3 bg-white/10"></div>
+                        <Link href="/legal/privacy" className="hover:text-amber-400 transition-colors">개인정보처리방침</Link>
+                        <div className="w-[1px] h-3 bg-white/10"></div>
+                        <Link href="/legal/refund" className="hover:text-amber-400 transition-colors">환불정책</Link>
+                    </div>
+                    <div className="text-[12px] text-slate-500 leading-relaxed font-normal">
+                        <p className="font-bold text-slate-300 mb-2">다시우리</p>
+                        <p>대표자 : 홍길동 | 사업자등록번호 : 000-00-00000</p>
+                        <p>통신판매업신고번호 : 제 2024-서울강남-0000호</p>
+                        <p>이메일 : help@sajupop.com | 전화 : 010-0000-0000</p>
+                        <p>주소 : 서울특별시 강남구 테헤란로 123, 4층</p>
+                        <p className="mt-4 text-slate-600">© {new Date().getFullYear()} 다시우리. All rights reserved.</p>
+                    </div>
+                </div>
+            </footer>
+
+            {/* 8. Sticky Bottom CTA */}
+            <div className={`fixed bottom-0 left-0 right-0 p-4 bg-[#0a0e1a]/90 backdrop-blur-md border-t border-white/5 z-50 transition-all duration-500 ease-[cubic-bezier(0.16,1,0.3,1)] md:hidden ${showSticky ? 'translate-y-0 opacity-100' : 'translate-y-[150%] opacity-0 pointer-events-none'}`}>
                 <div className="max-w-sm mx-auto flex items-center justify-between gap-4">
                     <div className="flex-1">
                         <p className="text-xs font-bold text-slate-500 mb-0.5">다시 시작할 수 있어요</p>

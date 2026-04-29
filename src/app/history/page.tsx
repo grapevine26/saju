@@ -143,7 +143,7 @@ export default function HistoryPage() {
                                                 </div>
                                             </div>
                                             <h3 className="text-lg font-bold text-amber-400 mt-2">
-                                                {record.resultData?.reunionKeyword || record.resultData?.compatibility?.reunionKeyword || '분석 중/완료'}
+                                                {record.resultData?.reunionKeyword || record.resultData?.compatibilityReport?.radarChart?.subtitle || '분석 중/완료'}
                                             </h3>
                                         </div>
                                         <button
@@ -158,7 +158,7 @@ export default function HistoryPage() {
                                     </div>
 
                                     <p className="text-slate-300 text-sm line-clamp-2 leading-relaxed mb-4">
-                                        {record.resultData?.summary || '요약 정보를 불러오고 있습니다. 잠시만 기다려주세요.'}
+                                        {record.resultData?.summary || record.resultData?.compatibilityReport?.radarChart?.summary || '요약 정보를 불러오고 있습니다. 잠시만 기다려주세요.'}
                                     </p>
 
 

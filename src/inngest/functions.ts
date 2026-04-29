@@ -254,7 +254,9 @@ ${BASE_SYSTEM_INSTRUCTION}
 1. 'radarChart' 항목: 5가지 지표(communication, affection, intimacy, future, conflict)에 대해 0~100점 사이의 객관적 점수를 부여하고, 전체 궁합을 관통하는 매력적인 소제목(subtitle)을 작성한 뒤, 150~200자 분량으로 아주 상세하게 요약해.
 2. 'vsCards' 항목: 두 사람의 사주를 비교하여 가장 극명하게 대비되는 성향 차이 3가지를 뽑아내. (topic, myTrait, partnerTrait, explanation). 'explanation'은 실제 연애에서 어떻게 충돌하는지 300자 이상으로 매우 구체적이고 길게 설명해.
 3. 'compatibilityDetails' 항목: 지정된 9가지 주제에 대해 각각 최소 300자 이상의 심층 분석 텍스트를 작성해. 단락을 잘 나누고 이모지를 적절히 사용해.
-4. 오직 JSON 형식으로만 반환해.
+4. 'coupleType' 항목: 두 사람의 궁합을 종합하여 직관적인 커플 유형 라벨을 부여해. label은 '폭풍 열정형 커플', '느린 불 온도형 커플' 같은 2030이 공감할 만한 트렌디한 네이밍으로. description은 해당 유형의 특징, 장점, 주의할 점을 300자 이상 서술.
+5. 'overallGrade' 항목: 모든 궁합 데이터를 종합하여 S/A/B/C/D 중 하나의 등급(grade)을 부여하고, 한 줄 라벨(label), 강점 3가지(strengths), 약점 3가지(weaknesses), 최종 한마디(finalMessage)를 작성해.
+6. 오직 JSON 형식으로만 반환해.
 `.trim();
 
             const schema4 = {
@@ -296,9 +298,29 @@ ${BASE_SYSTEM_INSTRUCTION}
                     },
                     required: ["title", "content"]
                   }
+                },
+                coupleType: {
+                  type: "object" as any,
+                  properties: {
+                    label: { type: "string" as any },
+                    emoji: { type: "string" as any },
+                    description: { type: "string" as any }
+                  },
+                  required: ["label", "emoji", "description"]
+                },
+                overallGrade: {
+                  type: "object" as any,
+                  properties: {
+                    grade: { type: "string" as any },
+                    label: { type: "string" as any },
+                    strengths: { type: "array" as any, items: { type: "string" as any } },
+                    weaknesses: { type: "array" as any, items: { type: "string" as any } },
+                    finalMessage: { type: "string" as any }
+                  },
+                  required: ["grade", "label", "strengths", "weaknesses", "finalMessage"]
                 }
               },
-              required: ["radarChart", "vsCards", "compatibilityDetails"]
+              required: ["radarChart", "vsCards", "compatibilityDetails", "coupleType", "overallGrade"]
             };
 
             const model4 = genAI.getGenerativeModel({
@@ -307,18 +329,46 @@ ${BASE_SYSTEM_INSTRUCTION}
               generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
             });
 
-            const prompt4 = `${commonPrompt}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 아래 9가지 주제에 맞춰 작성해줘. JSON 포맷:
-1. 🌌 전생부터 이어진 우리의 카르마 (우리는 전생에 어떤 인연이었길래 끌렸을까?)
-2. 👼 서로에게 귀인일까 악연일까 (서로의 에너지를 채워주는지 갉아먹는지)
-3. 🔞 은밀한 속궁합과 스킨십 리듬 (육체적 케미와 애정 방식)
-4. 😈 상대방의 숨겨진 무의식적 욕망 (나에게 바라는 진짜 욕망)
-5. ⚖️ 애정의 무게 추 (누가 더 많이 좋아하고 더 의존하는가?)
-6. 🔗 이 관계의 진짜 주도권은 누구에게? (평소와 결정적 순간의 권력 역학)
-7. 🪃 영원한 평행선 (평생을 만나도 절대 타협할 수 없는 성향 차이)
-8. 💍 만약 우리가 동거/결혼을 한다면? (다툼 원인, 생활 패턴 시뮬레이션)
-9. 💸 재물 시너지 (함께하면 돈이 불어날까 깎일까?)
+            const prompt4 = `${commonPrompt}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 작성해줘. JSON 포맷:\n
+{
+  "radarChart": {
+    "communication": 0-100 사이 점수,
+    "affection": 0-100 사이 점수,
+    "intimacy": 0-100 사이 점수,
+    "future": 0-100 사이 점수,
+    "conflict": 0-100 사이 점수,
+    "subtitle": "두 사람의 궁합을 한 줄로 요약",
+    "summary": "레이더 차트 종합 분석 요약 2~3줄"
+  },
+  "vsCards": [
+    { "topic": "비교 주제 (예: 갈등 스타일)", "myTrait": "나의 성향 한 줄", "partnerTrait": "상대방 성향 한 줄", "explanation": "두 성향이 만나면 어떤 역학이 발생하는지 설명 (100자 이상)" },
+    ... (4~5개)
+  ],
+  "compatibilityDetails": [
+    { "title": "🌌 전생부터 이어진 우리의 카르마", "content": "우리는 전생에 어떤 인연이었길래 끌렸을까? 사주 데이터 기반으로 두 사람의 인연이 어떤 깊이를 가지는지 분석 (최소 600자)" },
+    { "title": "👼 서로에게 귀인일까 악연일까", "content": "서로의 에너지를 채워주는지 갉아먹는지. 관계 속에서 각자의 성장과 소모를 구체적으로 분석 (최소 600자)" },
+    { "title": "🔞 은밀한 속궁합과 스킨십 리듬", "content": "육체적 케미와 애정 표현 방식의 차이. 서로의 욕구 패턴과 리듬이 어떻게 맞물리는지 분석 (최소 600자)" },
+    { "title": "😈 상대방의 숨겨진 무의식적 욕망", "content": "상대가 나에게 진짜로 바라는 것. 표면적으로 말하는 것과 무의식적으로 원하는 것의 차이를 분석 (최소 600자)" },
+    { "title": "⚖️ 애정의 무게 추", "content": "누가 더 많이 좋아하고 더 의존하는가? 감정의 비대칭이 관계에 미치는 영향을 구체적으로 서술 (최소 600자)" },
+    { "title": "🔗 이 관계의 진짜 주도권은 누구에게?", "content": "평소와 결정적 순간의 권력 역학. 누가 관계를 이끌고 누가 따라가는지, 위기 시 역전되는지 분석 (최소 600자)" },
+    { "title": "🪃 영원한 평행선", "content": "평생을 만나도 절대 타협할 수 없는 성향 차이. 이 차이가 왜 존재하고 어떻게 관리해야 하는지 조언 (최소 600자)" },
+    { "title": "💍 만약 우리가 동거/결혼을 한다면?", "content": "다툼 원인, 생활 패턴, 가사 분담 등 구체적인 일상 시뮬레이션. 예상되는 갈등과 해결 전략 포함 (최소 600자)" },
+    { "title": "💸 재물 시너지", "content": "함께하면 돈이 불어날까 깎일까? 각자의 재물운과 합쳤을 때의 시너지/리스크를 구체적으로 분석 (최소 600자)" }
+  ],
+  "coupleType": {
+    "emoji": "이 커플 유형을 대표하는 이모지 1개",
+    "label": "두 사람의 궁합을 종합한 트렌디한 커플 유형 이름 (예: '폭풍 열정형 커플', '밀당 고수형 커플', '느린 불 온도형 커플')",
+    "description": "이 커플 유형의 핵심 특징, 장점, 주의할 점을 자연스럽고 풍성하게 서술 (최소 400자)"
+  },
+  "overallGrade": {
+    "grade": "S/A/B/C/D 중 하나 (모든 궁합 데이터를 종합한 최종 등급)",
+    "label": "등급을 한 줄로 설명 (예: '서로를 성장시키는 시너지형 인연')",
+    "strengths": ["강점1", "강점2", "강점3"],
+    "weaknesses": ["약점1", "약점2", "약점3"],
+    "finalMessage": "이 커플에게 전하는 최종 한마디. 따뜻하지만 현실적으로 (200자 이상)"
+  }
+}`;
 
-각 주제(title)와 그에 대한 심층 분석(content, 최소 300자 이상)을 compatibilityDetails 배열에 순서대로 담아줘.`;
 
             let attempt = 0;
             let success = false;
