@@ -235,7 +235,7 @@ export default function AnalysisPage() {
             const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-819c3a5b-c1a6-4381-aa9a-29c19b34345b';
 
             const PortOne = await import('@portone/browser-sdk/v2');
-            
+
             const response = await PortOne.requestPayment({
                 storeId,
                 channelKey,
@@ -251,7 +251,7 @@ export default function AnalysisPage() {
                     email: 'guest@sajupop.com'
                 },
                 redirectUrl: `${window.location.origin}/payment/success`
-            });
+            } as any);
 
             if (response?.code != null) {
                 throw new Error(response.message || "결제에 실패했습니다.");
@@ -682,7 +682,7 @@ export default function AnalysisPage() {
             {/* 2단계: 결제 전 선택 모달 (로그인/비회원) */}
             {showUpgradeModal && (
 
-                <UpgradeModal 
+                <UpgradeModal
                     onClose={() => setShowUpgradeModal(false)}
                     onStartGuest={(phone) => startPremiumAnalysis({ type: 'guest', value: phone })}
                     onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId })}

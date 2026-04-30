@@ -1,18 +1,15 @@
 "use client";
 
 import { useSajuStore } from "@/store/useSajuStore";
-import { ArrowLeft, Clock, Trash2, ChevronRight, Sparkles, Lock, CalendarHeart } from "lucide-react";
+import { ArrowLeft, Clock, Trash2, ChevronRight } from "lucide-react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
 import toast from "react-hot-toast";
-import { Route } from "lucide-react";
-import LoadingOverlay from "@/components/LoadingOverlay";
 
 export default function HistoryPage() {
     const { reunionHistory: history, removeReunionResult: removeResult, updateReunionResult } = useSajuStore();
     const router = useRouter();
-    const [upgradingId, setUpgradingId] = useState<string | null>(null);
 
     // 페이지 진입 시 premiumJobId가 있지만 아직 lite인 레코드들의 상태를 자동 동기화
     useEffect(() => {
@@ -36,65 +33,6 @@ export default function HistoryPage() {
         syncAll();
     }, []);
 
-    // Lite → Premium 업그레이드 API 호출
-    const handleUpgrade = async (record: typeof history[0]) => {
-        if (!record.myRawInput || !record.partnerRawInput) {
-            toast.error("초기 버전의 데이터는 상세 정보가 부족하여 업그레이드할 수 없습니다. 새로 분석을 진행해주세요.");
-            return;
-        }
-
-        setUpgradingId(record.id);
-
-        try {
-            const [goldenRes, premiumRes] = await Promise.all([
-                fetch("/api/golden-window", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        myDayGan: record.resultData.myManseryeok?.day?.gan,
-                        myDayZhi: record.resultData.myManseryeok?.day?.zhi,
-                        partnerDayGan: record.resultData.partnerManseryeok?.day?.gan,
-                        partnerDayZhi: record.resultData.partnerManseryeok?.day?.zhi,
-                        myName: record.myInfo.name || "익명",
-                        myGender: record.myInfo.gender,
-                        partnerName: record.partnerInfo.name || "그 사람",
-                        partnerGender: record.partnerInfo.gender,
-                        months: 6
-                    }),
-                }),
-                fetch("/api/reunion", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                        my: record.myRawInput,
-                        partner: record.partnerRawInput,
-                        tier: 'premium',
-                    }),
-                })
-            ]);
-
-            const goldenData = await goldenRes.json();
-            const premiumData = await premiumRes.json();
-
-            if (goldenData.success && premiumData.success) {
-                const updatedResult = {
-                    ...record.resultData,
-                    details: premiumData.data.details,
-                    essenceAnalysis: premiumData.data.essenceAnalysis,
-                    goldenWindows: goldenData.data
-                };
-                updateReunionResult(record.id, 'premium', updatedResult);
-                toast.success("Premium으로 업그레이드 완료! 🔮");
-            } else {
-                toast.error("업그레이드 처리 중 오류가 발생했습니다.");
-            }
-        } catch (err) {
-            console.error(err);
-            toast.error("네트워크 오류가 발생했습니다.");
-        } finally {
-            setUpgradingId(null);
-        }
-    };
 
     return (
         <div className="min-h-screen bg-[#0a0e1a] pb-24">
@@ -125,7 +63,6 @@ export default function HistoryPage() {
                             const dateObj = new Date(record.createdAt);
                             const dateStr = `${dateObj.getFullYear()}.${String(dateObj.getMonth() + 1).padStart(2, '0')}.${String(dateObj.getDate()).padStart(2, '0')}`;
                             const isLite = record.tier !== 'premium';
-                            const isCurrentlyUpgrading = upgradingId === record.id;
 
                             return (
                                 <div key={record.id} className="glass-card p-5 flex flex-col relative overflow-hidden group">
@@ -173,9 +110,7 @@ export default function HistoryPage() {
                         })}
                     </div>
                 )}
-                
-                {/* ─── 업그레이드 전용 로딩 스크린 ─── */}
-                <LoadingOverlay isVisible={upgradingId !== null} />
+
             </main>
         </div>
     );

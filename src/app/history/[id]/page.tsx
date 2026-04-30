@@ -19,6 +19,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import PaymentModal from "@/components/PaymentModal";
 import PremiumRadarChart from "@/components/PremiumRadarChart";
 import VsCard from "@/components/VsCard";
+import PartnerManual from "@/components/PartnerManual";
 
 
 export default function HistoryDetailPage() {
@@ -174,7 +175,7 @@ export default function HistoryDetailPage() {
             const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-819c3a5b-c1a6-4381-aa9a-29c19b34345b';
 
             const PortOne = await import('@portone/browser-sdk/v2');
-            
+
             const response = await PortOne.requestPayment({
                 storeId,
                 channelKey,
@@ -190,7 +191,7 @@ export default function HistoryDetailPage() {
                     email: 'guest@sajupop.com'
                 },
                 redirectUrl: `${window.location.origin}/payment/success`
-            });
+            } as any);
 
             if (response?.code != null) {
                 throw new Error(response.message || "결제에 실패했습니다.");
@@ -246,174 +247,189 @@ export default function HistoryDetailPage() {
                 <div className={activeTab === 'personal' ? 'block' : 'hidden'}>
                     <div className="space-y-8">
                         {/* 1. 재회 가능성 게이지 */}
-                <motion.div
-                    initial={{ scale: 0.8, opacity: 0 }}
-                    animate={{ scale: 1, opacity: 1 }}
-                    transition={{ type: "spring", damping: 15 }}
-                    className="glass-card p-8 text-center relative overflow-hidden"
-                >
-                    <div className="absolute top-0 right-0 p-3">
-                        <span className="text-xs bg-white/10 text-slate-400 font-medium px-2 py-1 rounded-bl-xl rounded-tr-xl">과거 기록</span>
-                    </div>
-                    <p className="text-sm text-slate-500 mb-1 font-medium mt-2">
-                        {myInfo.name} ✕ {partnerInfo.name}
-                    </p>
-                    <ReunionGauge score={resultData.reunionScore || (compatibility && compatibility.reunionScore)} />
+                        <motion.div
+                            initial={{ scale: 0.8, opacity: 0 }}
+                            animate={{ scale: 1, opacity: 1 }}
+                            transition={{ type: "spring", damping: 15 }}
+                            className="glass-card p-8 text-center relative overflow-hidden"
+                        >
+                            <div className="absolute top-0 right-0 p-3">
+                                <span className="text-xs bg-white/10 text-slate-400 font-medium px-2 py-1 rounded-bl-xl rounded-tr-xl">과거 기록</span>
+                            </div>
+                            <p className="text-sm text-slate-500 mb-1 font-medium mt-2">
+                                {myInfo.name} ✕ {partnerInfo.name}
+                            </p>
+                            <ReunionGauge score={resultData.reunionScore || (compatibility && compatibility.reunionScore)} />
 
-                    <div className="mt-6 pt-5 border-t border-white/5">
-                        <p className="text-xs font-bold text-amber-500 bg-amber-500/10 inline-block px-3 py-1 rounded-full mb-3">
-                            {resultData.reunionKeyword}
-                        </p>
-                        <p className="text-sm text-slate-400 leading-relaxed font-medium">
-                            {resultData.summary}
-                        </p>
-                    </div>
-                </motion.div>
+                            <div className="mt-6 pt-5 border-t border-white/5">
+                                <p className="text-xs font-bold text-amber-500 bg-amber-500/10 inline-block px-3 py-1 rounded-full mb-3">
+                                    {resultData.reunionKeyword}
+                                </p>
+                                <p className="text-sm text-slate-400 leading-relaxed font-medium">
+                                    {resultData.summary}
+                                </p>
+                            </div>
+                        </motion.div>
 
-                {/* 2. 궁합 차트 */}
-                {compatibility && (
-                    <motion.div
-                        initial={{ y: 30, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                    >
-                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-amber-400" />
-                            관계 에너지 분석
-                        </h2>
-                        <CompatibilityChart
-                            attractionScore={compatibility.attractionScore}
-                            conflictScore={compatibility.conflictScore}
-                            complementScore={compatibility.complementScore}
-                            hapList={compatibility.hapList}
-                            chungList={compatibility.chungList}
-                            hyeongList={compatibility.hyeongList}
-                            haeList={compatibility.haeList}
-                            dayMasterRelation={compatibility.dayMasterRelation}
-                            spouseHouseRelation={compatibility.spouseHouseRelation}
-                        />
-                    </motion.div>
-                )}
+                        {/* 2. 궁합 차트 */}
+                        {compatibility && (
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.2 }}
+                            >
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                    관계 에너지 분석
+                                </h2>
+                                <CompatibilityChart
+                                    attractionScore={compatibility.attractionScore}
+                                    conflictScore={compatibility.conflictScore}
+                                    complementScore={compatibility.complementScore}
+                                    hapList={compatibility.hapList}
+                                    chungList={compatibility.chungList}
+                                    hyeongList={compatibility.hyeongList}
+                                    haeList={compatibility.haeList}
+                                    dayMasterRelation={compatibility.dayMasterRelation}
+                                    spouseHouseRelation={compatibility.spouseHouseRelation}
+                                />
+                            </motion.div>
+                        )}
 
-                {/* 2.5. 관계의 본질 독립 카드 */}
-                {resultData.essenceAnalysis && (
-                    <motion.div
-                        initial={{ y: 30, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.25 }}
-                    >
-                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                            <Heart className="w-4 h-4 text-rose-400" />
-                            두 사람의 관계 본질
-                        </h2>
-                        <div className="glass-card p-5 space-y-4">
-                            {resultData.essenceAnalysis.subtitle && (
-                                <div className="flex items-start gap-2">
-                                    <span className="text-lg">✨</span>
-                                    <p className="text-[15px] font-bold text-amber-400 leading-snug">
-                                        {resultData.essenceAnalysis.subtitle}
-                                    </p>
+                        {/* 2.5. 관계의 본질 독립 카드 */}
+                        {resultData.essenceAnalysis && (
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.25 }}
+                            >
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <Heart className="w-4 h-4 text-rose-400" />
+                                    두 사람의 관계 본질
+                                </h2>
+                                <div className="glass-card p-5 space-y-4">
+                                    {resultData.essenceAnalysis.subtitle && (
+                                        <div className="flex items-start gap-2">
+                                            <span className="text-lg">✨</span>
+                                            <p className="text-[15px] font-bold text-amber-400 leading-snug">
+                                                {resultData.essenceAnalysis.subtitle}
+                                            </p>
+                                        </div>
+                                    )}
+                                    <div className="text-slate-300 text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
+                                        {resultData.essenceAnalysis.content}
+                                    </div>
                                 </div>
-                            )}
-                            <div className="text-slate-300 text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
-                                {resultData.essenceAnalysis.content}
-                            </div>
-                        </div>
-                    </motion.div>
-                )}
-
-                {/* 3. AI 재회 전략 리포트 */}
-                {resultData.details && (
-                    <motion.div
-                        initial={{ y: 30, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.3 }}
-                    >
-                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                            <Sparkles className="w-4 h-4 text-amber-400" />
-                            재회 전략 리포트
-                        </h2>
-                        <SajuAccordion
-                            details={resultData.details}
-                            isPremium={tier === 'premium'}
-                        />
-                    </motion.div>
-                )}
-
-                {/* 4. 골든 윈도우 (Premium) */}
-                {resultData.goldenWindows && !isLite ? (
-                    <motion.div
-                        initial={{ y: 30, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                    >
-                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                            <CalendarHeart className="w-4 h-4 text-amber-400" />
-                            골든 윈도우 캘린더
-                        </h2>
-                        <GoldenWindowTimeline
-                            windows={resultData.goldenWindows.windows}
-                            bestMonth={resultData.goldenWindows.bestMonth}
-                        />
-
-                        {resultData.goldenWindows.monthlyEnergies && resultData.goldenWindows.monthlyEnergies.length > 0 && (
-                            <div className="mt-8">
-                                <h3 className="text-sm font-bold text-slate-300 mb-4 px-2 tracking-tight">월별 에너지 흐름</h3>
-                                <MonthlyEnergyFlow energies={resultData.goldenWindows.monthlyEnergies} />
-                            </div>
+                            </motion.div>
                         )}
 
-                        {/* 연락 최적기 캘린더 */}
-                        {resultData.goldenWindows.goldenWindowMonths && resultData.goldenWindows.goldenWindowMonths.length > 0 && (
-                            <GoldenWindowCalendar months={resultData.goldenWindows.goldenWindowMonths} />
+                        {/* 3. AI 재회 전략 리포트 */}
+                        {resultData.details && (
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.3 }}
+                            >
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                    재회 전략 리포트
+                                </h2>
+                                <SajuAccordion
+                                    details={resultData.details}
+                                    isPremium={tier === 'premium'}
+                                />
+                            </motion.div>
                         )}
 
-                        {resultData.goldenWindows.roadmapStages && resultData.goldenWindows.roadmapStages.length > 0 && (
-                            <div className="mt-10 mb-2 p-1">
-                                <h3 className="text-sm font-bold text-slate-300 mb-5 px-1 tracking-tight flex items-center gap-2">
-                                    <Route className="w-4 h-4 text-emerald-400" />
-                                    장기 전략 로드맵
-                                </h3>
-                                <LongTermRoadmap stages={resultData.goldenWindows.roadmapStages} />
-                            </div>
+                        {/* 3.5. 상대방 공략 매뉴얼 */}
+                        {resultData.partnerManual && !isLite && (
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.35 }}
+                            >
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <span className="text-base">🎯</span>
+                                    상대방 공략 매뉴얼
+                                </h2>
+                                <PartnerManual data={resultData.partnerManual} />
+                            </motion.div>
                         )}
 
-                        {resultData.goldenWindows.details && resultData.goldenWindows.details.length > 0 && (!resultData.goldenWindows.monthlyEnergies || resultData.goldenWindows.monthlyEnergies.length === 0) && (
-                            <div className="mt-6">
-                                <SajuAccordion details={resultData.goldenWindows.details} isPremium={true} />
-                            </div>
-                        )}
-                    </motion.div>
-                ) : isLite ? (
-                    /* Lite 유저: 프리미엄 업그레이드 CTA */
-                    <motion.div
-                        initial={{ y: 30, opacity: 0 }}
-                        animate={{ y: 0, opacity: 1 }}
-                        transition={{ delay: 0.4 }}
-                        className="glass-card py-10 px-6 text-center relative overflow-hidden my-8 min-h-[420px] flex flex-col items-center justify-center"
-                    >
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0e1a]/90 z-10" />
-                        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none flex flex-col items-center justify-center w-full px-6">
-                            <div className="h-6 bg-white/5 rounded-lg mb-4 w-3/4" />
-                            <div className="h-4 bg-white/5 rounded-lg mb-6 w-1/2" />
-                            <div className="space-y-3 w-full">
-                                {[...Array(6)].map((_, i) => (
-                                    <div key={i} className="h-8 bg-white/5 rounded-lg w-full" />
-                                ))}
-                            </div>
-                        </div>
-                        <div className="relative z-20 flex flex-col items-center justify-center w-full">
-                            <Lock className="w-10 h-10 text-amber-400 mb-6 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
-                            <h3 className="text-[19px] font-bold text-white mb-6 tracking-tight">프리미엄 재회 전략</h3>
-                            <ul className="text-[14px] text-slate-300 mb-8 space-y-3.5 text-center font-medium bg-white/5 py-6 px-6 rounded-2xl border border-white/10 w-full max-w-[90%] shadow-inner">
-                                <li className="flex items-center gap-2 justify-center"><Heart className="w-4 h-4 text-rose-400" /> 재회 전략 리포트 전체 공개</li>
-                                <li className="flex items-center gap-2 justify-center"><CalendarHeart className="w-4 h-4 text-amber-500" /> 연락 최적기 <strong>골든 윈도우 캘린더</strong></li>
-                                <li className="flex items-center gap-2 justify-center"><Sparkles className="w-4 h-4 text-indigo-400" /> 향후 6개월의 <strong>월별 에너지 흐름</strong></li>
-                                <li className="flex items-center gap-2 justify-center"><Route className="w-4 h-4 text-emerald-400" /> 재회 골인 <strong>3단계 장기 로드맵</strong></li>
-                            </ul>
-                        </div>
-                    </motion.div>
-                ) : null}
+                        {/* 4. 골든 윈도우 (Premium) */}
+                        {resultData.goldenWindows && !isLite ? (
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                            >
+                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                    <CalendarHeart className="w-4 h-4 text-amber-400" />
+                                    골든 윈도우 캘린더
+                                </h2>
+                                <GoldenWindowTimeline
+                                    windows={resultData.goldenWindows.windows}
+                                    bestMonth={resultData.goldenWindows.bestMonth}
+                                />
+
+                                {resultData.goldenWindows.monthlyEnergies && resultData.goldenWindows.monthlyEnergies.length > 0 && (
+                                    <div className="mt-8">
+                                        <h3 className="text-sm font-bold text-slate-300 mb-4 px-2 tracking-tight">월별 에너지 흐름</h3>
+                                        <MonthlyEnergyFlow energies={resultData.goldenWindows.monthlyEnergies} />
+                                    </div>
+                                )}
+
+                                {/* 연락 최적기 캘린더 */}
+                                {resultData.goldenWindows.goldenWindowMonths && resultData.goldenWindows.goldenWindowMonths.length > 0 && (
+                                    <GoldenWindowCalendar months={resultData.goldenWindows.goldenWindowMonths} />
+                                )}
+
+                                {resultData.goldenWindows.roadmapStages && resultData.goldenWindows.roadmapStages.length > 0 && (
+                                    <div className="mt-10 mb-2 p-1">
+                                        <h3 className="text-sm font-bold text-slate-300 mb-5 px-1 tracking-tight flex items-center gap-2">
+                                            <Route className="w-4 h-4 text-emerald-400" />
+                                            장기 전략 로드맵
+                                        </h3>
+                                        <LongTermRoadmap stages={resultData.goldenWindows.roadmapStages} />
+                                    </div>
+                                )}
+
+                                {resultData.goldenWindows.details && resultData.goldenWindows.details.length > 0 && (!resultData.goldenWindows.monthlyEnergies || resultData.goldenWindows.monthlyEnergies.length === 0) && (
+                                    <div className="mt-6">
+                                        <SajuAccordion details={resultData.goldenWindows.details} isPremium={true} />
+                                    </div>
+                                )}
+                            </motion.div>
+                        ) : isLite ? (
+                            /* Lite 유저: 프리미엄 업그레이드 CTA */
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.4 }}
+                                className="glass-card py-10 px-6 text-center relative overflow-hidden my-8 min-h-[420px] flex flex-col items-center justify-center"
+                            >
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0e1a]/90 z-10" />
+                                <div className="absolute inset-0 z-0 opacity-30 pointer-events-none flex flex-col items-center justify-center w-full px-6">
+                                    <div className="h-6 bg-white/5 rounded-lg mb-4 w-3/4" />
+                                    <div className="h-4 bg-white/5 rounded-lg mb-6 w-1/2" />
+                                    <div className="space-y-3 w-full">
+                                        {[...Array(6)].map((_, i) => (
+                                            <div key={i} className="h-8 bg-white/5 rounded-lg w-full" />
+                                        ))}
+                                    </div>
+                                </div>
+                                <div className="relative z-20 flex flex-col items-center justify-center w-full">
+                                    <Lock className="w-10 h-10 text-amber-400 mb-6 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
+                                    <h3 className="text-[19px] font-bold text-white mb-6 tracking-tight">프리미엄 재회 전략</h3>
+                                    <ul className="text-[14px] text-slate-300 mb-8 space-y-3.5 text-center font-medium bg-white/5 py-6 px-6 rounded-2xl border border-white/10 w-full max-w-[90%] shadow-inner">
+                                        <li className="flex items-center gap-2 justify-center"><Heart className="w-4 h-4 text-rose-400" /> 재회 전략 리포트 전체 공개</li>
+                                        <li className="flex items-center gap-2 justify-center"><CalendarHeart className="w-4 h-4 text-amber-500" /> 연락 최적기 <strong>골든 윈도우 캘린더</strong></li>
+                                        <li className="flex items-center gap-2 justify-center"><Sparkles className="w-4 h-4 text-indigo-400" /> 향후 6개월의 <strong>월별 에너지 흐름</strong></li>
+                                        <li className="flex items-center gap-2 justify-center"><Route className="w-4 h-4 text-emerald-400" /> 재회 골인 <strong>3단계 장기 로드맵</strong></li>
+                                    </ul>
+                                </div>
+                            </motion.div>
+                        ) : null}
                     </div>
                 </div>
 
@@ -477,9 +493,9 @@ export default function HistoryDetailPage() {
                                 <Sparkles className="w-4 h-4 text-amber-400" />
                                 심층 궁합 해부 리포트
                             </h2>
-                            <SajuAccordion 
-                                details={resultData.compatibilityReport.compatibilityDetails} 
-                                isPremium={true} 
+                            <SajuAccordion
+                                details={resultData.compatibilityReport.compatibilityDetails}
+                                isPremium={true}
                                 mode="compatibility"
                             />
                         </section>
@@ -501,13 +517,12 @@ export default function HistoryDetailPage() {
                                     <div className="p-6">
                                         {/* 등급 뱃지 */}
                                         <div className="text-center mb-5">
-                                            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl font-black mb-2 ${
-                                                resultData.compatibilityReport.overallGrade.grade === 'S' ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 text-amber-400 border border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.15)]' :
+                                            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl font-black mb-2 ${resultData.compatibilityReport.overallGrade.grade === 'S' ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 text-amber-400 border border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.15)]' :
                                                 resultData.compatibilityReport.overallGrade.grade === 'A' ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 text-emerald-400 border border-emerald-500/30' :
-                                                resultData.compatibilityReport.overallGrade.grade === 'B' ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-blue-400 border border-blue-500/30' :
-                                                resultData.compatibilityReport.overallGrade.grade === 'C' ? 'bg-gradient-to-br from-slate-500/20 to-slate-600/10 text-slate-400 border border-slate-500/30' :
-                                                'bg-gradient-to-br from-rose-500/20 to-rose-600/10 text-rose-400 border border-rose-500/30'
-                                            }`}>
+                                                    resultData.compatibilityReport.overallGrade.grade === 'B' ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-blue-400 border border-blue-500/30' :
+                                                        resultData.compatibilityReport.overallGrade.grade === 'C' ? 'bg-gradient-to-br from-slate-500/20 to-slate-600/10 text-slate-400 border border-slate-500/30' :
+                                                            'bg-gradient-to-br from-rose-500/20 to-rose-600/10 text-rose-400 border border-rose-500/30'
+                                                }`}>
                                                 {resultData.compatibilityReport.overallGrade.grade}
                                             </div>
                                             <p className="text-sm font-bold text-white">{resultData.compatibilityReport.overallGrade.label}</p>
@@ -640,7 +655,7 @@ export default function HistoryDetailPage() {
             {/* 2단계: 결제 전 선택 모달 (로그인/비회원) */}
             {showUpgradeModal && (
 
-                <UpgradeModal 
+                <UpgradeModal
                     onClose={() => setShowUpgradeModal(false)}
                     onStartGuest={(phone) => startPremiumAnalysis({ type: 'guest', value: phone })}
                     onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId })}

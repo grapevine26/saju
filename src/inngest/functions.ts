@@ -1,22 +1,24 @@
 import { inngest } from "./client";
-import { BASE_SYSTEM_INSTRUCTION } from "@/constants/aiPrompts";
 import { supabaseAdmin } from "@/lib/supabase";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
 import { calculateBazi } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
-
-// Solapi SDK (공식 패키지가 solapi 모듈이거나 직접 fetch 가능, 여기서는 fetch를 이용하거나 solapi 모듈 사용)
-// solapi 패키지를 설치했다면:
+import { genAI, callGemini } from "@/utils/geminiCall";
+import { schema2, schema3, schema4 } from "@/constants/aiSchemas";
+import {
+  BASE_SYSTEM_INSTRUCTION,
+  SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
+  SYSTEM_INSTRUCTION_COMPATIBILITY,
+  buildPrompt2,
+  buildPrompt3,
+  buildPrompt4
+} from "@/constants/aiPrompts";
 import { SolapiMessageService } from "solapi";
 
 const messageService = new SolapiMessageService(
   process.env.SOLAPI_API_KEY!,
   process.env.SOLAPI_API_SECRET!
 );
-
-const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
 
 export const processPremiumAnalysis = inngest.createFunction(
   {
@@ -34,7 +36,7 @@ export const processPremiumAnalysis = inngest.createFunction(
         .eq("id", jobId);
     });
 
-    // 2. Gemini 호출 및 파싱 (가장 긴 작업, Inngest가 관리)
+    // 2. Gemini AI 분석 (메인 작업)
     const aiResult = await step.run("analyze-with-gemini", async () => {
       const {
         myRawInput, partnerRawInput, liteResult,
@@ -42,9 +44,9 @@ export const processPremiumAnalysis = inngest.createFunction(
         metDate, breakupDate, breakupReason, months = 6
       } = raw_data;
 
+      // --- 2-1. 만세력, 궁합, 골든 윈도우 계산 ---
       const result = calculateGoldenWindows(myDayGan, myDayZhi, partnerDayGan, partnerDayZhi, months);
 
-      // --- 2-1. 만세력 및 궁합 데이터 계산 ---
       const myBazi = calculateBazi(
         myRawInput.gender, myRawInput.calendarType,
         myRawInput.birthYear, myRawInput.birthMonth, myRawInput.birthDay,
@@ -54,347 +56,80 @@ export const processPremiumAnalysis = inngest.createFunction(
       const partnerBazi = calculateBazi(
         partnerRawInput.gender, partnerRawInput.calendarType,
         partnerRawInput.birthYear, partnerRawInput.birthMonth, partnerRawInput.birthDay,
-        partnerRawInput.birthCity || 'seoul', partnerRawInput.birthHour || '', partnerRawInput.birthMinute || '',
+        partnerRawInput.birthCity, partnerRawInput.birthHour || '', partnerRawInput.birthMinute || '',
         partnerRawInput.isTimeUnknown, partnerRawInput.birthTimezone, partnerRawInput.birthLongitude
       );
       const compatibility = calculateCompatibility(myBazi, partnerBazi);
 
-      // --- 2-2. Prompt2 (프리미엄 8개 상세 항목) 호출 ---
-      const detailItemSchema = {
-        type: "object" as any,
-        properties: {
-          title: { type: "string" as any },
-          subtitle: { type: "string" as any },
-          content: { type: "string" as any }
-        },
-        required: ["title", "subtitle", "content"]
-      };
-
-      const systemInstruction2 = `
-${BASE_SYSTEM_INSTRUCTION}
-
-# Response Rules
-1. 반드시 아래 JSON 스키마에 정확히 맞춰서 대답해. 마크다운 백틱이나 부연 설명 없이 순수 JSON만.`.trim();
-
-      const schema2 = {
-        type: "object" as any,
-        properties: {
-          details: { type: "array" as any, items: detailItemSchema }
-        },
-        required: ["details"]
-      };
-
+      // --- 2-2. AI 모델 준비 ---
       const model2 = genAI.getGenerativeModel({
         model: "gemini-3.1-pro-preview",
-        systemInstruction: systemInstruction2,
+        systemInstruction: BASE_SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: "application/json", responseSchema: schema2 }
       });
 
-      const commonPrompt = `[분석 대상]
-- 나: ${myRawInput.name || "익명"} (${myRawInput.gender === 'male' ? '남자' : '여자'}, 만 ${myBazi.age}세)
-- 상대방: ${partnerRawInput.name || "그 사람"} (${partnerRawInput.gender === 'male' ? '남자' : '여자'}, 만 ${partnerBazi.age}세)
-
-[나의 사주팔자]
-${myBazi.baziStr.trim()}
-- 오행: 목(${myBazi.ohhaengCounts['목']}), 화(${myBazi.ohhaengCounts['화']}), 토(${myBazi.ohhaengCounts['토']}), 금(${myBazi.ohhaengCounts['금']}), 수(${myBazi.ohhaengCounts['수']})
-- 십성: ${myBazi.sipsinSummary}
-- 대운: ${myBazi.daeunStr}
-
-[상대방의 사주팔자]
-${partnerBazi.baziStr.trim()}
-- 오행: 목(${partnerBazi.ohhaengCounts['목']}), 화(${partnerBazi.ohhaengCounts['화']}), 토(${partnerBazi.ohhaengCounts['토']}), 금(${partnerBazi.ohhaengCounts['금']}), 수(${partnerBazi.ohhaengCounts['수']})
-- 십성: ${partnerBazi.sipsinSummary}
-- 대운: ${partnerBazi.daeunStr}
-
-[궁합 분석 데이터]
-${compatibility.promptSummary}
-
-${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중요]\n${metDate ? `- 만난 시점/연애 시작일: ${metDate}\n` : ''}${breakupDate ? `- 이별 시점: ${breakupDate}\n` : ''}${breakupReason ? `- 사용자가 직접 전한 이별 이유/고민:\n${breakupReason}` : ''}\n위 컨텍스트를 분석에 반드시 깊게 반영해.` : ''}
-
-(중요 지침: 모든 content 항목에 대해 모바일 화면에서 읽기 쉽도록 한 문단을 2~3문장 짧게 끊고, 문단 사이에 반드시 줄바꿈 2번(\\n\\n)을 띄워서 가독성을 극대화할 것. 필요한 경우 소제목이나 불릿기호(-)를 활용할 것)`;
-
-      const prompt2 = `${commonPrompt}\n\n위 데이터를 바탕으로 심층 분석 8가지 섹션을 작성해줘. JSON 포맷:\n
-{
-  "details": [
-    { "title": "🛡️ [심리] 왜 우리는 '회피'와 '공격'으로 맞섰을까?", "subtitle": "...", "content": "사주 성향상 각자의 방어기제와 갈등 상황 대처 방식. 실제 연애에서 벌어졌을 상황을 구체적으로 묘사하며 분석 (최소 600자)" },
-    { "title": "⏳ [타이밍] 이별이 일어날 수밖에 없었던 사주적 시기", "subtitle": "...", "content": "이별 시기(운의 흐름)가 관계에 미친 영향, 왜 그때 갈등이 폭발했는지. 대운/세운/월운 흐름을 구체적으로 분석 (최소 600자)" },
-    { "title": "☠️ [결론] 끝내 이별로 이끈 '진짜 사유' 분석", "subtitle": "...", "content": "단순한 표면적 이유가 아닌, 사주 명리학적으로 본 궁극적 이별 원인. 종합 진단과 함께 냉정한 팩트 전달 (최소 600자)" },
-    { "title": "🫀 [속마음] 그 사람, 아직 나에게 미련이 있을까?", "subtitle": "...", "content": "상대방 사주 성향과 현재 시점 운으로 추론한 속마음. 구체적인 근거를 대며 몇 가지 시나리오를 제시 (최소 600자)" },
-    { "title": "🚨 [경고] 제발 이것만은! 재회를 망치는 치명적 실수", "subtitle": "...", "content": "절대로 하면 안 되는 행동 3가지 이상과 각각의 구체적 이유. 실수 시 어떤 결과가 오는지까지 서술 (최소 600자)" },
-    { "title": "🥲 [타이밍] 다시 연락이 닿을 길일과 먼저 연락 올 확률", "subtitle": "...", "content": "사주상 다시 연락하기 좋은 구체적 시기(길일)와 최적의 연락 태도. 먼저 갈지 기다릴지 전략적 판단 근거도 함께 (최소 600자)" },
-    { "title": "😈 [전략] 재회 확률 200% 극대화 시크릿 비법", "subtitle": "...", "content": "오행을 자극하는 스타일링 추천, 만남 장소, 대화법, 유혹 포인트 등 구체적인 행동 가이드 (최소 600자)" },
-    { "title": "🌸 [선택] 재회 성공 후 미래 vs 더 좋은 새로운 인연", "subtitle": "...", "content": "다시 만났을 때 잘 지낼 수 있을지 사주적으로 진단하고, 만약 포기한다면 언제 어떤 새 인연이 올지 예측 (최소 600자)" }
-  ]
-}`;
-
-      // --- 2-3. 로드맵 및 월별 에너지 흐름 준비 ---
-      const systemInstruction3 = `
-${BASE_SYSTEM_INSTRUCTION}
-
-# Response Rules
-1. 반드시 아래 JSON 스키마에 정확히 맞춰서 대답해. 마크다운 백틱이나 부연 설명 없이 순수 JSON만.
-2. \`goldenWindowMonths\` 배열에는 분석된 내용 중 연락하기 가장 좋은 1개의 '달(Month)'을 넣고, 해당 달 안에서 특히 연락하기 좋은 날짜(goodDates) 3~5개, 절대 연락하면 안 되는 날짜(badDates) 3~5개를 배열 형태로 생성해.
-`.trim();
-
-      const schema3 = {
-        type: "object" as any,
-        properties: {
-          monthlyEnergies: {
-            type: "array" as any,
-            items: {
-              type: "object" as any,
-              properties: { month: { type: "string" as any }, theme: { type: "string" as any }, advice: { type: "string" as any } },
-              required: ["month", "theme", "advice"]
-            }
-          },
-          roadmapStages: {
-            type: "array" as any,
-            items: {
-              type: "object" as any,
-              properties: { step: { type: "string" as any }, title: { type: "string" as any }, action: { type: "string" as any } },
-              required: ["step", "title", "action"]
-            }
-          },
-          goldenWindowMonths: {
-            type: "array" as any,
-            items: {
-              type: "object" as any,
-              properties: {
-                month: { type: "string" as any },
-                goodDates: { type: "array" as any, items: { type: "number" as any } },
-                badDates: { type: "array" as any, items: { type: "number" as any } }
-              },
-              required: ["month", "goodDates", "badDates"]
-            }
-          }
-        },
-        required: ["monthlyEnergies", "roadmapStages", "goldenWindowMonths"]
-      };
-
       const model3 = genAI.getGenerativeModel({
         model: "gemini-3.1-pro-preview",
-        systemInstruction: systemInstruction3,
+        systemInstruction: SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
         generationConfig: { responseMimeType: "application/json", responseSchema: schema3 }
       });
+
+      // --- 2-3. 프롬프트 생성 ---
+      const promptCtx = {
+        myRawInput, partnerRawInput, myBazi, partnerBazi,
+        compatibilityPromptSummary: compatibility.promptSummary,
+        metDate, breakupDate, breakupReason
+      };
+
+      const prompt2 = buildPrompt2(promptCtx, liteResult?.secretTeaser);
 
       const windowSummary = result.windows.map(w =>
         `- ${w.year}년 ${w.month}월 (에너지 점수: ${w.score}점, 골든 여부: ${w.isGolden}): ${w.reasons.join(', ')}`
       ).join('\n');
 
-      const prompt3 = `[분석 대상]
-- 나: ${myRawInput.name || "익명"} (${myRawInput.gender === 'male' ? '남자' : '여자'}), 일주: ${myDayGan}${myDayZhi}
-- 상대방: ${partnerRawInput.name || "그 사람"} (${partnerRawInput.gender === 'male' ? '남자' : '여자'}), 일주: ${partnerDayGan}${partnerDayZhi}
+      const prompt3 = buildPrompt3({
+        myName: myRawInput.name, myGender: myRawInput.gender,
+        partnerName: partnerRawInput.name, partnerGender: partnerRawInput.gender,
+        myDayGan, myDayZhi, partnerDayGan, partnerDayZhi,
+        windowSummary, metDate, breakupDate, breakupReason
+      });
 
-[향후 6개월간 골든 윈도우 흐름 데이터]
-${windowSummary}
-
-${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? `- 처음 만난 시점: ${metDate}\n` : ''}${breakupDate ? `- 이별 시점: ${breakupDate}\n` : ''}${breakupReason ? `- 이별 이유/고민:\n${breakupReason}` : ''}` : ''}
-
-위 데이터를 바탕으로 다음 3가지 정보를 구조화해서 작성해줘:
-
-1. \`monthlyEnergies\`: 향후 6개월간의 월별 에너지 흐름 분리 작성. (month: "5월", theme: "요약", advice: "구체적 조언")
-- \`advice\`는 최소 2문장에서 3문장 정도로 작성하며, 의미가 전환될 때 반드시 줄바꿈(\\n)을 사용하여 가독성을 높일 것.
-2. \`roadmapStages\`: 재회 장기 전략 3단계 작성 (step: "1단계", title: "타이틀", action: "구체적 행동 지침").
-**[매우 중요 - action 작성 규칙]**
-- 각 단계의 \`action\`은 최소 400자~500자 분량으로 상세하게 작성.
-- 반드시 소제목과 본문을 줄바꿈(\\n)으로 구분해서 작성해. 한 덩어리 글로 쓰지 말고, 읽기 쉽게 문단을 나눠야 해.
-- 작성 포맷 예시: "🎯 핵심 행동 지침\\n이 시기에는 ~하세요.\\n\\n💭 마인드셋\\n~한 마음가짐이 중요합니다.\\n\\n⚠️ 주의사항\\n절대 ~하지 마세요."
-- 각 소제목 앞에 이모지 1개를 붙여서 시각적으로 구분.
-- 소제목은 2~4개 정도가 적당.
-
-3. \`goldenWindowMonths\`: 위 골든 윈도우 데이터 중 에너지 점수가 가장 높은 1개의 달(Month)을 선정하고, 해당 달 안에서 연락하기 좋은 날짜(goodDates) 3~5개와 절대 연락하면 안 되는 날짜(badDates) 3~5개를 배열(숫자)로 생성해줘. month는 "5월" 형태로.
-
-반드시 위 스키마 포맷을 준수할 것.`;
-
-      // --- 병렬 처리 시작 (Promise.all) ---
+      // --- 2-4. 병렬 AI 호출 (prompt2 + prompt3 + 조건부 prompt4) ---
       let parsedData2: any = { details: [] };
       let parsedData3: any = { monthlyEnergies: [], roadmapStages: [], goldenWindowMonths: [] };
       let compatibilityReport: any = null;
 
       await Promise.all([
-        // 1. 기본 심층 분석 8개 (model2)
-        (async () => {
-          let attempt = 0;
-          let success = false;
-          while (attempt <= 2 && !success) {
-            try {
-              const res = await model2.generateContent(prompt2);
-              parsedData2 = JSON.parse(res.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-              success = true;
-            } catch (e) {
-              attempt++;
-              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-            }
-          }
-        })(),
+        // 1) 재회 심층 분석 + 공략 매뉴얼
+        callGemini(model2, prompt2).then(data => { parsedData2 = data; }).catch(() => {}),
 
-        // 2. 로드맵 및 캘린더 (model3)
-        (async () => {
-          let attempt = 0;
-          let success = false;
-          while (attempt <= 2 && !success) {
-            try {
-              const res = await model3.generateContent(prompt3);
-              parsedData3 = JSON.parse(res.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-              success = true;
-            } catch (e) {
-              attempt++;
-              await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-            }
-          }
-        })(),
+        // 2) 골든 윈도우 + 로드맵
+        callGemini(model3, prompt3).then(data => { parsedData3 = data; }).catch(() => {}),
 
-        // 3. 궁합 패키지 (model4 - 조건부 실행)
+        // 3) 궁합 리포트 (premium 패키지만)
         (async () => {
           if (raw_data.packageId === 'premium') {
-            const systemInstruction4 = `
-${BASE_SYSTEM_INSTRUCTION}
-
-# Response Rules
-1. 'radarChart' 항목: 5가지 지표(communication, affection, intimacy, future, conflict)에 대해 0~100점 사이의 객관적 점수를 부여하고, 전체 궁합을 관통하는 매력적인 소제목(subtitle)을 작성한 뒤, 150~200자 분량으로 아주 상세하게 요약해.
-2. 'vsCards' 항목: 두 사람의 사주를 비교하여 가장 극명하게 대비되는 성향 차이 3가지를 뽑아내. (topic, myTrait, partnerTrait, explanation). 'explanation'은 실제 연애에서 어떻게 충돌하는지 300자 이상으로 매우 구체적이고 길게 설명해.
-3. 'compatibilityDetails' 항목: 지정된 9가지 주제에 대해 각각 최소 300자 이상의 심층 분석 텍스트를 작성해. 단락을 잘 나누고 이모지를 적절히 사용해.
-4. 'coupleType' 항목: 두 사람의 궁합을 종합하여 직관적인 커플 유형 라벨을 부여해. label은 '폭풍 열정형 커플', '느린 불 온도형 커플' 같은 2030이 공감할 만한 트렌디한 네이밍으로. description은 해당 유형의 특징, 장점, 주의할 점을 300자 이상 서술.
-5. 'overallGrade' 항목: 모든 궁합 데이터를 종합하여 S/A/B/C/D 중 하나의 등급(grade)을 부여하고, 한 줄 라벨(label), 강점 3가지(strengths), 약점 3가지(weaknesses), 최종 한마디(finalMessage)를 작성해.
-6. 오직 JSON 형식으로만 반환해.
-`.trim();
-
-            const schema4 = {
-              type: "object" as any,
-              properties: {
-                radarChart: {
-                  type: "object" as any,
-                  properties: {
-                    communication: { type: "number" as any },
-                    affection: { type: "number" as any },
-                    intimacy: { type: "number" as any },
-                    future: { type: "number" as any },
-                    conflict: { type: "number" as any },
-                    subtitle: { type: "string" as any },
-                    summary: { type: "string" as any }
-                  },
-                  required: ["communication", "affection", "intimacy", "future", "conflict", "subtitle", "summary"]
-                },
-                vsCards: {
-                  type: "array" as any,
-                  items: {
-                    type: "object" as any,
-                    properties: {
-                      topic: { type: "string" as any },
-                      myTrait: { type: "string" as any },
-                      partnerTrait: { type: "string" as any },
-                      explanation: { type: "string" as any }
-                    },
-                    required: ["topic", "myTrait", "partnerTrait", "explanation"]
-                  }
-                },
-                compatibilityDetails: {
-                  type: "array" as any,
-                  items: {
-                    type: "object" as any,
-                    properties: {
-                      title: { type: "string" as any },
-                      content: { type: "string" as any }
-                    },
-                    required: ["title", "content"]
-                  }
-                },
-                coupleType: {
-                  type: "object" as any,
-                  properties: {
-                    label: { type: "string" as any },
-                    emoji: { type: "string" as any },
-                    description: { type: "string" as any }
-                  },
-                  required: ["label", "emoji", "description"]
-                },
-                overallGrade: {
-                  type: "object" as any,
-                  properties: {
-                    grade: { type: "string" as any },
-                    label: { type: "string" as any },
-                    strengths: { type: "array" as any, items: { type: "string" as any } },
-                    weaknesses: { type: "array" as any, items: { type: "string" as any } },
-                    finalMessage: { type: "string" as any }
-                  },
-                  required: ["grade", "label", "strengths", "weaknesses", "finalMessage"]
-                }
-              },
-              required: ["radarChart", "vsCards", "compatibilityDetails", "coupleType", "overallGrade"]
-            };
-
             const model4 = genAI.getGenerativeModel({
               model: "gemini-3.1-pro-preview",
-              systemInstruction: systemInstruction4,
+              systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY,
               generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
             });
-
-            const prompt4 = `${commonPrompt}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 작성해줘. JSON 포맷:\n
-{
-  "radarChart": {
-    "communication": 0-100 사이 점수,
-    "affection": 0-100 사이 점수,
-    "intimacy": 0-100 사이 점수,
-    "future": 0-100 사이 점수,
-    "conflict": 0-100 사이 점수,
-    "subtitle": "두 사람의 궁합을 한 줄로 요약",
-    "summary": "레이더 차트 종합 분석 요약 2~3줄"
-  },
-  "vsCards": [
-    { "topic": "비교 주제 (예: 갈등 스타일)", "myTrait": "나의 성향 한 줄", "partnerTrait": "상대방 성향 한 줄", "explanation": "두 성향이 만나면 어떤 역학이 발생하는지 설명 (100자 이상)" },
-    ... (4~5개)
-  ],
-  "compatibilityDetails": [
-    { "title": "🌌 전생부터 이어진 우리의 카르마", "content": "우리는 전생에 어떤 인연이었길래 끌렸을까? 사주 데이터 기반으로 두 사람의 인연이 어떤 깊이를 가지는지 분석 (최소 600자)" },
-    { "title": "👼 서로에게 귀인일까 악연일까", "content": "서로의 에너지를 채워주는지 갉아먹는지. 관계 속에서 각자의 성장과 소모를 구체적으로 분석 (최소 600자)" },
-    { "title": "🔞 은밀한 속궁합과 스킨십 리듬", "content": "육체적 케미와 애정 표현 방식의 차이. 서로의 욕구 패턴과 리듬이 어떻게 맞물리는지 분석 (최소 600자)" },
-    { "title": "😈 상대방의 숨겨진 무의식적 욕망", "content": "상대가 나에게 진짜로 바라는 것. 표면적으로 말하는 것과 무의식적으로 원하는 것의 차이를 분석 (최소 600자)" },
-    { "title": "⚖️ 애정의 무게 추", "content": "누가 더 많이 좋아하고 더 의존하는가? 감정의 비대칭이 관계에 미치는 영향을 구체적으로 서술 (최소 600자)" },
-    { "title": "🔗 이 관계의 진짜 주도권은 누구에게?", "content": "평소와 결정적 순간의 권력 역학. 누가 관계를 이끌고 누가 따라가는지, 위기 시 역전되는지 분석 (최소 600자)" },
-    { "title": "🪃 영원한 평행선", "content": "평생을 만나도 절대 타협할 수 없는 성향 차이. 이 차이가 왜 존재하고 어떻게 관리해야 하는지 조언 (최소 600자)" },
-    { "title": "💍 만약 우리가 동거/결혼을 한다면?", "content": "다툼 원인, 생활 패턴, 가사 분담 등 구체적인 일상 시뮬레이션. 예상되는 갈등과 해결 전략 포함 (최소 600자)" },
-    { "title": "💸 재물 시너지", "content": "함께하면 돈이 불어날까 깎일까? 각자의 재물운과 합쳤을 때의 시너지/리스크를 구체적으로 분석 (최소 600자)" }
-  ],
-  "coupleType": {
-    "emoji": "이 커플 유형을 대표하는 이모지 1개",
-    "label": "두 사람의 궁합을 종합한 트렌디한 커플 유형 이름 (예: '폭풍 열정형 커플', '밀당 고수형 커플', '느린 불 온도형 커플')",
-    "description": "이 커플 유형의 핵심 특징, 장점, 주의할 점을 자연스럽고 풍성하게 서술 (최소 400자)"
-  },
-  "overallGrade": {
-    "grade": "S/A/B/C/D 중 하나 (모든 궁합 데이터를 종합한 최종 등급)",
-    "label": "등급을 한 줄로 설명 (예: '서로를 성장시키는 시너지형 인연')",
-    "strengths": ["강점1", "강점2", "강점3"],
-    "weaknesses": ["약점1", "약점2", "약점3"],
-    "finalMessage": "이 커플에게 전하는 최종 한마디. 따뜻하지만 현실적으로 (200자 이상)"
-  }
-}`;
-
-
-            let attempt = 0;
-            let success = false;
-            while (attempt <= 2 && !success) {
-              try {
-                const res = await model4.generateContent(prompt4);
-                compatibilityReport = JSON.parse(res.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-                success = true;
-              } catch (e) {
-                attempt++;
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-              }
-            }
+            const prompt4 = buildPrompt4(promptCtx);
+            try {
+              compatibilityReport = await callGemini(model4, prompt4);
+            } catch { /* 궁합 실패 시 null 유지 */ }
           }
         })()
       ]);
 
-      // --- 2-5. 최종 병합 (Lite Data + Premium Details + Roadmap/Energies + Compatibility) ---
-      // liteResult 에는 기존의 details (2개) 가 있음. Premium 8개를 뒤에 합칩니다.
+      // --- 2-5. 최종 병합 ---
       const liteDetails = liteResult.details || [];
       const premiumDetails = parsedData2.details || [];
-      const allDetails = [...liteDetails, ...premiumDetails];
 
       return {
-        ...liteResult, // 기존 호환성, 점수, 요약, 사주 등 유지
-        details: allDetails,      // 총 10개의 프리미엄 아코디언 항목
+        ...liteResult,
+        details: [...liteDetails, ...premiumDetails],
+        partnerManual: parsedData2.partnerManual || null,
         goldenWindows: {
           windows: result.windows,
           bestMonth: result.bestMonth,
@@ -405,7 +140,6 @@ ${BASE_SYSTEM_INSTRUCTION}
         },
         compatibilityReport
       };
-
     });
 
     // 3. 분석 결과 DB 저장
@@ -417,21 +151,20 @@ ${BASE_SYSTEM_INSTRUCTION}
           ai_result: aiResult
         })
         .eq("id", jobId);
-      
+
       if (error) {
         console.error("Supabase update error:", error);
         throw new Error(error.message);
       }
     });
 
-    // 4. Solapi로 완료 알림 문자 발송 (임시로 발송 중지 - 콘솔 로그로 대체)
+    // 4. SMS 완료 알림
     await step.run("send-completion-sms", async () => {
       if (!phone_number) {
         console.log("전화번호가 없습니다. (로그인 유저) SMS 발송 생략.");
         return { success: true, message: "No phone number, skipped SMS." };
       }
 
-      // 프론트엔드 URL 확인 (운영 > Vercel 자동 > 로컬 순서)
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
         || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
         || "http://localhost:3000";

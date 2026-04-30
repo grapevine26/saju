@@ -13,6 +13,7 @@ import LongTermRoadmap from "@/components/LongTermRoadmap";
 import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
 import PremiumRadarChart from "@/components/PremiumRadarChart";
 import VsCard from "@/components/VsCard";
+import PartnerManual from "@/components/PartnerManual";
 
 export default function ResultClient({ job }: { job: any }) {
     const [showHeader, setShowHeader] = useState(true);
@@ -195,6 +196,21 @@ export default function ResultClient({ job }: { job: any }) {
                             details={resultData.details}
                             isPremium={true}
                         />
+                    </motion.div>
+                )}
+
+                {/* 3.5. 상대방 공략 매뉴얼 */}
+                {resultData.partnerManual && (
+                    <motion.div
+                        initial={{ y: 30, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.35 }}
+                    >
+                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <span className="text-base">🎯</span>
+                            상대방 공략 매뉴얼
+                        </h2>
+                        <PartnerManual data={resultData.partnerManual} />
                     </motion.div>
                 )}
 

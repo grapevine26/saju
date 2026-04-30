@@ -1,12 +1,11 @@
 import { NextResponse } from "next/server";
 import { BASE_SYSTEM_INSTRUCTION } from "@/constants/aiPrompts";
-import { GoogleGenerativeAI } from "@google/generative-ai";
 import { calculateBazi, BaziCalculationResult } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
 import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
+import { genAI, callGemini } from "@/utils/geminiCall";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
-const genAI = new GoogleGenerativeAI(apiKey);
 
 // 사용자 입력 정보 타입
 interface PersonInput {
@@ -67,7 +66,7 @@ export async function POST(request: Request) {
         // ─────────────────────────────────────
         const compatibility = calculateCompatibility(myBazi, partnerBazi);
 
-        // 3. 골든 윈도우 계산 로직 제외 (클라이언트에서 api/golden-window를 따로 호출)
+        // 3. 골든 윈도우 계산 (Lite에서 기본 데이터만 반환, AI 분석은 Inngest에서 처리)
         const goldenWindows = null;
 
         // ─────────────────────────────────────
@@ -107,28 +106,10 @@ ${BASE_SYSTEM_INSTRUCTION}
             required: ["reunionKeyword", "reunionScore", "summary", "details"]
         };
 
-        // prompt2 스키마: Premium 추가 섹션 (8개)
-        const schema2 = {
-            type: "object" as any,
-            properties: {
-                details: {
-                    type: "array" as any,
-                    items: detailItemSchema
-                }
-            },
-            required: ["details"]
-        };
-
         const model1 = genAI.getGenerativeModel({
             model: "gemini-3.1-flash-lite-preview",
             systemInstruction,
             generationConfig: { responseMimeType: "application/json", responseSchema: schema1 }
-        });
-
-        const model2 = genAI.getGenerativeModel({
-            model: "gemini-3.1-pro-preview",
-            systemInstruction,
-            generationConfig: { responseMimeType: "application/json", responseSchema: schema2 }
         });
 
         const commonPrompt = `[분석 대상]
@@ -170,69 +151,18 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중
 
 
 
-        let parsedData1 = { details: [] as any[], reunionKeyword: "분석 중", reunionScore: 50, summary: "" };
-        let parsedData2 = { details: [] as any[] };
+        console.log(`[다시, 우리] 재회 분석 시작 (tier: ${tier})`);
 
-        const isPremium = tier === 'premium';
-        console.log(`[다시, 우리] 재회 분석 시작 (tier: ${tier}, prompt2 호출: ${isPremium})`);
-
-        // ── prompt1 호출 (항상) ──
-        let attempt = 0;
-        const maxRetries = 2;
-        let success = false;
-
-        while (attempt <= maxRetries && !success) {
-            try {
-                const result1 = await model1.generateContent(prompt1);
-                parsedData1 = JSON.parse(result1.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-                success = true;
-            } catch (e) {
-                attempt++;
-                console.error(`prompt1 파싱 실패 (시도 ${attempt}/${maxRetries + 1}):`, e);
-                if (attempt > maxRetries) {
-                    return NextResponse.json(
-                        { success: false, error: "데이터 분석 결과를 읽는 데 실패했어요. 잠시 후 다시 시도해 주세요." },
-                        { status: 500 }
-                    );
-                }
-                await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-            }
-        }
-
-        // ── prompt2 호출 (Premium일 때만) ──
-        if (isPremium) {
-            const prompt2 = `${commonPrompt}\n\n[lite버전에서 제공된 핵심 행동 지침]\n"${parsedData1.secretTeaser}"\n\n위 데이터를 바탕으로 심층 분석 8가지 섹션을 작성해줘. 특히 "전략" 섹션과 "경고" 섹션에서는 위의 [핵심 행동 지침]에서 언급한 내용(시기, 행동 등)을 반드시 포함하여 더욱 구체적으로 상술해줘. (유저가 티저를 보고 결제했으므로, 티저 내용이 본문에 없으면 실망합니다. 일관성 유지가 매우 중요함). JSON 포맷:\n
-{
-  "details": [
-    { "title": "🛡️ [심리] 왜 우리는 '회피'와 '공격'으로 맞섰을까?", "subtitle": "...", "content": "사주 성향상 각자의 방어기제와 갈등 상황 대처 방식. 실제 연애에서 벌어졌을 상황을 구체적으로 묘사하며 분석 (최소 600자)" },
-    { "title": "⏳ [타이밍] 이별이 일어날 수밖에 없었던 사주적 시기", "subtitle": "...", "content": "이별 시기(운의 흐름)가 관계에 미친 영향, 왜 그때 갈등이 폭발했는지. 대운/세운/월운 흐름을 구체적으로 분석 (최소 600자)" },
-    { "title": "☠️ [결론] 끝내 이별로 이끈 '진짜 사유' 분석", "subtitle": "...", "content": "단순한 표면적 이유가 아닌, 사주 명리학적으로 본 궁극적 이별 원인. 종합 진단과 함께 냉정한 팩트 전달 (최소 600자)" },
-    { "title": "🫀 [속마음] 그 사람, 아직 나에게 미련이 있을까?", "subtitle": "...", "content": "상대방 사주 성향과 현재 시점 운으로 추론한 속마음. 구체적인 근거를 대며 몇 가지 시나리오를 제시 (최소 600자)" },
-    { "title": "🚨 [경고] 제발 이것만은! 재회를 망치는 치명적 실수", "subtitle": "...", "content": "절대로 하면 안 되는 행동 3가지 이상과 각각의 구체적 이유. 실수 시 어떤 결과가 오는지까지 서술 (최소 600자)" },
-    { "title": "🥲 [타이밍] 다시 연락이 닿을 길일과 먼저 연락 올 확률", "subtitle": "...", "content": "사주상 다시 연락하기 좋은 구체적 시기(길일)와 최적의 연락 태도. 먼저 갈지 기다릴지 전략적 판단 근거도 함께 (최소 600자)" },
-    { "title": "😈 [전략] 재회 확률 200% 극대화 시크릿 비법", "subtitle": "...", "content": "오행을 자극하는 스타일링 추천, 만남 장소, 대화법, 유혹 포인트 등 구체적인 행동 가이드 (최소 600자)" },
-    { "title": "🌸 [선택] 재회 성공 후 미래 vs 더 좋은 새로운 인연", "subtitle": "...", "content": "다시 만났을 때 잘 지낼 수 있을지 사주적으로 진단하고, 만약 포기한다면 언제 어떤 새 인연이 올지 예측 (최소 600자)" }
-  ]
-}`;
-            attempt = 0;
-            success = false;
-            while (attempt <= maxRetries && !success) {
-                try {
-                    const result2 = await model2.generateContent(prompt2);
-                    parsedData2 = JSON.parse(result2.response.text().replace(/```json/g, "").replace(/```/g, "").trim());
-                    success = true;
-                } catch (e) {
-                    attempt++;
-                    console.error(`prompt2 파싱 실패 (시도 ${attempt}/${maxRetries + 1}):`, e);
-                    if (attempt > maxRetries) {
-                        return NextResponse.json(
-                            { success: false, error: "프리미엄 분석 처리 중 문제가 발생했어요. 잠시 후 다시 시도해 주세요." },
-                            { status: 500 }
-                        );
-                    }
-                    await new Promise(resolve => setTimeout(resolve, 1000 * attempt));
-                }
-            }
+        // ── prompt1 호출 (항상 Lite) ──
+        let parsedData1: any;
+        try {
+            parsedData1 = await callGemini(model1, prompt1);
+        } catch (e) {
+            console.error('prompt1 최종 실패:', e);
+            return NextResponse.json(
+                { success: false, error: "데이터 분석 결과를 읽는 데 실패했어요. 잠시 후 다시 시도해 주세요." },
+                { status: 500 }
+            );
         }
 
         // [본질]을 독립 카드용 데이터로 분리 (details의 첫 번째 항목)
@@ -245,7 +175,7 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중
             summary: parsedData1.summary,
             secretTeaser: parsedData1.secretTeaser,
             essenceAnalysis,
-            details: [...remainingDetails1, ...parsedData2.details]
+            details: remainingDetails1
         };
 
         // ─────────────────────────────────────
