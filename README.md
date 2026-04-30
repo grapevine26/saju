@@ -17,6 +17,9 @@ npm install
 # 개발 서버 실행 (http://localhost:3000)
 npm run dev
 
+# Inngest 로컬 개발 서버 실행 (배경 작업 모니터링)
+npx inngest-cli dev -u http://localhost:3000/api/inngest
+
 # 프로덕션 빌드
 npm run build
 ```
@@ -26,6 +29,10 @@ npm run build
 ```env
 # Gemini API Key (재회 분석 AI 리포트 생성용)
 GEMINI_API_KEY=your_gemini_api_key_here
+
+# Toss Payments API Keys (테스트 키)
+NEXT_PUBLIC_TOSS_CLIENT_KEY=test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
+TOSS_SECRET_KEY=test_sk_zOXLK6E9v77yYmDR275V3WEM6qAn
 ```
 
 > ⚠️ `.env.local`은 Git에 포함되지 않습니다. 직접 생성하세요.
@@ -136,6 +143,8 @@ src/
 | 음양력 변환 | lunar-javascript |
 | 스타일 | Tailwind CSS + 커스텀 글래스모피즘 |
 | AI 리포트 | Google Gemini API |
+| 결제 시스템 | Toss Payments (토스페이먼츠) |
+| 배경 작업 | Inngest |
 
 ---
 

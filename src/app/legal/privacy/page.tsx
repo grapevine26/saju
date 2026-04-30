@@ -14,7 +14,7 @@ export default function PrivacyPage() {
             <main className="p-6 space-y-8 text-sm leading-relaxed">
                 <section>
                     <p>
-                        다시우리(이하 "회사")는 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법규를 준수하고 있습니다.
+                        인사이트랩(이하 "회사")은 다시우리(Reconnection AI) 서비스를 운영함에 있어 이용자의 개인정보를 중요시하며, 「개인정보 보호법」 등 관련 법규를 준수하고 있습니다.
                     </p>
                 </section>
 

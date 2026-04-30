@@ -161,8 +161,9 @@ export default function HistoryDetailPage() {
 
             const orderId = `${record.id}${Date.now()}`;
 
-            localStorage.setItem('pendingPortOnePayment', JSON.stringify({
-                paymentId: orderId, // PortOne v2 에서는 paymentId 사용
+            localStorage.setItem('pendingTossPayment', JSON.stringify({
+                orderId: orderId,
+                amount: amount,
                 packageId: selectedPackageId,
                 identifier,
                 recordId: record.id,
@@ -171,36 +172,25 @@ export default function HistoryDetailPage() {
                 breakupReason: (record as any).breakupReason || ''
             }));
 
-            const storeId = process.env.NEXT_PUBLIC_PORTONE_STORE_ID || 'store-e1332c86-53fa-4ab8-aca7-085909baaebf';
-            const channelKey = process.env.NEXT_PUBLIC_PORTONE_CHANNEL_KEY || 'channel-key-819c3a5b-c1a6-4381-aa9a-29c19b34345b';
+            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+            const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
+            const tossPayments = await loadTossPayments(clientKey);
+            const payment = tossPayments.payment({ customerKey: identifier.value || ANONYMOUS });
 
-            const PortOne = await import('@portone/browser-sdk/v2');
-
-            const response = await PortOne.requestPayment({
-                storeId,
-                channelKey,
-                paymentId: orderId,
-                orderName,
-                totalAmount: amount,
-                currency: "CURRENCY_KRW",
-                payMethod: "CARD",
-                customer: {
-                    customerId: identifier.value || 'ANONYMOUS',
-                    fullName: myInfo.name || '익명',
-                    phoneNumber: customerMobilePhone,
-                    email: 'guest@sajupop.com'
+            await payment.requestPayment({
+                method: 'CARD',
+                amount: {
+                    currency: 'KRW',
+                    value: amount,
                 },
-                redirectUrl: `${window.location.origin}/payment/success`
-            } as any);
-
-            if (response?.code != null) {
-                throw new Error(response.message || "결제에 실패했습니다.");
-            }
-
-            // PC 브라우저: 팝업 결제 완료 후 직접 success 페이지로 이동
-            if (response?.paymentId) {
-                window.location.href = `/payment/success?paymentId=${encodeURIComponent(response.paymentId)}`;
-            }
+                orderId: orderId,
+                orderName: orderName,
+                customerName: myInfo.name || '익명',
+                customerEmail: 'guest@sajupop.com',
+                customerMobilePhone: customerMobilePhone,
+                successUrl: `${window.location.origin}/payment/success`,
+                failUrl: `${window.location.origin}/payment/fail`
+            });
 
         } catch (err: any) {
             console.error(err);

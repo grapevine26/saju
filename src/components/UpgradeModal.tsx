@@ -63,7 +63,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
                 >
                     <h3 className="text-xl font-bold text-white mb-2 text-center">결제 및 분석 시작</h3>
                     <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
-                        계정이 연동되었습니다.<br/>분석이 완료되면(약 3분) 자동으로 기록에 저장됩니다.
+                        계정이 연동되었습니다.<br />분석이 완료되면(약 3분) 자동으로 기록에 저장됩니다.
                     </p>
                     <div className="flex gap-3 mt-2">
                         <button
@@ -95,7 +95,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
                     <>
                         <h3 className="text-xl font-bold text-white mb-2 text-center">기록 평생 보관하기</h3>
                         <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
-                            프리미엄 리포트를 평생 소장하려면<br/>1초 만에 안전하게 시작하세요.
+                            프리미엄 리포트를 평생 소장하려면<br />1초 만에 안전하게 시작하세요.
                         </p>
 
                         <div className="space-y-3">
@@ -132,14 +132,14 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
                     <>
                         <h3 className="text-xl font-bold text-white mb-2 text-center">알림 받으실 연락처</h3>
                         <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
-                            비회원은 브라우저 캐시 삭제 시 기록이 지워집니다.<br/>분석 완료 시(약 3분) 문자로 링크를 보내드려요!
+                            비회원은 문자로 발송되는 <span className="text-indigo-400 font-medium">고유 링크</span>를 통해서만<br />기록 확인이 가능합니다. 분석 완료 시 문자를 보내드려요!
                         </p>
-                        
-                        <PhoneInput 
-                            value={phoneNumber} 
-                            onChange={setPhoneNumber} 
+
+                        <PhoneInput
+                            value={phoneNumber}
+                            onChange={setPhoneNumber}
                         />
-                        
+
                         <div className="flex gap-3 mt-6">
                             <button
                                 onClick={() => setMode('select')}
@@ -156,7 +156,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
                         </div>
                     </>
                 )}
-                
+
                 {mode === 'select' && (
                     <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white">
                         ✕

@@ -53,7 +53,7 @@ export default function ResultClient({ job }: { job: any }) {
                 </div>
                 <h2 className="text-xl font-bold text-white mb-3">운명의 흐름을 읽고 있습니다...</h2>
                 <p className="text-slate-400 text-sm max-w-[260px] mx-auto leading-relaxed">
-                    프리미엄 AI가 수만 건의 명리학 데이터를 바탕으로 심층 분석을 진행 중입니다. 잠시만 기다려주세요 (약 2~3분 소요).
+                    고도화된 분석 엔진이 수만 건의 명리학 데이터를 다각도로 교차 검증하여 심층 분석을 진행 중입니다. 잠시만 기다려주세요 (약 2~3분 소요).
                 </p>
             </div>
         );
@@ -190,7 +190,7 @@ export default function ResultClient({ job }: { job: any }) {
                     >
                         <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-amber-400" />
-                            재회 전략 리포트
+                            심층 재회 전략 리포트
                         </h2>
                         <SajuAccordion
                             details={resultData.details}

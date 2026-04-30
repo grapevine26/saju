@@ -4,12 +4,14 @@ import { useEffect, useState, useRef } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSajuStore } from "@/store/useSajuStore";
-import toast from "react-hot-toast";import { Suspense } from "react";
+import toast from "react-hot-toast"; import { Suspense } from "react";
 
 function PaymentSuccessContent() {
     const router = useRouter();
     const searchParams = useSearchParams();
-    const paymentId = searchParams.get("paymentId");
+    const paymentKey = searchParams.get("paymentKey");
+    const orderId = searchParams.get("orderId");
+    const amountStr = searchParams.get("amount");
 
     const [status, setStatus] = useState<"confirming" | "analyzing" | "success" | "error">("confirming");
     const [errorMessage, setErrorMessage] = useState("");
@@ -40,7 +42,7 @@ function PaymentSuccessContent() {
     };
 
     useEffect(() => {
-        if (!paymentId) {
+        if (!paymentKey || !orderId || !amountStr) {
             setErrorMessage("유효하지 않은 결제 정보입니다.");
             setStatus("error");
             return;
@@ -52,21 +54,21 @@ function PaymentSuccessContent() {
         const processPaymentAndAnalysis = async () => {
             try {
                 // 1. LocalStorage에서 임시 결제 정보 불러오기
-                const pendingDataStr = localStorage.getItem('pendingPortOnePayment');
+                const pendingDataStr = localStorage.getItem('pendingTossPayment');
                 if (!pendingDataStr) {
                     throw new Error("결제 정보(세션)를 찾을 수 없습니다.");
                 }
                 const pendingData = JSON.parse(pendingDataStr);
 
-                if (pendingData.paymentId !== paymentId) {
+                if (pendingData.orderId !== orderId) {
                     throw new Error("주문 번호가 일치하지 않습니다.");
                 }
 
-                // 2. 포트원 결제 승인 API 호출
-                const confirmRes = await fetch("/api/portone/confirm", {
+                // 2. 토스페이먼츠 결제 승인 API 호출
+                const confirmRes = await fetch("/api/tosspayments/confirm", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ paymentId }),
+                    body: JSON.stringify({ paymentKey, orderId, amount: Number(amountStr) }),
                 });
 
                 const confirmData = await confirmRes.json();
@@ -81,7 +83,7 @@ function PaymentSuccessContent() {
 
                 // 3. 결제 승인 성공 -> AI 분석 시작
                 setStatus("analyzing");
-                
+
                 // Zustand hydration 완료 대기 후 최신 상태에서 원본 데이터 복원
                 await waitForHydration();
                 const { reunionHistory } = useSajuStore.getState();
@@ -91,7 +93,7 @@ function PaymentSuccessContent() {
                 }
 
                 const liteResult = targetRecord.resultData;
-                
+
                 const rawData = {
                     myRawInput: targetRecord.myRawInput,
                     partnerRawInput: targetRecord.partnerRawInput,
@@ -120,10 +122,10 @@ function PaymentSuccessContent() {
                 });
 
                 const startData = await startRes.json();
-                
+
                 if (startData.success) {
                     setPremiumJobId(pendingData.recordId, startData.jobId);
-                    
+
                     // 폴링 로직 시작
                     pollJobStatus(startData.jobId, pendingData.recordId);
                 } else {
@@ -131,7 +133,7 @@ function PaymentSuccessContent() {
                 }
 
                 // 처리 완료된 결제 세션 삭제
-                localStorage.removeItem('pendingPortOnePayment');
+                localStorage.removeItem('pendingTossPayment');
 
             } catch (err: any) {
                 console.error(err);
@@ -141,7 +143,7 @@ function PaymentSuccessContent() {
         };
 
         processPaymentAndAnalysis();
-    }, [paymentId, setPremiumJobId]);
+    }, [paymentKey, orderId, amountStr, setPremiumJobId]);
 
     const pollJobStatus = (jobId: string, recordId: string) => {
         const interval = setInterval(async () => {
@@ -151,14 +153,14 @@ function PaymentSuccessContent() {
 
                 if (data.success && data.status === 'completed') {
                     clearInterval(interval);
-                    
+
                     // 결과 병합
                     const { updateReunionResult } = useSajuStore.getState();
                     updateReunionResult(recordId, 'premium', data.aiResult);
 
                     setStatus("success");
                     toast.success("분석이 완료되었습니다!");
-                    
+
                     setTimeout(() => {
                         router.replace(`/result/${jobId}`);
                     }, 1000);
@@ -177,7 +179,7 @@ function PaymentSuccessContent() {
     return (
         <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#0a0e1a] text-white selection:bg-amber-900/50">
             {status === "confirming" && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center space-y-6"
@@ -192,7 +194,7 @@ function PaymentSuccessContent() {
             )}
 
             {status === "analyzing" && (
-                <motion.div 
+                <motion.div
                     initial={{ opacity: 0, y: 20 }}
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center max-w-sm mx-auto w-full"
@@ -207,7 +209,7 @@ function PaymentSuccessContent() {
                         ✓
                     </motion.div>
 
-                    <motion.h2 
+                    <motion.h2
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.2 }}
@@ -225,7 +227,7 @@ function PaymentSuccessContent() {
                     </motion.p>
 
                     {/* 분석 단계 체크리스트 */}
-                    <motion.div 
+                    <motion.div
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
@@ -275,7 +277,7 @@ function PaymentSuccessContent() {
                             <div className="text-left">
                                 <p className="text-[13px] font-bold text-amber-300 mb-1">이 화면을 닫아도 괜찮아요</p>
                                 <p className="text-[12px] text-slate-400 leading-relaxed break-keep">
-                                    분석이 완료되면 <span className="text-white font-medium">문자(SMS)</span>로 결과 링크를 보내드립니다. 약 2~3분 정도 소요돼요.
+                                    분석이 완료되면 <span className="text-white font-medium">문자(SMS)</span>로 결과 링크를 보내드립니다.
                                 </p>
                             </div>
                         </div>
@@ -324,7 +326,7 @@ function PaymentSuccessContent() {
                     </div>
                     <h2 className="text-xl font-bold text-rose-400">결제/분석 오류</h2>
                     <p className="text-slate-400 text-sm break-keep">{errorMessage}</p>
-                    <button 
+                    <button
                         onClick={() => router.push('/')}
                         className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-medium transition-colors text-sm"
                     >

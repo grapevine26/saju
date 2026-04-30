@@ -44,29 +44,29 @@ ${BASE_SYSTEM_INSTRUCTION}
 // ─────────────────────────────────────
 
 interface BaziData {
-  age: number;
-  baziStr: string;
-  ohhaengCounts: Record<string, number>;
-  sipsinSummary: string;
-  daeunStr: string;
+    age: number;
+    baziStr: string;
+    ohhaengCounts: Record<string, number>;
+    sipsinSummary: string;
+    daeunStr: string;
 }
 
 interface PromptContext {
-  myRawInput: any;
-  partnerRawInput: any;
-  myBazi: BaziData;
-  partnerBazi: BaziData;
-  compatibilityPromptSummary: string;
-  metDate?: string;
-  breakupDate?: string;
-  breakupReason?: string;
+    myRawInput: any;
+    partnerRawInput: any;
+    myBazi: BaziData;
+    partnerBazi: BaziData;
+    compatibilityPromptSummary: string;
+    metDate?: string;
+    breakupDate?: string;
+    breakupReason?: string;
 }
 
 /** 공통 프롬프트 (사주 데이터 + 궁합 데이터 + 관계 컨텍스트) */
 export const buildCommonPrompt = (ctx: PromptContext): string => {
-  const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, metDate, breakupDate, breakupReason } = ctx;
+    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, metDate, breakupDate, breakupReason } = ctx;
 
-  return `[분석 대상]
+    return `[분석 대상]
 - 나: ${myRawInput.name || "익명"} (${myRawInput.gender === 'male' ? '남자' : '여자'}, 만 ${myBazi.age}세)
 - 상대방: ${partnerRawInput.name || "그 사람"} (${partnerRawInput.gender === 'male' ? '남자' : '여자'}, 만 ${partnerBazi.age}세)
 
@@ -92,12 +92,12 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중
 
 /** prompt2: 프리미엄 심층 분석 8개 + 상대방 공략 매뉴얼 */
 export const buildPrompt2 = (ctx: PromptContext, secretTeaser?: string): string => {
-  const common = buildCommonPrompt(ctx);
-  const teaserContext = secretTeaser
-    ? `\n\n[lite버전에서 유저에게 제공된 핵심 행동 지침 (티저)]\n"${secretTeaser}"\n→ 유저가 이 티저를 보고 결제했으므로, 특히 "전략" 섹션과 "경고" 섹션에서 위 티저에서 언급한 내용(시기, 행동 등)을 반드시 포함하여 더욱 구체적으로 상술해줘. 티저 내용이 본문에 없으면 유저가 실망합니다. 일관성 유지가 매우 중요함.`
-    : '';
+    const common = buildCommonPrompt(ctx);
+    const teaserContext = secretTeaser
+        ? `\n\n[lite버전에서 유저에게 제공된 핵심 행동 지침 (티저)]\n"${secretTeaser}"\n→ 유저가 이 티저를 보고 결제했으므로, 특히 "전략" 섹션과 "경고" 섹션에서 위 티저에서 언급한 내용(시기, 행동 등)을 반드시 포함하여 더욱 구체적으로 상술해줘. 티저 내용이 본문에 없으면 유저가 실망합니다. 일관성 유지가 매우 중요함.`
+        : '';
 
-  return `${common}${teaserContext}\n\n위 데이터를 바탕으로 프리미엄 사주 리포트 심층 분석 8가지와 상대방 공략 매뉴얼을 작성해줘. JSON 포맷:\n
+    return `${common}${teaserContext}\n\n위 데이터를 바탕으로 프리미엄 사주 리포트 심층 분석 8가지와 상대방 공략 매뉴얼을 작성해줘. JSON 포맷:\n
 {
   "details": [
     { "title": "🛡️ [심리] 왜 우리는 '회피'와 '공격'으로 맞섰을까?", "subtitle": "...", "content": "사주 성향상 각자의 방어기제와 갈등 상황 대처 방식. 실제 연애에서 벌어졌을 상황을 구체적으로 묘사하며 분석 (최소 600자)" },
@@ -131,25 +131,25 @@ export const buildPrompt2 = (ctx: PromptContext, secretTeaser?: string): string 
 };
 
 interface Prompt3Context {
-  myName: string;
-  myGender: string;
-  partnerName: string;
-  partnerGender: string;
-  myDayGan: string;
-  myDayZhi: string;
-  partnerDayGan: string;
-  partnerDayZhi: string;
-  windowSummary: string;
-  metDate?: string;
-  breakupDate?: string;
-  breakupReason?: string;
+    myName: string;
+    myGender: string;
+    partnerName: string;
+    partnerGender: string;
+    myDayGan: string;
+    myDayZhi: string;
+    partnerDayGan: string;
+    partnerDayZhi: string;
+    windowSummary: string;
+    metDate?: string;
+    breakupDate?: string;
+    breakupReason?: string;
 }
 
 /** prompt3: 골든 윈도우 캘린더 + 로드맵 + 월별 에너지 */
 export const buildPrompt3 = (ctx: Prompt3Context): string => {
-  const { myName, myGender, partnerName, partnerGender, myDayGan, myDayZhi, partnerDayGan, partnerDayZhi, windowSummary, metDate, breakupDate, breakupReason } = ctx;
+    const { myName, myGender, partnerName, partnerGender, myDayGan, myDayZhi, partnerDayGan, partnerDayZhi, windowSummary, metDate, breakupDate, breakupReason } = ctx;
 
-  return `[분석 대상]
+    return `[분석 대상]
 - 나: ${myName || "익명"} (${myGender === 'male' ? '남자' : '여자'}), 일주: ${myDayGan}${myDayZhi}
 - 상대방: ${partnerName || "그 사람"} (${partnerGender === 'male' ? '남자' : '여자'}), 일주: ${partnerDayGan}${partnerDayZhi}
 
@@ -162,7 +162,7 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
 
 {
   "monthlyEnergies": [
-    { "month": "5월", "theme": "이 달의 관계 에너지 요약 한 줄", "advice": "구체적 조언. 최소 2~3문장, 300~400자 분량. 의미 전환 시 줄바꿈(\\n) 사용" },
+    { "month": "12월", "theme": "이 달의 관계 에너지 요약 한 줄", "advice": "구체적 조언. 최소 2~3문장, 300~400자 분량. 의미 전환 시 줄바꿈(\\n) 사용" },
     ... (향후 6개월)
   ],
   "roadmapStages": [
@@ -174,16 +174,16 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
     ... (총 3단계)
   ],
   "goldenWindowMonths": [
-    { "month": "5월", "goodDates": [3, 7, 15], "badDates": [10, 22, 28] }
+    { "month": "12월", "goodDates": [3, 7, 15], "badDates": [10, 22, 28] }
   ]
 }`;
 };
 
 /** prompt4: 궁합 집중 분석 리포트 */
 export const buildPrompt4 = (ctx: PromptContext): string => {
-  const common = buildCommonPrompt(ctx);
+    const common = buildCommonPrompt(ctx);
 
-  return `${common}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 작성해줘. JSON 포맷:\n
+    return `${common}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 작성해줘. JSON 포맷:\n
 {
   "radarChart": {
     "communication": 0-100 사이 점수,
