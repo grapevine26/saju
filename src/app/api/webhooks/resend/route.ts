@@ -9,12 +9,14 @@ export async function POST(request: Request) {
   try {
     const payload = await request.json();
 
-    // Resend Inbound Webhook Payload 파싱
-    const from = payload.from || 'unknown@sender.com';
-    const to = Array.isArray(payload.to) ? payload.to.join(', ') : payload.to || 'unknown';
-    const subject = payload.subject || '제목 없음';
-    const text = payload.text || '내용 없음';
-    const html = payload.html;
+    // Resend Inbound Webhook Payload 파싱 (실제 데이터는 payload.data 안에 들어있음)
+    const emailData = payload.data || payload;
+
+    const from = emailData.from || 'unknown@sender.com';
+    const to = Array.isArray(emailData.to) ? emailData.to.join(', ') : emailData.to || 'unknown';
+    const subject = emailData.subject || '제목 없음';
+    const text = emailData.text || '내용 없음';
+    const html = emailData.html;
 
     console.log(`[메일 수신 Webhook] From: ${from}, Subject: ${subject}`);
 
