@@ -15,8 +15,23 @@ export async function POST(request: Request) {
     const from = emailData.from || 'unknown@sender.com';
     const to = Array.isArray(emailData.to) ? emailData.to.join(', ') : emailData.to || 'unknown';
     const subject = emailData.subject || '제목 없음';
-    const text = emailData.text || '내용 없음';
-    const html = emailData.html;
+    let text = emailData.text;
+    let html = emailData.html;
+
+    // Resend 웹훅 페이로드에 본문이 누락된 경우, email_id로 직접 메일 원본을 조회합니다.
+    if (!text && !html && emailData.email_id) {
+      try {
+        const { data: fetchedEmail } = await resend.emails.get(emailData.email_id);
+        if (fetchedEmail) {
+          text = fetchedEmail.text || fetchedEmail.html;
+          html = fetchedEmail.html || fetchedEmail.text;
+        }
+      } catch (fetchErr) {
+        console.error('원본 이메일 조회 실패:', fetchErr);
+      }
+    }
+
+    text = text || '내용 없음';
 
     console.log(`[메일 수신 Webhook] From: ${from}, Subject: ${subject}`);
 
