@@ -21,7 +21,7 @@ export async function POST(request: Request) {
     // Resend 웹훅 페이로드에 본문이 누락된 경우, email_id로 직접 메일 원본을 조회합니다.
     if (!text && !html && emailData.email_id) {
       try {
-        const { data: fetchedEmail } = await resend.emails.get(emailData.email_id);
+        const { data: fetchedEmail } = await resend.emails.receiving.get(emailData.email_id);
         if (fetchedEmail) {
           text = fetchedEmail.text || fetchedEmail.html;
           html = fetchedEmail.html || fetchedEmail.text;
