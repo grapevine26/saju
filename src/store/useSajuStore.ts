@@ -1,5 +1,7 @@
 import { create } from 'zustand';
-import { persist } from 'zustand/middleware';
+import { persist, createJSONStorage } from 'zustand/middleware';
+import { indexedDBStorage } from './indexedDBStorage';
+import { createClient } from '@/utils/supabase/client';
 
 export type Gender = 'male' | 'female' | null;
 export type CalendarType = 'solar' | 'lunar';
@@ -214,6 +216,28 @@ const initialPartnerInputState = {
 
 import { calculateBazi } from '@/utils/baziCalc';
 
+// Supabase 동기화 헬퍼 함수
+const syncToSupabase = async (record: ReunionResult) => {
+    try {
+        const supabase = createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+        if (user) {
+            await supabase.from('reunion_history').upsert({
+                id: record.id,
+                user_id: user.id,
+                tier: record.tier,
+                my_info: record.myInfo,
+                partner_info: record.partnerInfo,
+                my_raw_input: record.myRawInput,
+                partner_raw_input: record.partnerRawInput,
+                result_data: record.resultData
+            });
+        }
+    } catch (e) {
+        console.error('Supabase sync error:', e);
+    }
+};
+
 export const useSajuStore = create<SajuState>()(
     persist(
         (set, get) => ({
@@ -400,14 +424,21 @@ export const useSajuStore = create<SajuState>()(
                 };
 
                 set((prev) => ({ reunionHistory: [newRecord, ...prev.reunionHistory] }));
+                syncToSupabase(newRecord); // 백그라운드 동기화 (Supabase)
                 return newId;
             },
 
-            updateReunionResult: (id, tier, resultData) => set((state) => ({
-                reunionHistory: state.reunionHistory.map(record =>
-                    record.id === id ? { ...record, tier, resultData } : record
-                )
-            })),
+            updateReunionResult: (id, tier, resultData) => set((state) => {
+                const updatedHistory = state.reunionHistory.map(record => {
+                    if (record.id === id) {
+                        const updatedRecord = { ...record, tier, resultData };
+                        syncToSupabase(updatedRecord); // 백그라운드 동기화 (Supabase)
+                        return updatedRecord;
+                    }
+                    return record;
+                });
+                return { reunionHistory: updatedHistory };
+            }),
 
             setPremiumJobId: (recordId, jobId) => set((state) => ({
                 reunionHistory: state.reunionHistory.map(record =>
@@ -429,6 +460,7 @@ export const useSajuStore = create<SajuState>()(
         }),
         {
             name: 'saju-storage',
+            storage: createJSONStorage(() => indexedDBStorage),
             partialize: (state) => ({
                 history: state.history,
                 reunionHistory: state.reunionHistory,

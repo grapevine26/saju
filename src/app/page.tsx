@@ -761,11 +761,11 @@ export default function Home() {
                         <Link href="/legal/refund" className="hover:text-amber-400 transition-colors">환불정책</Link>
                     </div>
                     <div className="text-[12px] text-slate-500 leading-relaxed font-normal">
-                        <p className="font-bold text-slate-300 mb-2">다시우리 (Reconnection)</p>
+                        <p className="font-bold text-slate-300 mb-2">다시, 우리 (Reconnection)</p>
                         <p>상호명 : 인사이트랩 | 대표자 : 최혁준</p>
                         <p>사업자등록번호 : 207-30-92414</p>
-                        <p>통신판매업신고번호 : 제 0000-서울강남-0000호</p>
-                        <p>이메일 : yifi1004@gmail.com | 전화 : 070-8098-4109</p>
+                        <p>통신판매업신고번호 : 제 2026-서울관악-0869호</p>
+                        <p>이메일 : support@dasisaju.com | 전화 : 070-8098-4109</p>
                         <p>주소 : 서울특별시 관악구 난곡로 284, 603호</p>
                         <p className="mt-4 text-slate-600">© {new Date().getFullYear()} 인사이트랩. All rights reserved.</p>
                     </div>

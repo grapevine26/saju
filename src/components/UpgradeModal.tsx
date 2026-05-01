@@ -5,6 +5,7 @@ import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
 import PhoneInput from "./PhoneInput";
 import { MessageCircle } from "lucide-react"; // 카카오 아이콘 대신 사용 (또는 커스텀 SVG)
+import toast from "react-hot-toast";
 
 interface UpgradeModalProps {
     onClose: () => void;
@@ -36,7 +37,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
         });
         if (error) {
             console.error('Kakao login error:', error);
-            alert('로그인 중 오류가 발생했습니다.');
+            toast.error('로그인 중 오류가 발생했습니다.');
         }
     };
 
@@ -49,7 +50,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
         });
         if (error) {
             console.error('Google login error:', error);
-            alert('로그인 중 오류가 발생했습니다.');
+            toast.error('로그인 중 오류가 발생했습니다.');
         }
     };
 
