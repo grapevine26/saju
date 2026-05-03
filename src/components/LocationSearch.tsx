@@ -151,7 +151,7 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
                 // Open-Meteo Geocoding API (한글 지원)
                 // 지역/도시(Administrative divisions, Populated places)만 나오도록 feature_code 필터 추가
                 // P: Populated places, A: Administrative divisions
-                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchKeyword)}&count=10&language=ko&format=json`);
+                const res = await fetch(`https://geocoding-api.open-meteo.com/v1/search?name=${encodeURIComponent(searchKeyword)}&count=10&language=ko&country_code=kr&format=json`);
                 const data = await res.json();
 
                 // 서버에서 가져온 결과 중 지역/도시 관련 결과만 필터링
@@ -236,7 +236,7 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
                         setIsOpen(true);
                     }}
                     onFocus={() => setIsOpen(true)}
-                    placeholder="태어난 도시 검색 (예: 서울, 뉴욕)"
+                    placeholder="태어난 도시 검색 (예: 서울, 부산, 대전)"
                     data-location-input={dataLocationInput || undefined}
                     className="w-full p-4 pl-12 pr-12 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-medium disabled:opacity-50 disabled:bg-slate-100 transition-colors"
                 />

@@ -271,9 +271,9 @@ export default function Home() {
             <section className="px-6 py-10">
                 <div className="max-w-sm mx-auto grid grid-cols-3 gap-3 text-center">
                     {[
-                        { value: "92%", label: "재회 타이밍\n적중률", icon: Star },
-                        { value: "6개월", label: "밀착 재회\n로드맵", icon: CalendarHeart },
-                        { value: "8,000+", label: "리포트 평균\n글자 수", icon: MessageCircle },
+                        { value: "87%", label: "재회 타이밍\n적중률", icon: Star },
+                        { value: "3단계", label: "밀착 재회\n로드맵", icon: CalendarHeart },
+                        { value: "10,000+", label: "리포트 평균\n글자 수", icon: MessageCircle },
                     ].map((item, i) => (
                         <motion.div
                             key={i}
@@ -419,7 +419,7 @@ export default function Home() {
                         {/* 1. 압도적 스펙 요약 패널 */}
                         <div className="grid grid-cols-2 gap-3">
                             {[
-                                { icon: FileText, label: '텍스트 분량', value: '8,000자 이상', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
+                                { icon: FileText, label: '텍스트 분량', value: '10,000자 이상', color: 'text-rose-400', bg: 'bg-rose-500/10', border: 'border-rose-500/20' },
                                 { icon: Database, label: '분석 챕터', value: '9가지 심층 리포트', color: 'text-indigo-400', bg: 'bg-indigo-500/10', border: 'border-indigo-500/20' },
                                 { icon: Compass, label: '명식 교차검증', value: '140종 데이터', color: 'text-amber-400', bg: 'bg-amber-500/10', border: 'border-amber-500/20' },
                                 { icon: Route, label: '행동 지침', value: '재회 골인 3단계', color: 'text-emerald-400', bg: 'bg-emerald-500/10', border: 'border-emerald-500/20' },

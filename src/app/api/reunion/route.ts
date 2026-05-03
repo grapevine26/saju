@@ -4,6 +4,8 @@ import { calculateBazi, BaziCalculationResult } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
 import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
 import { genAI, callGemini } from "@/utils/geminiCall";
+import { supabaseAdmin } from "@/lib/supabase";
+import { headers } from "next/headers";
 
 const apiKey = process.env.GEMINI_API_KEY || "";
 
@@ -34,6 +36,41 @@ export async function POST(request: Request) {
             breakupDate?: string;
             breakupReason?: string;
         };
+
+        // ─────────────────────────────────────
+        // 0. API 호출 제한 (Rate Limit - 5회/일)
+        // ─────────────────────────────────────
+        if (tier === 'lite') {
+            const headerList = await headers();
+            const ip = headerList.get("x-forwarded-for")?.split(",")[0] || "unknown";
+            
+            const today = new Date();
+            today.setHours(0, 0, 0, 0);
+
+            const { count, error: countError } = await supabaseAdmin
+                .from('api_usage_logs')
+                .select('*', { count: 'exact', head: true })
+                .eq('ip_address', ip)
+                .eq('action', 'lite_analysis')
+                .gte('created_at', today.toISOString());
+
+            if (countError) {
+                console.error("Rate limit check error:", countError);
+            } else if (count !== null && count >= 5) {
+                return NextResponse.json(
+                    { success: false, error: "오늘의 무료 분석 한도(5회)를 모두 사용하셨습니다. 내일 다시 시도해 주세요!" },
+                    { status: 429 }
+                );
+            }
+
+            // 호출 로그 기록 (비동기)
+            supabaseAdmin.from('api_usage_logs').insert({
+                ip_address: ip,
+                action: 'lite_analysis'
+            }).then(({ error }) => {
+                if (error) console.error("Usage logging error:", error);
+            });
+        }
 
         if (!apiKey) {
             return NextResponse.json(

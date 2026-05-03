@@ -30,9 +30,17 @@ npm run build
 # Gemini API Key (재회 분석 AI 리포트 생성용)
 GEMINI_API_KEY=your_gemini_api_key_here
 
+# Supabase (데이터베이스 & 인증)
+NEXT_PUBLIC_SUPABASE_URL=your_supabase_url
+NEXT_PUBLIC_SUPABASE_ANON_KEY=your_anon_key
+SUPABASE_SERVICE_ROLE_KEY=your_service_role_key
+
+# Resend (이메일 발송 및 수신 포워딩)
+RESEND_API_KEY=re_your_resend_api_key
+
 # Toss Payments API Keys (테스트 키)
-NEXT_PUBLIC_TOSS_CLIENT_KEY=test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq
-TOSS_SECRET_KEY=test_sk_zOXLK6E9v77yYmDR275V3WEM6qAn
+NEXT_PUBLIC_TOSS_CLIENT_KEY=test_ck_...
+TOSS_SECRET_KEY=test_sk_...
 ```
 
 > ⚠️ `.env.local`은 Git에 포함되지 않습니다. 직접 생성하세요.
@@ -70,6 +78,13 @@ TOSS_SECRET_KEY=test_sk_zOXLK6E9v77yYmDR275V3WEM6qAn
 - **`/history`** 페이지에서 이전 분석 결과 모두 확인
 - 분석 날짜, 상대방 정보, 점수 요약 표시
 - 로컬스토리지 저장 → 앱 재시작 후에도 유지
+- 로그인 유저의 경우 Supabase DB와 자동 동기화
+
+### 5. 고객 센터 (Inbound Email Forwarding)
+
+- **`support@dasisaju.com`** 으로 수신된 고객 문의를 관리자의 개인 Gmail로 자동 포워딩
+- Resend Inbound Webhook + Next.js API Route 기반 연동
+- Gmail에서 답장 시 고객에게 바로 전달되도록 `replyTo` 최적화
 
 ---
 
