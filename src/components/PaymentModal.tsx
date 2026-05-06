@@ -2,27 +2,54 @@
 
 import { motion, AnimatePresence } from "framer-motion";
 import { useState } from "react";
-import { X, Gift, CreditCard, Check } from "lucide-react";
+import { X, Gift, CreditCard, Check, Sparkles, Heart } from "lucide-react";
 import { PRIVACY_POLICY, TERMS_OF_SERVICE, REFUND_POLICY, PolicyData } from "@/constants/policies";
 
 interface PaymentModalProps {
     onClose: () => void;
-    onPaymentSuccess: () => void;
-    tier: 'premium' | 'signature';
+    onSelectPayment: (method: 'kakao' | 'naver' | 'general', packageId: string, email: string) => void;
+    initialTier?: 'premium' | 'signature';
 }
 
-export default function PaymentModal({ onClose, onPaymentSuccess, tier }: PaymentModalProps) {
+export default function PaymentModal({ onClose, onSelectPayment, initialTier = 'premium' }: PaymentModalProps) {
     const [email, setEmail] = useState("");
     const [agreed, setAgreed] = useState(false);
+    const [selectedTier, setSelectedTier] = useState<'premium' | 'signature'>(initialTier);
     const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'refund' | null>(null);
 
-    const price = tier === 'premium' ? "19,000" : "39,000";
-    const tierName = tier === 'premium' ? "프리미엄 리포트" : "시그니처 컨설팅";
+    const packages = {
+        premium: {
+            id: 'premium',
+            name: '프리미엄 리포트',
+            price: '13,900',
+            originalPrice: '39,900',
+            discount: '65%',
+            features: [
+                '재회 가능성 수치 및 시기 분석',
+                '상대방 속마음 및 심리 메커니즘',
+                '1:1 맞춤형 재회 행동 지침서'
+            ]
+        },
+        signature: {
+            id: 'signature',
+            name: '시그니처 컨설팅',
+            price: '19,900',
+            originalPrice: '49,900',
+            discount: '60%',
+            features: [
+                '프리미엄 리포트 모든 내용 포함',
+                '6개월 골든 윈도우 캘린더',
+                '장기 전략 3단계 로드맵',
+                '상대방 공략 매뉴얼 포함'
+            ]
+        }
+    };
 
-    const handlePayment = () => {
-        if (!email || !agreed) return;
-        // 결제 로직 시뮬레이션
-        onPaymentSuccess();
+    const currentPackage = packages[selectedTier];
+
+    const handlePaymentSubmit = () => {
+        if (!email || !email.includes('@') || !agreed) return;
+        onSelectPayment('general', selectedTier, email);
     };
 
     return (
@@ -35,11 +62,10 @@ export default function PaymentModal({ onClose, onPaymentSuccess, tier }: Paymen
                 className="bg-[#0a0e1a] w-full max-w-md rounded-t-[32px] sm:rounded-[32px] overflow-hidden border-t sm:border border-white/10 shadow-2xl relative"
             >
                 {/* Header */}
-                <div className="p-6 pb-0 flex items-center justify-between">
+                <div className="p-6 pb-4 flex items-center justify-between">
                     <div>
                         <h2 className="text-2xl font-black text-white flex items-center gap-2">
-                            {tierName}
-                            <span className="text-amber-500 text-sm font-bold bg-amber-500/10 px-2 py-0.5 rounded-full border border-amber-500/20">HOT</span>
+                            결제 및 분석 신청
                         </h2>
                         <p className="text-slate-400 text-sm mt-1">평생 소장 가능한 상세 분석 리포트</p>
                     </div>
@@ -48,41 +74,49 @@ export default function PaymentModal({ onClose, onPaymentSuccess, tier }: Paymen
                     </button>
                 </div>
 
-                <div className="p-6 space-y-6">
-                    {/* Price Card */}
-                    <div className="bg-gradient-to-br from-amber-500/20 to-amber-600/5 p-6 rounded-3xl border border-amber-500/20 relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 opacity-10 group-hover:scale-110 transition-transform duration-500">
-                            <Gift className="w-20 h-20 text-amber-500" />
-                        </div>
-                        <div className="relative">
-                            <div className="flex items-baseline gap-1">
-                                <span className="text-4xl font-black text-white">{price}</span>
-                                <span className="text-xl font-bold text-slate-400">원</span>
-                                <span className="ml-2 text-sm text-slate-500 line-through">49,000원</span>
-                            </div>
-                            <p className="text-amber-500 text-sm font-bold mt-1">오픈 기념 60% 한정 할인가</p>
-                        </div>
+                <div className="px-6 pb-8 space-y-6 max-h-[80vh] overflow-y-auto scrollbar-hide">
+                    {/* Package Selector */}
+                    <div className="grid grid-cols-2 gap-3">
+                        {(['premium', 'signature'] as const).map((t) => (
+                            <button
+                                key={t}
+                                onClick={() => setSelectedTier(t)}
+                                className={`p-4 rounded-2xl border-2 transition-all text-left relative overflow-hidden ${
+                                    selectedTier === t 
+                                    ? 'border-amber-500 bg-amber-500/10' 
+                                    : 'border-white/5 bg-white/5 text-slate-500 hover:border-white/10'
+                                }`}
+                            >
+                                {t === 'signature' && (
+                                    <div className="absolute top-0 right-0 bg-amber-500 text-[10px] font-bold px-2 py-0.5 text-white rounded-bl-lg">
+                                        BEST
+                                    </div>
+                                )}
+                                <div className={`text-xs font-bold mb-1 ${selectedTier === t ? 'text-amber-500' : 'text-slate-500'}`}>
+                                    {packages[t].name}
+                                </div>
+                                <div className={`text-lg font-black ${selectedTier === t ? 'text-white' : 'text-slate-400'}`}>
+                                    {packages[t].price}원
+                                </div>
+                            </button>
+                        ))}
                     </div>
 
-                    {/* Features */}
-                    <div className="space-y-3">
-                        <div className="flex items-center gap-3 text-slate-300">
-                            <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                                <Check className="w-3 h-3 text-amber-500" />
-                            </div>
-                            <span className="text-sm font-medium">재회 가능성 수치 및 시기 분석</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-slate-300">
-                            <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                                <Check className="w-3 h-3 text-amber-500" />
-                            </div>
-                            <span className="text-sm font-medium">상대방 속마음 및 심리 메커니즘</span>
-                        </div>
-                        <div className="flex items-center gap-3 text-slate-300">
-                            <div className="w-5 h-5 rounded-full bg-amber-500/20 flex items-center justify-center flex-shrink-0">
-                                <Check className="w-3 h-3 text-amber-500" />
-                            </div>
-                            <span className="text-sm font-medium">1:1 맞춤형 재회 행동 지침서</span>
+                    {/* Features Card */}
+                    <div className="bg-gradient-to-br from-white/5 to-transparent p-5 rounded-3xl border border-white/10">
+                        <h3 className="text-sm font-bold text-slate-300 mb-4 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-amber-500" />
+                            {currentPackage.name} 포함 내역
+                        </h3>
+                        <div className="space-y-3">
+                            {currentPackage.features.map((feature, i) => (
+                                <div key={i} className="flex items-start gap-3 text-slate-400">
+                                    <div className="w-5 h-5 rounded-full bg-amber-500/10 flex items-center justify-center flex-shrink-0 mt-0.5">
+                                        <Check className="w-3 h-3 text-amber-500" />
+                                    </div>
+                                    <span className="text-[13px] leading-snug">{feature}</span>
+                                </div>
+                            ))}
                         </div>
                     </div>
 
@@ -96,10 +130,11 @@ export default function PaymentModal({ onClose, onPaymentSuccess, tier }: Paymen
                             onChange={(e) => setEmail(e.target.value)}
                             className="w-full bg-white/5 border border-white/10 rounded-2xl px-5 py-4 text-white focus:outline-none focus:border-amber-500/50 transition-colors"
                         />
+                        <p className="text-[11px] text-slate-500 ml-1">분석 완료 시 해당 이메일로 알림을 보내드립니다.</p>
                     </div>
 
                     {/* Agreement */}
-                    <div className="space-y-3">
+                    <div className="space-y-3 pt-2">
                         <label className="flex items-start gap-3 cursor-pointer group">
                             <input 
                                 type="checkbox" 
@@ -122,10 +157,10 @@ export default function PaymentModal({ onClose, onPaymentSuccess, tier }: Paymen
 
                     {/* Submit */}
                     <button 
-                        onClick={handlePayment}
-                        disabled={!email || !agreed}
+                        onClick={handlePaymentSubmit}
+                        disabled={!email || !email.includes('@') || !agreed}
                         className={`w-full py-5 rounded-2xl font-black text-lg shadow-xl transition-all active:scale-[0.98] flex items-center justify-center gap-2 ${
-                            email && agreed 
+                            email && email.includes('@') && agreed 
                             ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-amber-500/20' 
                             : 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5'
                         }`}
