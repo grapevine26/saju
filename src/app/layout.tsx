@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   openGraph: {
     title: "다시, 우리 | 프리미엄 재회 컨설팅 🔮",
     description: "사주 데이터 기반, 연락 최적기와 성공 전략을 알려드립니다.",
-    url: "https://reconnection.ai", // 임시 URL
+    url: "https://dasisaju.com",
     siteName: "다시, 우리",
     images: [
       {
@@ -43,8 +43,8 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased flex justify-center min-h-screen bg-[#0a0e1a]">
-        <Toaster 
-          position="top-center" 
+        <Toaster
+          position="top-center"
           toastOptions={{
             duration: 3000,
             style: {
@@ -54,7 +54,7 @@ export default function RootLayout({
               borderRadius: '12px',
               border: '1px solid rgba(255,255,255,0.1)',
             },
-          }} 
+          }}
         />
         <main className="w-full max-w-[480px] min-h-screen relative overflow-hidden bg-cosmic">
           {children}

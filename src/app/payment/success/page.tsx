@@ -64,27 +64,7 @@ function PaymentSuccessContent() {
                     throw new Error("주문 번호가 일치하지 않습니다.");
                 }
 
-                // 2. 토스페이먼츠 결제 승인 API 호출
-                const confirmRes = await fetch("/api/tosspayments/confirm", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({ paymentKey, orderId, amount: Number(amountStr) }),
-                });
-
-                const confirmData = await confirmRes.json();
-                if (!confirmRes.ok || !confirmData.success) {
-                    if (confirmData.code === 'ALREADY_PROCESSED_PAYMENT') {
-                        console.log("React Strict Mode: ALREADY_PROCESSED_PAYMENT ignored");
-                        return;
-                    } else {
-                        throw new Error(confirmData.message || "결제 승인에 실패했습니다.");
-                    }
-                }
-
-                // 3. 결제 승인 성공 -> AI 분석 시작
-                setStatus("analyzing");
-
-                // Zustand hydration 완료 대기 후 최신 상태에서 원본 데이터 복원
+                // 2. Zustand hydration 완료 대기 후 최신 상태에서 원본 데이터 복원 (payload 구성용)
                 await waitForHydration();
                 const { reunionHistory } = useSajuStore.getState();
                 const targetRecord = reunionHistory.find(r => r.id === pendingData.recordId);
@@ -108,29 +88,41 @@ function PaymentSuccessContent() {
                     months: 6
                 };
 
-                const payload: any = { rawData, packageId: pendingData.packageId };
+                const payload: any = { rawData, packageId: pendingData.packageId, customerEmail: pendingData.customerEmail };
                 if (pendingData.identifier.type === 'guest') {
                     payload.phoneNumber = pendingData.identifier.value;
                 } else {
                     payload.userId = pendingData.identifier.value;
                 }
 
-                const startRes = await fetch("/api/premium-analysis/start", {
+                // 3. 토스페이먼츠 결제 승인 API 호출 (승인과 동시에 백그라운드 분석 시작됨)
+                const confirmRes = await fetch("/api/tosspayments/confirm", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify(payload),
+                    body: JSON.stringify({ paymentKey, orderId, amount: Number(amountStr), payload }),
                 });
 
-                const startData = await startRes.json();
-
-                if (startData.success) {
-                    setPremiumJobId(pendingData.recordId, startData.jobId);
-
-                    // 폴링 로직 시작
-                    pollJobStatus(startData.jobId, pendingData.recordId);
-                } else {
-                    throw new Error(startData.error || "분석 요청에 실패했습니다.");
+                const confirmData = await confirmRes.json();
+                if (!confirmRes.ok || !confirmData.success) {
+                    if (confirmData.code === 'ALREADY_PROCESSED_PAYMENT') {
+                        console.log("React Strict Mode: ALREADY_PROCESSED_PAYMENT ignored");
+                        return;
+                    } else {
+                        throw new Error(confirmData.message || "결제 승인에 실패했습니다.");
+                    }
                 }
+
+                const jobId = confirmData.jobId;
+                if (!jobId) {
+                    throw new Error("분석 작업 ID를 받지 못했습니다.");
+                }
+
+                // 4. 결제 승인 성공 및 작업 생성 확인됨
+                setStatus("analyzing");
+                setPremiumJobId(pendingData.recordId, jobId);
+
+                // 폴링 로직 시작
+                pollJobStatus(jobId, pendingData.recordId);
 
                 // 처리 완료된 결제 세션 삭제
                 localStorage.removeItem('pendingTossPayment');
@@ -277,7 +269,7 @@ function PaymentSuccessContent() {
                             <div className="text-left">
                                 <p className="text-[13px] font-bold text-amber-300 mb-1">이 화면을 닫아도 괜찮아요</p>
                                 <p className="text-[12px] text-slate-400 leading-relaxed break-keep">
-                                    분석이 완료되면 <span className="text-white font-medium">문자(SMS)</span>로 결과 링크를 보내드립니다.
+                                    분석이 완료되면 <span className="text-white font-medium">이메일</span>로 결과 링크를 보내드립니다.
                                 </p>
                             </div>
                         </div>

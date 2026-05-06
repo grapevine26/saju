@@ -41,6 +41,9 @@ RESEND_API_KEY=re_your_resend_api_key
 # Toss Payments API Keys (테스트 키)
 NEXT_PUBLIC_TOSS_CLIENT_KEY=test_ck_...
 TOSS_SECRET_KEY=test_sk_...
+
+# Admin Dashboard (관리자 페이지 비밀번호)
+ADMIN_PASSWORD=your_admin_password
 ```
 
 > ⚠️ `.env.local`은 Git에 포함되지 않습니다. 직접 생성하세요.
@@ -86,6 +89,10 @@ TOSS_SECRET_KEY=test_sk_...
 - Resend Inbound Webhook + Next.js API Route 기반 연동
 - Gmail에서 답장 시 고객에게 바로 전달되도록 `replyTo` 최적화
 
+### 6. 법적 고지 관리 시스템
+- **`/src/constants/policies.tsx`** 에서 개인정보처리방침, 이용약관, 환불정책을 통합 관리
+- 랜딩페이지 하단 법적 고지 페이지와 결제 모달 내의 법적 고지 팝업에서 동일한 데이터를 동적 렌더링하여 데이터 일관성 보장
+
 ---
 
 ## 📂 프로젝트 구조
@@ -99,6 +106,7 @@ src/
 │   ├── analysis/             # 상세 분석 (만세력 테이블 등)
 │   ├── history/              # 분석 기록 목록 + 상세
 │   ├── profiles/             # 프로필 관리 + 상세
+│   ├── legal/                # 법적 고지 페이지 (privacy, terms, refund)
 │   └── api/
 │       ├── reunion/          # 재회 가능성 점수 + AI 리포트 API
 │       ├── golden-window/    # 골든 윈도우 캘린더 API
@@ -114,7 +122,8 @@ src/
 │   ├── ManseryeokTable.tsx       # 만세력 4기둥 테이블
 │   ├── SajuAccordion.tsx         # 분석 결과 아코디언
 │   ├── AvatarIcon.tsx            # 일주 기반 아바타 아이콘
-│   └── LocationSearch.tsx        # 출생지 검색 (시차 자동 보정)
+│   ├── LocationSearch.tsx        # 출생지 검색 (시차 자동 보정)
+│   └── PaymentModal.tsx          # 결제 모달 (공통 법적 고지 포함)
 │
 ├── utils/
 │   ├── baziCalc.ts           # 만세력 계산 엔진
@@ -126,7 +135,8 @@ src/
 │   └── useSajuStore.ts       # Zustand 전역 상태 (로컬 저장 persist)
 │
 └── constants/
-    └── sajuTime.ts           # 시주 시간 테이블
+    ├── sajuTime.ts           # 시주 시간 테이블
+    └── policies.tsx          # 공통 법적 고지 데이터
 ```
 
 ---
@@ -160,6 +170,7 @@ src/
 | AI 리포트 | Google Gemini API |
 | 결제 시스템 | Toss Payments (토스페이먼츠) |
 | 배경 작업 | Inngest |
+| 법적 고지 관리 | Centralized Constants (JSX support) |
 
 ---
 

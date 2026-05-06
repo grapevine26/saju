@@ -1,0 +1,11 @@
+/* 관리자 페이지: 루트 레이아웃의 모바일 제한 해제 */
+#admin-root {
+  position: fixed;
+  inset: 0;
+  width: 100vw;
+  height: 100vh;
+  overflow-y: auto;
+  overflow-x: hidden;
+  z-index: 9999;
+  background: #0a0e1a;
+}

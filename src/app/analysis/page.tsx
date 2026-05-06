@@ -56,6 +56,7 @@ export default function AnalysisPage() {
     const [isPremiumPending, setIsPremiumPending] = useState(false);
 
     const [pollingJobId, setPollingJobId] = useState<string | null>(null);
+    const [customerEmail, setCustomerEmail] = useState<string>('');
 
     const isDev = process.env.NODE_ENV === 'development';
 
@@ -196,27 +197,33 @@ export default function AnalysisPage() {
         setShowPaymentModal(true);
     };
 
-    const handlePaymentSelect = (method: 'kakao' | 'naver' | 'general', packageId: string) => {
-        // 실제 운영 시엔 여기서 PG사(토스/포트원) 결제창을 먼저 띄우거나, 결제 데이터(packageId, method)를 state에 저장
-        // 현재는 결제 수단 클릭 시 다음 단계인 '로그인/비회원 선택 모달'을 엽니다.
+    const handlePaymentSelect = async (method: 'kakao' | 'naver' | 'general', packageId: string, email: string) => {
         setSelectedPackageId(packageId);
+        setCustomerEmail(email);
         setShowPaymentModal(false);
-        setShowUpgradeModal(true);
+
+        const supabase = (await import("@/utils/supabase/client")).createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            startPremiumAnalysis({ type: 'member', value: user.id }, email);
+        } else {
+            setShowUpgradeModal(true);
+        }
     }
 
-    const startPremiumAnalysis = async (identifier: { type: 'guest' | 'member', value: string }) => {
+    const startPremiumAnalysis = async (identifier: { type: 'guest' | 'member', value: string }, email: string) => {
 
-        if (identifier.type === 'guest' && (!identifier.value || identifier.value.length < 10)) {
-            toast.error("올바른 전화번호를 입력해 주세요.");
+        if (!email || !email.includes('@')) {
+            toast.error("유효한 이메일 주소가 필요합니다.");
             return;
         }
 
         setShowUpgradeModal(false);
 
         try {
-            const amount = selectedPackageId === 'premium' ? 19900 : 13900;
-            const orderName = selectedPackageId === 'premium' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
-            const customerMobilePhone = identifier.value.replace(/[^0-9]/g, '');
+            const amount = selectedPackageId === 'signature' ? 19900 : 13900;
+            const orderName = selectedPackageId === 'signature' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
 
             const orderId = `${recordId.current}${Date.now()}`;
 
@@ -226,6 +233,7 @@ export default function AnalysisPage() {
                 amount: amount,
                 packageId: selectedPackageId,
                 identifier,
+                customerEmail: email,
                 recordId: recordId.current,
                 metDate,
                 breakupDate,
@@ -246,8 +254,7 @@ export default function AnalysisPage() {
                 orderId: orderId,
                 orderName: orderName,
                 customerName: name || '익명',
-                customerEmail: 'guest@sajupop.com',
-                customerMobilePhone: customerMobilePhone,
+                customerEmail: email,
                 successUrl: `${window.location.origin}/payment/success`,
                 failUrl: `${window.location.origin}/payment/fail`
             });
@@ -674,8 +681,8 @@ export default function AnalysisPage() {
 
                 <UpgradeModal
                     onClose={() => setShowUpgradeModal(false)}
-                    onStartGuest={(phone) => startPremiumAnalysis({ type: 'guest', value: phone })}
-                    onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId })}
+                    onStartGuest={() => startPremiumAnalysis({ type: 'guest', value: 'anonymous' }, customerEmail)}
+                    onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId }, customerEmail)}
                 />
             )}
         </div>

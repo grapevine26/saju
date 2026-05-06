@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { Resend } from 'resend';
+import { supabaseAdmin } from '@/lib/supabase';
 import { Webhook } from 'svix';
 import { headers } from 'next/headers';
 
@@ -78,6 +79,18 @@ async function processWebhook(payload: any) {
   text = text || '내용 없음';
 
   console.log(`[메일 수신 Webhook] From: ${from}, Subject: ${subject}`);
+
+  // DB에 문의 내역 저장 (어드민 대시보드에서 조회용)
+  try {
+    await supabaseAdmin.from('contact_inquiries').insert({
+      name: subject,
+      email: from,
+      message: text || html || '내용 없음',
+      status: 'pending',
+    });
+  } catch (dbErr) {
+    console.error('문의 DB 저장 실패 (무시):', dbErr);
+  }
 
   // 회원님의 개인 Gmail로 포워딩 발송
   const { data, error } = await resend.emails.send({

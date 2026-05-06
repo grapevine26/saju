@@ -13,20 +13,82 @@ import {
   buildPrompt3,
   buildPrompt4
 } from "@/constants/aiPrompts";
-import { SolapiMessageService } from "solapi";
+import { Resend } from "resend";
 
-const messageService = new SolapiMessageService(
-  process.env.SOLAPI_API_KEY!,
-  process.env.SOLAPI_API_SECRET!
-);
+const resend = new Resend(process.env.RESEND_API_KEY || "dummy_key");
 
 export const processPremiumAnalysis = inngest.createFunction(
   {
     id: "process-premium-analysis",
-    triggers: [{ event: "analysis.premium.requested" }]
+    triggers: [{ event: "analysis.premium.requested" }],
+    onFailure: async ({ event, error }) => {
+      const originalEvent = event.data.event;
+      const { jobId, customerEmail, paymentKey } = originalEvent.data;
+
+      console.error(`[Inngest Failure] JobId: ${jobId}, Error:`, error);
+
+      // 1. 상태를 failed로 업데이트
+      await supabaseAdmin
+        .from("premium_analysis_jobs")
+        .update({ status: "failed" })
+        .eq("id", jobId);
+
+      // 2. 토스페이먼츠 자동 환불 처리
+      if (paymentKey && process.env.TOSS_SECRET_KEY) {
+        try {
+            const secretKey = process.env.TOSS_SECRET_KEY;
+            const encryptedSecretKey = Buffer.from(`${secretKey}:`).toString("base64");
+            
+            const cancelRes = await fetch(`https://api.tosspayments.com/v1/payments/${paymentKey}/cancel`, {
+                method: "POST",
+                headers: {
+                    Authorization: `Basic ${encryptedSecretKey}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ cancelReason: "AI 분석 서버 오류로 인한 자동 환불" }),
+            });
+            
+            if (!cancelRes.ok) {
+                const cancelData = await cancelRes.json();
+                console.error(`[Auto Refund Failed] JobId: ${jobId}, Reason:`, cancelData);
+            } else {
+                console.log(`[Auto Refund Success] JobId: ${jobId}, PaymentKey: ${paymentKey}`);
+            }
+        } catch (err) {
+            console.error(`[Auto Refund Error] JobId: ${jobId}`, err);
+        }
+      }
+
+      // 3. 실패 안내 및 자동 환불 알림 메일 발송
+      if (customerEmail) {
+          const htmlMessage = `
+            <h2>[다시, 우리] 분석 중단 안내</h2>
+            <p>죄송합니다.</p>
+            <p>AI 심층 분석 중 예기치 못한 서버 오류가 발생하여 분석이 중단되었습니다.</p>
+            <p>결제하신 금액은 전액 자동 환불 처리되었습니다. (카드사 사정에 따라 영업일 기준 3~5일 소요될 수 있습니다)</p>
+            <br/>
+            <p>잠시 후 다시 시도해 주시기 바랍니다. 불편을 드려 대단히 죄송합니다.</p>
+          `;
+          
+          if (process.env.NODE_ENV === "development") {
+              console.log("[로컬 개발 모드] 실패 알림 메일 발송 생략\n", htmlMessage);
+          } else {
+              try {
+                  await resend.emails.send({
+                      from: "다시,우리 <support@dasisaju.com>",
+                      to: customerEmail,
+                      subject: "[다시, 우리] 분석 오류 및 환불 안내",
+                      html: htmlMessage,
+                  });
+              } catch (emailErr) {
+                  console.error("실패 메일 발송 에러:", emailErr);
+              }
+          }
+      }
+    }
   },
   async ({ event, step }: { event: any, step: any }) => {
-    const { jobId, phone_number, raw_data } = event.data;
+    const { jobId, customerEmail, raw_data } = event.data;
 
     // 1. 상태 업데이트
     await step.run("update-status-processing", async () => {
@@ -108,7 +170,7 @@ export const processPremiumAnalysis = inngest.createFunction(
 
         // 3) 궁합 리포트 (premium 패키지만)
         (async () => {
-          if (raw_data.packageId === 'premium') {
+          if (raw_data.packageId === 'signature') {
             const model4 = genAI.getGenerativeModel({
               model: "gemini-3.1-pro-preview",
               systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY,
@@ -158,11 +220,11 @@ export const processPremiumAnalysis = inngest.createFunction(
       }
     });
 
-    // 4. SMS 완료 알림
-    await step.run("send-completion-sms", async () => {
-      if (!phone_number) {
-        console.log("전화번호가 없습니다. (로그인 유저) SMS 발송 생략.");
-        return { success: true, message: "No phone number, skipped SMS." };
+    // 4. 이메일 완료 알림
+    await step.run("send-completion-email", async () => {
+      if (!customerEmail) {
+        console.log("이메일이 없습니다. 발송 생략.");
+        return { success: true, message: "No email, skipped." };
       }
 
       const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
@@ -170,40 +232,35 @@ export const processPremiumAnalysis = inngest.createFunction(
         || "http://localhost:3000";
       const resultUrl = `${baseUrl}/result/${jobId}`;
 
-      const message = `[다시, 우리]
-프리미엄 재회 분석 리포트가 완성되었습니다!
-
-상대방의 속마음과 재회 전략, 그리고 연락하기 가장 좋은 '골든 윈도우' 날짜를 지금 바로 확인해 보세요.
-
-👉 결과 확인하기:
-${resultUrl}
-
-본 링크는 개인 정보 보호를 위해 본인만 열람 가능합니다.`;
+      const htmlMessage = `
+        <h2>[다시, 우리] 분석 완료 안내</h2>
+        <p>프리미엄 재회 분석 리포트가 완성되었습니다!</p>
+        <p>상대방의 속마음과 재회 전략, 그리고 연락하기 가장 좋은 '골든 윈도우' 날짜를 지금 바로 확인해 보세요.</p>
+        <br/>
+        <a href="${resultUrl}" style="display:inline-block; padding:12px 24px; background-color:#f59e0b; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">👉 결과 확인하기</a>
+        <br/><br/>
+        <p style="font-size:12px; color:#6b7280;">본 링크는 개인 정보 보호를 위해 본인만 열람 가능합니다.</p>
+      `;
 
       if (process.env.NODE_ENV === "development") {
         console.log("=========================================");
-        console.log("[로컬 개발 모드] 실제 LMS SMS는 발송되지 않습니다.");
-        console.log("받는 사람:", phone_number);
-        console.log("메시지 내용:\n", message);
+        console.log("[로컬 개발 모드] 실제 이메일은 발송되지 않습니다.");
+        console.log("받는 사람:", customerEmail);
+        console.log("메시지 내용:\n", htmlMessage);
         console.log("=========================================");
         return { success: true, jobId };
       }
 
       try {
-        await messageService.send([{
-          to: phone_number,
-          from: process.env.SOLAPI_SENDER_NUMBER!,
-          text: message,
-          type: "LMS"
-        }]);
-        console.log(`[다시, 우리] SMS 발송 성공: ${phone_number}`);
+        await resend.emails.send({
+          from: "다시,우리 <support@dasisaju.com>",
+          to: customerEmail,
+          subject: "🔮 프리미엄 재회 분석 리포트가 도착했습니다!",
+          html: htmlMessage,
+        });
+        console.log(`[다시, 우리] 이메일 발송 성공: ${customerEmail}`);
       } catch (error: any) {
-        console.error("Solapi SMS 발송 에러:", error.message);
-        if (error.failedMessageList) {
-          console.error("실패 상세 사유:", JSON.stringify(error.failedMessageList, null, 2));
-        } else {
-          console.error("에러 객체:", error);
-        }
+        console.error("Resend 이메일 발송 에러:", error);
       }
     });
 

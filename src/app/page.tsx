@@ -10,6 +10,19 @@ import { useSajuStore } from "@/store/useSajuStore";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
 
+// 날짜 기반 누적 분석 건수 (하루마다 3~15 랜덤 증가, 시드 기반)
+const getDailyAnalysisCount = () => {
+    const BASE = 12845;
+    const START = new Date('2025-05-04').getTime();
+    const days = Math.floor((Date.now() - START) / 86400000);
+    let total = BASE;
+    for (let i = 0; i < days; i++) {
+        const seed = (i * 2654435761) >>> 0;
+        total += 3 + (seed % 13); // 3~15
+    }
+    return total;
+};
+
 const CountUp = ({ end, suffix }: { end: number, suffix: string }) => {
     const [count, setCount] = useState(0);
     useEffect(() => {
@@ -632,7 +645,7 @@ export default function Home() {
                     <h2 className="text-xl font-black text-white mb-8 text-center">분석 플랜 선택</h2>
 
                     <div className="space-y-4">
-                        {/* Basic */}
+                        {/* Lite */}
                         <div className="glass-card p-5 border border-white/5">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
@@ -644,7 +657,7 @@ export default function Home() {
                                 </div>
                             </div>
                             <ul className="space-y-2 text-sm text-slate-400">
-                                {["재회 가능성 점수", "관계 에너지 차트", "두 사람의 관계 본질 분석", "Chapter 1 첫 섹션 미리보기"].map((item, i) => (
+                                {["재회 가능성 점수", "관계 에너지 차트", "두 사람의 관계 본질 분석", "재회 리포트 첫 섹션 미리보기"].map((item, i) => (
                                     <li key={i} className="flex items-center gap-2">
                                         <span className="text-indigo-400">✓</span> {item}
                                     </li>
@@ -652,16 +665,15 @@ export default function Home() {
                             </ul>
                         </div>
 
-                        {/* Standard */}
-                        <div className="glass-card-strong p-5 border-glow-gold relative overflow-hidden">
-                            <div className="absolute top-0 right-0 bg-amber-500 text-amber-900 text-[10px] font-black px-3 py-1 rounded-bl-xl">추천</div>
+                        {/* Premium */}
+                        <div className="glass-card p-5 border border-amber-500/20 relative overflow-hidden">
                             <div className="flex justify-between items-start mb-4">
                                 <div>
                                     <span className="text-xs font-bold text-amber-400 bg-amber-500/10 px-2.5 py-1 rounded-full">Premium</span>
-                                    <h3 className="text-lg font-bold text-white mt-2">풀 패키지 분석</h3>
+                                    <h3 className="text-lg font-bold text-white mt-2">재회사주 풀버전</h3>
                                 </div>
                                 <div className="text-right flex flex-col items-end">
-                                    <span className="text-[10px] font-bold text-rose-400 mb-0.5 bg-rose-500/10 px-2 py-0.5 rounded-md">🔥 런칭 특가 (~ {discountEndsAt} 마감)</span>
+                                    <span className="text-[10px] font-bold text-rose-400 mb-0.5 bg-rose-500/10 px-2 py-0.5 rounded-md">🔥 런칭 특가</span>
                                     <div>
                                         <span className="text-sm text-slate-500 line-through mr-1 shadow-none">29,900원</span>
                                         <span className="text-2xl font-black text-gradient-gold">13,900원</span>
@@ -669,9 +681,47 @@ export default function Home() {
                                 </div>
                             </div>
                             <ul className="space-y-2 text-sm text-slate-400">
-                                {["Lite 전체 포함", "📖 Chapter 1~3 전체 해금 (9개 심층 분석)", "⭐ 골든 윈도우 캘린더 (6개월)", "⭐ 월별 에너지 흐름 분석", "⭐ 3단계 장기 전략 로드맵"].map((item, i) => (
+                                {[
+                                    "Lite 전체 포함",
+                                    "📖 8가지 심층 재회 리포트 전체 해금",
+                                    "🎯 상대방 공략 매뉴얼 (금기어·마법 키워드·문자 예시)",
+                                    "📅 골든 윈도우 캘린더 (6개월)",
+                                    "🌊 월별 에너지 흐름 분석",
+                                    "🗺️ 3단계 장기 전략 로드맵"
+                                ].map((item, i) => (
                                     <li key={i} className="flex items-center gap-2">
                                         <span className="text-amber-400">✓</span> {item}
+                                    </li>
+                                ))}
+                            </ul>
+                        </div>
+
+                        {/* Signature */}
+                        <div className="glass-card-strong p-5 border-glow-gold relative overflow-hidden">
+                            <div className="absolute top-0 right-0 bg-gradient-to-r from-rose-500 to-amber-500 text-white text-[10px] font-black px-3 py-1 rounded-bl-xl">추천</div>
+                            <div className="flex justify-between items-start mb-4">
+                                <div>
+                                    <span className="text-xs font-bold text-rose-400 bg-rose-500/10 px-2.5 py-1 rounded-full">Signature</span>
+                                    <h3 className="text-lg font-bold text-white mt-2">재회사주 + 궁합</h3>
+                                </div>
+                                <div className="text-right flex flex-col items-end">
+                                    <span className="text-[10px] font-bold text-rose-400 mb-0.5 bg-rose-500/10 px-2 py-0.5 rounded-md">🔥 런칭 특가 (~ {discountEndsAt} 마감)</span>
+                                    <div>
+                                        <span className="text-sm text-slate-500 line-through mr-1 shadow-none">59,900원</span>
+                                        <span className="text-2xl font-black text-gradient-gold">19,900원</span>
+                                    </div>
+                                </div>
+                            </div>
+                            <ul className="space-y-2 text-sm text-slate-400">
+                                {[
+                                    "Premium 전체 포함",
+                                    "📊 5가지 궁합 레이더 차트 (소통·애정·친밀감·미래·갈등)",
+                                    "⚔️ 나 vs 상대 성향 VS 카드 비교",
+                                    "💕 커플 유형 진단 및 궁합 심층 해석",
+                                    "🏅 종합 궁합 등급 및 관계 처방전"
+                                ].map((item, i) => (
+                                    <li key={i} className="flex items-center gap-2">
+                                        <span className={i === 0 ? "text-rose-400" : "text-rose-400"}>✓</span> {item}
                                     </li>
                                 ))}
                             </ul>
@@ -691,7 +741,7 @@ export default function Home() {
                         실시간 분석 현황
                     </div>
                     <h2 className="text-[22px] font-black text-white mb-2 leading-snug tracking-tight">
-                        지금까지 <span className="text-amber-400"><CountUp end={12845} suffix="명" /></span>이<br />타이밍을 찾아냈어요 ⏱️
+                        지금까지 <span className="text-amber-400"><CountUp end={getDailyAnalysisCount()} suffix="명" /></span>이<br />타이밍을 찾아냈어요 ⏱️
                     </h2>
                     <p className="text-slate-500 text-[13px] font-medium mt-3">진짜 달라졌다는 생생한 실제 후기들</p>
                 </div>

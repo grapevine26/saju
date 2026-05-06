@@ -1,9 +1,11 @@
 import { NextResponse } from 'next/server';
+import { supabaseAdmin } from "@/lib/supabase";
+import { inngest } from "@/inngest/client";
 
 export async function POST(req: Request) {
     try {
         const body = await req.json();
-        const { paymentKey, orderId, amount } = body;
+        const { paymentKey, orderId, amount, payload } = body;
 
         const secretKey = process.env.TOSS_SECRET_KEY;
 
@@ -31,6 +33,43 @@ export async function POST(req: Request) {
 
         if (!response.ok) {
             return NextResponse.json({ success: false, message: data.message || "결제 승인 실패", code: data.code }, { status: response.status });
+        }
+
+        // 결제 성공 시점에 바로 작업을 생성하고 백그라운드 이벤트 발송 (결제 우회 원천 차단)
+        if (payload) {
+            const { phoneNumber, userId, rawData, packageId, customerEmail } = payload;
+            const enhancedRawData = { ...rawData, packageId: packageId || 'premium', paymentKey, customerEmail };
+
+            const { data: job, error } = await supabaseAdmin
+                .from("premium_analysis_jobs")
+                .insert({
+                    phone_number: phoneNumber || null,
+                    user_id: userId || null,
+                    status: "pending",
+                    raw_data: enhancedRawData
+                })
+                .select()
+                .single();
+
+            if (error || !job) {
+                console.error("Supabase 작업 생성 실패:", error);
+                // DB 생성 자체가 실패한 치명적 상황. 수동 환불 필요.
+                return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
+            }
+
+            await inngest.send({
+                name: "analysis.premium.requested",
+                data: {
+                    jobId: job.id,
+                    phone_number: phoneNumber || undefined,
+                    customerEmail: customerEmail || undefined,
+                    user_id: userId || undefined,
+                    raw_data: enhancedRawData,
+                    paymentKey
+                }
+            });
+
+            return NextResponse.json({ success: true, data, jobId: job.id });
         }
 
         return NextResponse.json({ success: true, data });
