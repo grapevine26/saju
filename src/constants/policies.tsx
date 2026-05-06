@@ -5,6 +5,7 @@ export interface PolicySection {
     content?: React.ReactNode;
     list?: (string | React.ReactNode)[];
     subSections?: { subtitle: string; content: React.ReactNode }[];
+    footer?: React.ReactNode;
 }
 
 export interface PolicyData {
@@ -107,7 +108,7 @@ export const PRIVACY_POLICY: PolicyData = {
                 </div>
             )
         }
-    ] as any[]
+    ]
 };
 
 export const TERMS_OF_SERVICE: PolicyData = {
@@ -221,7 +222,7 @@ export const TERMS_OF_SERVICE: PolicyData = {
                 </>
             )
         }
-    ] as any[]
+    ]
 };
 
 export const REFUND_POLICY: PolicyData = {
@@ -277,5 +278,5 @@ export const REFUND_POLICY: PolicyData = {
             title: "6. 책임 한계",
             content: "제공되는 사주 분석 및 컨설팅 내용은 통계 및 명리학 기반의 참고용 정보이며, 어떠한 법적 효력도 갖지 않습니다."
         }
-    ] as any[]
+    ]
 };
