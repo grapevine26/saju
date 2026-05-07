@@ -49,33 +49,88 @@ export default function AnalysisPage() {
     const [showHeader, setShowHeader] = useState(true);
     const lastScrollY = useRef(0);
 
-    // 로그아웃 관련
-    const supabase = createClient();
-    const [authUser, setAuthUser] = useState<any>(null);
-
-    useEffect(() => {
-        supabase.auth.getUser().then(({ data }) => {
-            if (data?.user) setAuthUser(data.user);
-        });
-    }, [supabase]);
-
-    const handleLogout = async () => {
-        await supabase.auth.signOut();
-        setAuthUser(null);
-        toast.success('로그아웃 되었습니다.');
-    };
-
     // 프리미엄 백그라운드 처리 관련 상태
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [selectedPackageId, setSelectedPackageId] = useState<string>('basic');
-
     const [isPremiumPending, setIsPremiumPending] = useState(false);
 
     const [pollingJobId, setPollingJobId] = useState<string | null>(null);
     const [customerEmail, setCustomerEmail] = useState<string>('');
 
     const isDev = process.env.NODE_ENV === 'development';
+
+    const handlePaymentSelect = async (method: 'kakao' | 'naver' | 'general', packageId: string, email: string) => {
+        setSelectedPackageId(packageId);
+        setCustomerEmail(email);
+        setShowPaymentModal(false);
+
+        const supabase = (await import("@/utils/supabase/client")).createClient();
+        const { data: { user } } = await supabase.auth.getUser();
+
+        if (user) {
+            startPremiumAnalysis({ type: 'member', value: user.id }, email, packageId);
+        } else {
+            setShowUpgradeModal(true);
+        }
+    }
+
+    const startPremiumAnalysis = async (identifier: { type: 'guest' | 'member', value: string }, email: string, forcedPackageId?: string) => {
+        const targetPackageId = forcedPackageId || selectedPackageId;
+
+        if (!email || !email.includes('@')) {
+            toast.error("유효한 이메일 주소가 필요합니다.");
+            return;
+        }
+
+        setShowUpgradeModal(false);
+
+        try {
+            const amount = targetPackageId === 'signature' ? 19900 : 13900;
+            const orderName = targetPackageId === 'signature' ? '시그니처 컨설팅' : '프리미엄 리포트';
+
+            const orderId = `${recordId.current}${Date.now()}`;
+
+            // localStorage에 임시 저장 (결제 성공 페이지에서 꺼내서 사용)
+            localStorage.setItem('pendingTossPayment', JSON.stringify({
+                orderId: orderId,
+                amount: amount,
+                packageId: targetPackageId,
+                identifier,
+                customerEmail: email,
+                recordId: recordId.current,
+                metDate,
+                breakupDate,
+                breakupReason
+            }));
+
+            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+            const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
+            const tossPayments = await loadTossPayments(clientKey);
+            const payment = tossPayments.payment({ customerKey: identifier.value || ANONYMOUS });
+
+            await payment.requestPayment({
+                method: 'CARD',
+                amount: {
+                    currency: 'KRW',
+                    value: amount,
+                },
+                orderId: orderId,
+                orderName: orderName,
+                customerName: name || '익명',
+                customerEmail: email,
+                successUrl: `${window.location.origin}/payment/success`,
+                failUrl: `${window.location.origin}/payment/fail`
+            });
+
+        } catch (err: any) {
+            console.error(err);
+            if (err.code !== 'USER_CANCEL') {
+                toast.error("결제창 호출에 실패했습니다.");
+            }
+            if (!isDev) setIsPremiumPending(false);
+        }
+    };
 
     // 폴링 로직: 백그라운드 작업 완료를 기다림 (로컬/운영 모두 동작)
     useEffect(() => {
@@ -132,22 +187,27 @@ export default function AnalysisPage() {
             }
 
             const resumePayment = async () => {
+                if (hasResumedPayment.current) return;
+                hasResumedPayment.current = true;
+
                 const supabase = (await import("@/utils/supabase/client")).createClient();
                 const { data: { user } } = await supabase.auth.getUser();
-                if (!user) return; // 로그인이 안 됐으면 무시
+                if (!user) {
+                    hasResumedPayment.current = false; // 사용자 없으면 다시 시도 가능하게
+                    return;
+                }
 
-                hasResumedPayment.current = true;
                 localStorage.removeItem('pendingOAuthPayment');
 
                 // 저장된 결제 정보로 상태 복원
                 setSelectedPackageId(pending.packageId);
                 setCustomerEmail(pending.email);
 
-                toast.success('로그인 완료! 결제창을 열고 있습니다...', { duration: 2000 });
+                toast.success('로그인 완료! 결제창을 열고 있습니다...', { duration: 2000, id: 'oauth-resume-toast' });
 
                 // 약간의 딜레이 후 결제창 호출 (상태 반영 대기)
                 setTimeout(() => {
-                    startPremiumAnalysis({ type: 'member', value: user.id }, pending.email);
+                    startPremiumAnalysis({ type: 'member', value: user.id }, pending.email, pending.packageId);
                 }, 800);
             };
 
@@ -257,77 +317,6 @@ export default function AnalysisPage() {
         setShowPaymentModal(true);
     };
 
-    const handlePaymentSelect = async (method: 'kakao' | 'naver' | 'general', packageId: string, email: string) => {
-        setSelectedPackageId(packageId);
-        setCustomerEmail(email);
-        setShowPaymentModal(false);
-
-        const supabase = (await import("@/utils/supabase/client")).createClient();
-        const { data: { user } } = await supabase.auth.getUser();
-
-        if (user) {
-            startPremiumAnalysis({ type: 'member', value: user.id }, email);
-        } else {
-            setShowUpgradeModal(true);
-        }
-    }
-
-    const startPremiumAnalysis = async (identifier: { type: 'guest' | 'member', value: string }, email: string) => {
-
-        if (!email || !email.includes('@')) {
-            toast.error("유효한 이메일 주소가 필요합니다.");
-            return;
-        }
-
-        setShowUpgradeModal(false);
-
-        try {
-            const amount = selectedPackageId === 'signature' ? 19900 : 13900;
-            const orderName = selectedPackageId === 'signature' ? '시그니처 컨설팅' : '프리미엄 리포트';
-
-            const orderId = `${recordId.current}${Date.now()}`;
-
-            // localStorage에 임시 저장 (결제 성공 페이지에서 꺼내서 사용)
-            localStorage.setItem('pendingTossPayment', JSON.stringify({
-                orderId: orderId,
-                amount: amount,
-                packageId: selectedPackageId,
-                identifier,
-                customerEmail: email,
-                recordId: recordId.current,
-                metDate,
-                breakupDate,
-                breakupReason
-            }));
-
-            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
-            const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
-            const tossPayments = await loadTossPayments(clientKey);
-            const payment = tossPayments.payment({ customerKey: identifier.value || ANONYMOUS });
-
-            await payment.requestPayment({
-                method: 'CARD',
-                amount: {
-                    currency: 'KRW',
-                    value: amount,
-                },
-                orderId: orderId,
-                orderName: orderName,
-                customerName: name || '익명',
-                customerEmail: email,
-                successUrl: `${window.location.origin}/payment/success`,
-                failUrl: `${window.location.origin}/payment/fail`
-            });
-
-        } catch (err: any) {
-            console.error(err);
-            if (err.code !== 'USER_CANCEL') {
-                toast.error("결제창 호출에 실패했습니다.");
-            }
-            if (!isDev) setIsPremiumPending(false);
-        }
-    };
-
     // 에러 화면
     if (error) {
         return (
@@ -383,11 +372,6 @@ export default function AnalysisPage() {
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
                 <span className="font-semibold text-white">분석 리포트</span>
-                {authUser && (
-                    <button onClick={handleLogout} className="p-2 -mr-1 text-slate-400 hover:text-rose-400 rounded-full transition-colors" title="로그아웃">
-                        <LogOut className="w-5 h-5" />
-                    </button>
-                )}
             </header>
 
             <main className="p-6 pt-20 space-y-8">
@@ -742,8 +726,8 @@ export default function AnalysisPage() {
             {showUpgradeModal && (
                 <UpgradeModal
                     onClose={() => setShowUpgradeModal(false)}
-                    onStartGuest={() => startPremiumAnalysis({ type: 'guest', value: 'anonymous' }, customerEmail)}
-                    onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId }, customerEmail)}
+                    onStartGuest={() => startPremiumAnalysis({ type: 'guest', value: 'anonymous' }, customerEmail, selectedPackageId)}
+                    onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId }, customerEmail, selectedPackageId)}
                     pendingPaymentInfo={{ packageId: selectedPackageId, email: customerEmail }}
                 />
             )}

@@ -164,7 +164,7 @@ export default function Home() {
                 {/* 상단 내비게이션 — 메뉴 버튼 */}
                 <div className="absolute top-4 right-4 z-20">
                     <Link href="/menu">
-                        <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all">
+                        <button className="w-10 h-10 flex items-center justify-center active:scale-90 transition-transform">
                             <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
                                 <rect y="0" width="18" height="2" rx="1" fill="#94a3b8" />
                                 <rect y="6" width="18" height="2" rx="1" fill="#94a3b8" />
@@ -844,12 +844,6 @@ export default function Home() {
                         <Link href="/legal/privacy" className="hover:text-amber-400 transition-colors">개인정보처리방침</Link>
                         <div className="w-[1px] h-3 bg-white/10"></div>
                         <Link href="/legal/refund" className="hover:text-amber-400 transition-colors">환불정책</Link>
-                        {user && (
-                            <>
-                                <div className="w-[1px] h-3 bg-white/10"></div>
-                                <button onClick={handleLogout} className="hover:text-amber-400 transition-colors">로그아웃</button>
-                            </>
-                        )}
                     </div>
                     <div className="text-[12px] text-slate-500 leading-relaxed font-normal">
                         <p className="font-bold text-slate-300 mb-2">다시, 우리 (Reconnection)</p>

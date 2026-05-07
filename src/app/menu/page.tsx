@@ -131,7 +131,7 @@ export default function MenuPage() {
                     <div>
                         <p className="text-amber-400 text-[15px] font-bold mb-1">환영합니다 ✨</p>
                         <p className="text-[13px] text-slate-500 font-medium">
-                            {user.email || user.user_metadata?.name || "회원"}님의 리포트를 확인해보세요.
+                            {user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.preferred_username || "회원"}님의 리포트를 확인해보세요.
                         </p>
                     </div>
                 ) : (

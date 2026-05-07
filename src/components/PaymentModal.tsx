@@ -36,14 +36,13 @@ const PACKAGES = [
 export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalProps) {
     const [selectedPkg, setSelectedPkg] = useState<string>("signature");
     const [email, setEmail] = useState("");
-    const [agreed, setAgreed] = useState(false);
     const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'refund' | null>(null);
 
     const currentPackage = PACKAGES.find(p => p.id === selectedPkg)!;
     const totalDiscount = currentPackage.originalPrice ? currentPackage.originalPrice - currentPackage.price : 0;
 
     const handlePaymentClick = (method: 'kakao' | 'naver' | 'general') => {
-        if (!email || !email.includes('@') || !agreed) return;
+        if (!email || !email.includes('@')) return;
         onSelectPayment(method, selectedPkg, email);
     };
 
@@ -175,8 +174,8 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                     <div className="space-y-3 pt-2">
                         <button
                             onClick={() => handlePaymentClick('general')}
-                            disabled={!email || !email.includes('@') || !agreed}
-                            className={`w-full py-4 rounded-[12px] flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all text-[16px] font-bold ${email && email.includes('@') && agreed
+                            disabled={!email || !email.includes('@')}
+                            className={`w-full py-4 rounded-[12px] flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all text-[16px] font-bold ${email && email.includes('@')
                                 ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-[0_8px_32px_rgba(245,158,11,0.3)]'
                                 : 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5'
                                 }`}
@@ -186,27 +185,11 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                         </button>
                     </div>
 
-                    {/* 동의 체크박스 */}
-                    <div className="space-y-2.5 pb-6">
-                        <div
-                            className="flex items-center gap-3 cursor-pointer group"
-                            onClick={() => setAgreed(!agreed)}
-                        >
-                            <div className={`w-5 h-5 rounded-md border-2 flex items-center justify-center flex-shrink-0 transition-all ${agreed ? 'bg-amber-500 border-amber-500' : 'border-white/15 bg-white/5'
-                                }`}>
-                                {agreed && <Check className="w-3 h-3 text-white" />}
-                            </div>
-                            <span className="text-[12px] text-slate-400 leading-snug group-hover:text-slate-300 transition-colors">
-                                <span className="font-bold text-slate-200">개인정보 수집 및 이용</span>과 <span className="font-bold text-slate-200">서비스 이용약관</span>, <span className="font-bold text-slate-200">환불 정책</span>을 확인하였으며 이에 동의합니다.
-                            </span>
-                        </div>
-                        <div className="flex items-center gap-3.5 text-[11px] text-slate-500 ml-8">
-                            <button onClick={() => setLegalModalType('terms')} className="hover:text-amber-400 transition-colors underline underline-offset-2">이용약관</button>
-                            <div className="w-[1px] h-2.5 bg-white/10"></div>
-                            <button onClick={() => setLegalModalType('privacy')} className="hover:text-amber-400 transition-colors underline underline-offset-2">개인정보처리방침</button>
-                            <div className="w-[1px] h-2.5 bg-white/10"></div>
-                            <button onClick={() => setLegalModalType('refund')} className="hover:text-amber-400 transition-colors underline underline-offset-2">환불정책</button>
-                        </div>
+                    {/* 동의 안내 문구 */}
+                    <div className="space-y-3 pb-8 text-center px-2">
+                        <p className="text-[11px] text-slate-500 leading-relaxed break-keep">
+                            결제 정보를 확인하였으며 <button onClick={() => setLegalModalType('privacy')} className="text-slate-400 font-bold underline underline-offset-2 hover:text-amber-400">개인정보 처리방침</button> 및 <button onClick={() => setLegalModalType('terms')} className="text-slate-400 font-bold underline underline-offset-2 hover:text-amber-400">이용약관</button>, <button onClick={() => setLegalModalType('refund')} className="text-slate-400 font-bold underline underline-offset-2 hover:text-amber-400">환불정책</button>에 동의합니다.
+                        </p>
                     </div>
 
                 </div>
