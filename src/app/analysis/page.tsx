@@ -6,7 +6,7 @@
  */
 import { useSajuStore } from "@/store/useSajuStore";
 import { motion } from "framer-motion";
-import { ArrowLeft, Share2, Sparkles, RefreshCcw, Lock, CalendarHeart, Heart } from "lucide-react";
+import { ArrowLeft, Share2, Sparkles, RefreshCcw, Lock, CalendarHeart, Heart, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useEffect, useState, useRef } from "react";
 import { useRouter } from "next/navigation";
@@ -22,6 +22,7 @@ import toast from "react-hot-toast";
 import LoadingOverlay from "@/components/LoadingOverlay";
 import UpgradeModal from "@/components/UpgradeModal";
 import PaymentModal from "@/components/PaymentModal";
+import { createClient } from '@/utils/supabase/client';
 
 
 export default function AnalysisPage() {
@@ -47,6 +48,22 @@ export default function AnalysisPage() {
     const recordId = useRef<string | null>(null);
     const [showHeader, setShowHeader] = useState(true);
     const lastScrollY = useRef(0);
+
+    // 로그아웃 관련
+    const supabase = createClient();
+    const [authUser, setAuthUser] = useState<any>(null);
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user) setAuthUser(data.user);
+        });
+    }, [supabase]);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setAuthUser(null);
+        toast.success('로그아웃 되었습니다.');
+    };
 
     // 프리미엄 백그라운드 처리 관련 상태
     const [showPaymentModal, setShowPaymentModal] = useState(false);
@@ -366,9 +383,11 @@ export default function AnalysisPage() {
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
                 <span className="font-semibold text-white">분석 리포트</span>
-                <button className="p-2 -mr-2 text-slate-400 hover:text-white rounded-full transition-colors">
-                    <Share2 className="w-5 h-5" />
-                </button>
+                {authUser && (
+                    <button onClick={handleLogout} className="p-2 -mr-1 text-slate-400 hover:text-rose-400 rounded-full transition-colors" title="로그아웃">
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                )}
             </header>
 
             <main className="p-6 pt-20 space-y-8">

@@ -9,6 +9,7 @@ import { Sparkles, ArrowRight, Heart, CalendarHeart, MessageCircle, Shield, Chev
 import { useSajuStore } from "@/store/useSajuStore";
 import { useEffect, useState } from "react";
 import { motion } from "framer-motion";
+import { createClient } from '@/utils/supabase/client';
 
 // 날짜 기반 누적 분석 건수 (하루마다 3~15 랜덤 증가, 시드 기반)
 const getDailyAnalysisCount = () => {
@@ -48,6 +49,20 @@ export default function Home() {
     const [isMounted, setIsMounted] = useState(false);
     const [openFaqIndex, setOpenFaqIndex] = useState<number | null>(null);
     const [discountEndsAt, setDiscountEndsAt] = useState<string>('');
+    const supabase = createClient();
+    const [user, setUser] = useState<any>(null);
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user) setUser(data.user);
+        });
+    }, [supabase]);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setUser(null);
+        window.location.reload();
+    };
 
     const [currentAnalyzers, setCurrentAnalyzers] = useState(124);
     const [showSticky, setShowSticky] = useState(false);
@@ -70,6 +85,7 @@ export default function Home() {
                 const data = JSON.parse(pendingPayment);
                 // 10분 이내의 데이터만 유효하게 처리
                 if (data.returnPath && data.returnPath !== '/' && (Date.now() - data.timestamp < 10 * 60 * 1000)) {
+                    localStorage.removeItem('pendingOAuthPayment');
                     window.location.href = data.returnPath;
                     return;
                 } else if (Date.now() - data.timestamp >= 10 * 60 * 1000) {
@@ -145,17 +161,18 @@ export default function Home() {
                 <div className="absolute top-20 right-5 w-56 h-56 bg-indigo-500/10 rounded-full mix-blend-screen filter blur-[80px] animate-blob animation-delay-2000" />
                 <div className="absolute -bottom-10 left-1/2 w-64 h-64 bg-purple-500/10 rounded-full mix-blend-screen filter blur-[80px] animate-blob animation-delay-4000" />
 
-                {/* 상단 내비게이션 */}
-                {isMounted && reunionHistory.length > 0 && (
-                    <div className="absolute top-4 right-4 z-20">
-                        <Link href="/history">
-                            <button className="glass-card px-4 py-2 text-sm font-semibold text-slate-300 flex items-center gap-2 hover:bg-white/10 transition-colors">
-                                <span className="w-2 h-2 rounded-full bg-amber-500 animate-pulse" />
-                                내 재회 리포트
-                            </button>
-                        </Link>
-                    </div>
-                )}
+                {/* 상단 내비게이션 — 메뉴 버튼 */}
+                <div className="absolute top-4 right-4 z-20">
+                    <Link href="/menu">
+                        <button className="w-10 h-10 rounded-xl bg-white/5 border border-white/10 flex items-center justify-center hover:bg-white/10 active:scale-95 transition-all">
+                            <svg width="18" height="14" viewBox="0 0 18 14" fill="none" xmlns="http://www.w3.org/2000/svg">
+                                <rect y="0" width="18" height="2" rx="1" fill="#94a3b8" />
+                                <rect y="6" width="18" height="2" rx="1" fill="#94a3b8" />
+                                <rect y="12" width="18" height="2" rx="1" fill="#94a3b8" />
+                            </svg>
+                        </button>
+                    </Link>
+                </div>
 
                 {/* Hero Content */}
                 <div className="relative z-10 flex flex-col items-center text-center mt-8">
@@ -827,6 +844,12 @@ export default function Home() {
                         <Link href="/legal/privacy" className="hover:text-amber-400 transition-colors">개인정보처리방침</Link>
                         <div className="w-[1px] h-3 bg-white/10"></div>
                         <Link href="/legal/refund" className="hover:text-amber-400 transition-colors">환불정책</Link>
+                        {user && (
+                            <>
+                                <div className="w-[1px] h-3 bg-white/10"></div>
+                                <button onClick={handleLogout} className="hover:text-amber-400 transition-colors">로그아웃</button>
+                            </>
+                        )}
                     </div>
                     <div className="text-[12px] text-slate-500 leading-relaxed font-normal">
                         <p className="font-bold text-slate-300 mb-2">다시, 우리 (Reconnection)</p>

@@ -1,7 +1,7 @@
 "use client";
 
 import { useSajuStore } from "@/store/useSajuStore";
-import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Lock, RefreshCcw, Share2, Route } from "lucide-react";
+import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Lock, RefreshCcw, Share2, Route, LogOut } from "lucide-react";
 import Link from "next/link";
 import { useRouter, useParams } from "next/navigation";
 import { motion } from "framer-motion";
@@ -20,6 +20,7 @@ import PaymentModal from "@/components/PaymentModal";
 import PremiumRadarChart from "@/components/PremiumRadarChart";
 import VsCard from "@/components/VsCard";
 import PartnerManual from "@/components/PartnerManual";
+import { createClient } from '@/utils/supabase/client';
 
 
 export default function HistoryDetailPage() {
@@ -28,6 +29,22 @@ export default function HistoryDetailPage() {
     const params = useParams();
     const { id } = params;
     const [isUpgrading, setIsUpgrading] = useState(false);
+
+    // 로그아웃 관련
+    const supabase = createClient();
+    const [authUser, setAuthUser] = useState<any>(null);
+
+    useEffect(() => {
+        supabase.auth.getUser().then(({ data }) => {
+            if (data?.user) setAuthUser(data.user);
+        });
+    }, [supabase]);
+
+    const handleLogout = async () => {
+        await supabase.auth.signOut();
+        setAuthUser(null);
+        toast.success('로그아웃 되었습니다.');
+    };
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [selectedPackageId, setSelectedPackageId] = useState<string>('basic');
@@ -258,9 +275,11 @@ export default function HistoryDetailPage() {
                     <ArrowLeft className="w-6 h-6" />
                 </button>
                 <span className="font-semibold text-white">지난 분석 리포트</span>
-                <button className="p-2 -mr-2 text-slate-400 hover:text-white rounded-full transition-colors">
-                    <Share2 className="w-5 h-5" />
-                </button>
+                {authUser && (
+                    <button onClick={handleLogout} className="p-2 -mr-1 text-slate-400 hover:text-rose-400 rounded-full transition-colors" title="로그아웃">
+                        <LogOut className="w-5 h-5" />
+                    </button>
+                )}
             </header>
 
             <main className="p-6 pt-20 space-y-8">
