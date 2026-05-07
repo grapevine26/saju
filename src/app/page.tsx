@@ -62,6 +62,24 @@ export default function Home() {
 
     useEffect(() => {
         setIsMounted(true);
+
+        // 카카오 로그인 후 next 파라미터 유실로 메인으로 돌아왔을 때의 안전 장치
+        const pendingPayment = localStorage.getItem('pendingOAuthPayment');
+        if (pendingPayment) {
+            try {
+                const data = JSON.parse(pendingPayment);
+                // 10분 이내의 데이터만 유효하게 처리
+                if (data.returnPath && data.returnPath !== '/' && (Date.now() - data.timestamp < 10 * 60 * 1000)) {
+                    window.location.href = data.returnPath;
+                    return;
+                } else if (Date.now() - data.timestamp >= 10 * 60 * 1000) {
+                    localStorage.removeItem('pendingOAuthPayment');
+                }
+            } catch (e) {
+                console.error(e);
+            }
+        }
+
         const date = new Date();
         date.setDate(date.getDate() + 7);
         setDiscountEndsAt(`${date.getMonth() + 1}월 ${date.getDate()}일`);
