@@ -266,7 +266,7 @@ export default function AnalysisPage() {
 
         try {
             const amount = selectedPackageId === 'signature' ? 19900 : 13900;
-            const orderName = selectedPackageId === 'signature' ? '완벽한 재회를 위한 궁합 플랜' : '재회사주';
+            const orderName = selectedPackageId === 'signature' ? '시그니처 컨설팅' : '프리미엄 리포트';
 
             const orderId = `${recordId.current}${Date.now()}`;
 
