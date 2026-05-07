@@ -99,6 +99,49 @@ export default function AnalysisPage() {
         setDiscountEndsAt(`${date.getMonth() + 1}/${date.getDate()}`);
     }, []);
 
+    // OAuth 로그인 후 복귀 시, 저장된 결제 정보가 있으면 자동으로 결제창 호출
+    const hasResumedPayment = useRef(false);
+    useEffect(() => {
+        if (hasResumedPayment.current) return;
+        const pendingRaw = localStorage.getItem('pendingOAuthPayment');
+        if (!pendingRaw) return;
+
+        try {
+            const pending = JSON.parse(pendingRaw);
+            // 10분 이내의 데이터만 유효하게 처리 (너무 오래된 건 무시)
+            if (Date.now() - pending.timestamp > 10 * 60 * 1000) {
+                localStorage.removeItem('pendingOAuthPayment');
+                return;
+            }
+
+            const resumePayment = async () => {
+                const supabase = (await import("@/utils/supabase/client")).createClient();
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return; // 로그인이 안 됐으면 무시
+
+                hasResumedPayment.current = true;
+                localStorage.removeItem('pendingOAuthPayment');
+
+                // 저장된 결제 정보로 상태 복원
+                setSelectedPackageId(pending.packageId);
+                setCustomerEmail(pending.email);
+
+                toast.success('로그인 완료! 결제창을 열고 있습니다...', { duration: 2000 });
+
+                // 약간의 딜레이 후 결제창 호출 (상태 반영 대기)
+                setTimeout(() => {
+                    startPremiumAnalysis({ type: 'member', value: user.id }, pending.email);
+                }, 800);
+            };
+
+            resumePayment();
+        } catch (err) {
+            console.error('OAuth 결제 복원 실패:', err);
+            localStorage.removeItem('pendingOAuthPayment');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [result]);
+
     // 스크롤 방향 감지: 내리면 헤더 숨김, 올리면 표시
     useEffect(() => {
         const handleScroll = () => {
@@ -678,11 +721,11 @@ export default function AnalysisPage() {
 
             {/* 2단계: 결제 전 선택 모달 (로그인/비회원) */}
             {showUpgradeModal && (
-
                 <UpgradeModal
                     onClose={() => setShowUpgradeModal(false)}
                     onStartGuest={() => startPremiumAnalysis({ type: 'guest', value: 'anonymous' }, customerEmail)}
                     onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId }, customerEmail)}
+                    pendingPaymentInfo={{ packageId: selectedPackageId, email: customerEmail }}
                 />
             )}
         </div>

@@ -85,6 +85,46 @@ export default function HistoryDetailPage() {
         setDiscountEndsAt(`${date.getMonth() + 1}/${date.getDate()}`);
     }, []);
 
+    // OAuth 로그인 후 복귀 시, 저장된 결제 정보가 있으면 자동으로 결제창 호출
+    const hasResumedPayment = useRef(false);
+    useEffect(() => {
+        if (hasResumedPayment.current) return;
+        const pendingRaw = localStorage.getItem('pendingOAuthPayment');
+        if (!pendingRaw) return;
+
+        try {
+            const pending = JSON.parse(pendingRaw);
+            if (Date.now() - pending.timestamp > 10 * 60 * 1000) {
+                localStorage.removeItem('pendingOAuthPayment');
+                return;
+            }
+
+            const resumePayment = async () => {
+                const supabase = (await import("@/utils/supabase/client")).createClient();
+                const { data: { user } } = await supabase.auth.getUser();
+                if (!user) return;
+
+                hasResumedPayment.current = true;
+                localStorage.removeItem('pendingOAuthPayment');
+
+                setSelectedPackageId(pending.packageId);
+                setCustomerEmail(pending.email);
+
+                toast.success('로그인 완료! 결제창을 열고 있습니다...', { duration: 2000 });
+
+                setTimeout(() => {
+                    startPremiumAnalysis({ type: 'member', value: user.id }, pending.email);
+                }, 800);
+            };
+
+            resumePayment();
+        } catch (err) {
+            console.error('OAuth 결제 복원 실패:', err);
+            localStorage.removeItem('pendingOAuthPayment');
+        }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [record]);
+
     // URL id를 바탕으로 기록 찾기
     const record = reunionHistory.find(r => r.id === id);
 
@@ -653,11 +693,11 @@ export default function HistoryDetailPage() {
 
             {/* 2단계: 결제 전 선택 모달 (로그인/비회원) */}
             {showUpgradeModal && (
-
                 <UpgradeModal
                     onClose={() => setShowUpgradeModal(false)}
                     onStartGuest={() => startPremiumAnalysis({ type: 'guest', value: 'anonymous' }, customerEmail)}
                     onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId }, customerEmail)}
+                    pendingPaymentInfo={{ packageId: selectedPackageId, email: customerEmail }}
                 />
             )}
         </div>

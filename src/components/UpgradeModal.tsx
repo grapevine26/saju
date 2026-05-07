@@ -3,16 +3,21 @@
 import { motion } from "framer-motion";
 import { useState, useEffect } from "react";
 import { createClient } from "@/utils/supabase/client";
-import { MessageCircle } from "lucide-react"; // 카카오 아이콘 대신 사용 (또는 커스텀 SVG)
+import { MessageCircle } from "lucide-react";
 import toast from "react-hot-toast";
 
 interface UpgradeModalProps {
     onClose: () => void;
     onStartGuest: (phoneNumber: string) => void;
     onStartMember: (userId: string) => void;
+    /** OAuth 로그인 전에 결제 정보를 저장하기 위한 콜백 */
+    pendingPaymentInfo?: {
+        packageId: string;
+        email: string;
+    };
 }
 
-export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: UpgradeModalProps) {
+export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pendingPaymentInfo }: UpgradeModalProps) {
     const [user, setUser] = useState<any>(null);
     const supabase = createClient();
 
@@ -25,7 +30,22 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
         });
     }, [supabase]);
 
+    /** OAuth 로그인 전에 결제 컨텍스트를 localStorage에 저장 */
+    const savePendingPaymentContext = () => {
+        if (pendingPaymentInfo) {
+            localStorage.setItem('pendingOAuthPayment', JSON.stringify({
+                packageId: pendingPaymentInfo.packageId,
+                email: pendingPaymentInfo.email,
+                returnPath: window.location.pathname,
+                timestamp: Date.now(),
+            }));
+        }
+    };
+
     const handleKakaoLogin = async () => {
+        // OAuth 리다이렉트 전에 결제 정보 저장
+        savePendingPaymentContext();
+
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'kakao',
             options: {
@@ -40,6 +60,9 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
     };
 
     const handleGoogleLogin = async () => {
+        // OAuth 리다이렉트 전에 결제 정보 저장
+        savePendingPaymentContext();
+
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
