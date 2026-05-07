@@ -85,6 +85,9 @@ export default function HistoryDetailPage() {
         setDiscountEndsAt(`${date.getMonth() + 1}/${date.getDate()}`);
     }, []);
 
+    // URL id를 바탕으로 기록 찾기
+    const record = reunionHistory.find(r => r.id === id);
+
     // OAuth 로그인 후 복귀 시, 저장된 결제 정보가 있으면 자동으로 결제창 호출
     const hasResumedPayment = useRef(false);
     useEffect(() => {
@@ -125,8 +128,6 @@ export default function HistoryDetailPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
     }, [record]);
 
-    // URL id를 바탕으로 기록 찾기
-    const record = reunionHistory.find(r => r.id === id);
 
     // 페이지 진입 시 premiumJobId가 있으면 자동으로 완료 여부 확인
     useEffect(() => {
