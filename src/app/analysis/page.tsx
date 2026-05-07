@@ -298,8 +298,8 @@ export default function AnalysisPage() {
                 </motion.div>
 
                 <div className="space-y-3 text-center">
-                    <h2 className="text-2xl font-bold text-gradient-gold">
-                        두 사람의 인연을 분석하는 중 🔮
+                    <h2 className="text-2xl font-bold">
+                        <span className="text-gradient-gold">두 사람의 인연을 분석하는 중</span> 🔮
                     </h2>
                     <motion.p
                         className="text-slate-500 text-sm font-medium"

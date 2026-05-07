@@ -29,7 +29,8 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'kakao',
             options: {
-                redirectTo: `${window.location.origin}/api/auth/callback?next=${window.location.pathname}`
+                redirectTo: `${window.location.origin}/api/auth/callback?next=${window.location.pathname}`,
+                scopes: 'profile_nickname account_email'
             }
         });
         if (error) {
@@ -123,7 +124,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember }: U
                 >
                     비회원으로 결제하기
                 </button>
-                
+
                 <button onClick={onClose} className="absolute top-4 right-4 text-slate-500 hover:text-white">
                     ✕
                 </button>
