@@ -71,8 +71,8 @@ export default function MenuPage() {
         {
             icon: <HelpCircle className="w-5 h-5" />,
             label: "고객센터",
-            subtitle: "support@dasisaju.com",
-            href: "mailto:support@dasisaju.com",
+            subtitle: "실시간 상담하기",
+            href: "#",
             color: "text-slate-400",
         },
     ];
@@ -146,27 +146,49 @@ export default function MenuPage() {
 
             {/* 메뉴 리스트 */}
             <div className="px-4 space-y-1 flex-1">
-                {menuItems.map((item, i) => (
-                    <motion.div
-                        key={item.label}
-                        initial={{ opacity: 0, x: -15 }}
-                        animate={{ opacity: 1, x: 0 }}
-                        transition={{ delay: 0.25 + i * 0.08 }}
-                    >
-                        <Link href={item.href}>
-                            <div className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors group">
-                                <span className={item.color}>{item.icon}</span>
-                                <div className="flex-1 min-w-0">
-                                    <p className="text-[15px] font-semibold text-white">{item.label}</p>
-                                    {item.subtitle && (
-                                        <p className="text-[12px] text-slate-500 font-medium mt-0.5 truncate">{item.subtitle}</p>
-                                    )}
-                                </div>
-                                <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                {menuItems.map((item, i) => {
+                    const isChannelTalk = item.label === "고객센터";
+                    const content = (
+                        <div className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors group cursor-pointer text-left w-full">
+                            <span className={item.color}>{item.icon}</span>
+                            <div className="flex-1 min-w-0">
+                                <p className="text-[15px] font-semibold text-white">{item.label}</p>
+                                {item.subtitle && (
+                                    <p className="text-[12px] text-slate-500 font-medium mt-0.5 truncate">{item.subtitle}</p>
+                                )}
                             </div>
-                        </Link>
-                    </motion.div>
-                ))}
+                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                        </div>
+                    );
+
+                    return (
+                        <motion.div
+                            key={item.label}
+                            initial={{ opacity: 0, x: -15 }}
+                            animate={{ opacity: 1, x: 0 }}
+                            transition={{ delay: 0.25 + i * 0.08 }}
+                        >
+                            {isChannelTalk ? (
+                                <button
+                                    onClick={() => {
+                                        if (window.ChannelIO) {
+                                            window.ChannelIO('showMessenger');
+                                        } else {
+                                            toast.error("고객센터를 불러오는 중입니다. 잠시 후 다시 시도해주세요.");
+                                        }
+                                    }}
+                                    className="w-full"
+                                >
+                                    {content}
+                                </button>
+                            ) : (
+                                <Link href={item.href}>
+                                    {content}
+                                </Link>
+                            )}
+                        </motion.div>
+                    );
+                })}
 
                 {/* 로그아웃 버튼 (로그인 상태에서만 표시) */}
                 {user && (

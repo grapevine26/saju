@@ -40,6 +40,8 @@ export const metadata: Metadata = {
   manifest: '/favicon_io/site.webmanifest',
 };
 
+import ChannelTalk from "@/components/ChannelTalk";
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -54,6 +56,7 @@ export default function RootLayout({
         <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet" />
       </head>
       <body className="antialiased flex justify-center min-h-screen bg-[#0a0e1a]">
+        <ChannelTalk />
         <Toaster
           position="top-center"
           toastOptions={{
