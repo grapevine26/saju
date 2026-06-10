@@ -85,7 +85,6 @@ export default function Home() {
                 const data = JSON.parse(pendingPayment);
                 // 10분 이내의 데이터만 유효하게 처리
                 if (data.returnPath && data.returnPath !== '/' && (Date.now() - data.timestamp < 10 * 60 * 1000)) {
-                    localStorage.removeItem('pendingOAuthPayment');
                     window.location.href = data.returnPath;
                     return;
                 } else if (Date.now() - data.timestamp >= 10 * 60 * 1000) {
