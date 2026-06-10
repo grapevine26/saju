@@ -555,7 +555,7 @@ export default function Home() {
                             className="glass-card relative overflow-hidden border border-white/10 h-[260px] flex flex-col items-center p-0"
                         >
                             <div className="w-full bg-[#0a0e1a]/95 py-3.5 px-5 border-b border-white/10 z-20 shadow-md">
-                                <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5"><FileText className="w-4 h-4 text-amber-400" /> 8,000자 심층 분석 리포트</h3>
+                                <h3 className="text-[13px] font-bold text-white flex items-center gap-1.5"><FileText className="w-4 h-4 text-amber-400" /> 10,000자 심층 분석 리포트</h3>
                             </div>
 
                             {/* 상/하단 그라데이션 페이드 효과 */}
@@ -567,31 +567,39 @@ export default function Home() {
                                 </div>
                             </div>
 
-                            {/* 무한 스크롤 컨텐츠 */}
-                            <div className="w-full relative flex-1 overflow-hidden opacity-60 blur-[1px]">
+                            {/* 무한 스크롤 컨텐츠 (진짜 리포트 텍스트 블러 처리) */}
+                            <div className="w-full relative flex-1 overflow-hidden opacity-40 blur-[1.5px] select-none pointer-events-none">
                                 <motion.div
-                                    animate={{ y: [0, -350] }}
-                                    transition={{ repeat: Infinity, ease: "linear", duration: 15 }}
-                                    className="px-5 py-4 space-y-6"
+                                    animate={{ y: [0, -650] }}
+                                    transition={{ repeat: Infinity, ease: "linear", duration: 25 }}
+                                    className="px-5 py-4 space-y-6 text-left text-[11px] text-slate-300 font-medium leading-[1.7] break-keep"
                                 >
-                                    {/* 반복되는 가짜 텍스트 뼈대 */}
-                                    {[...Array(3)].map((_, i) => (
-                                        <div key={i} className="space-y-4">
-                                            <div className="h-3 w-2/5 bg-amber-500/30 rounded-full" />
-                                            <div className="space-y-2.5">
-                                                <div className="h-2 w-full bg-slate-400/30 rounded-full" />
-                                                <div className="h-2 w-[92%] bg-slate-400/30 rounded-full" />
-                                                <div className="h-2 w-[98%] bg-slate-400/30 rounded-full" />
-                                                <div className="h-2 w-[85%] bg-slate-400/30 rounded-full" />
-                                                <div className="h-2 w-full bg-slate-400/30 rounded-full" />
-                                            </div>
-                                            <div className="h-20 w-full bg-indigo-500/10 rounded-xl border border-indigo-500/20" />
-                                            <div className="space-y-2.5">
-                                                <div className="h-2 w-[88%] bg-slate-400/30 rounded-full" />
-                                                <div className="h-2 w-[75%] bg-slate-400/30 rounded-full" />
-                                            </div>
-                                        </div>
-                                    ))}
+                                    <div className="space-y-2">
+                                        <p className="text-[12px] font-bold text-amber-400">🔮 두 사람의 오행 조화 및 관계 본질 분석</p>
+                                        <p>나의 사주에 부족한 금(金) 기운을 상대방의 지지 유금(酉金)이 보완해 주는 완벽한 상생 구조입니다. 이는 두 사람이 만났을 때 깊은 정서적 안정감과 채워지는 느낌을 받는 근원적인 원동력입니다.</p>
+                                        <p>천간 합(合)과 지지 충(沖)이 교차하여 강한 끌림과 동시에 사소한 성격 차이로 갈등을 빚기 쉬운 전형적인 '애증의 관계'에 해당합니다.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-[12px] font-bold text-amber-400">📅 골든 윈도우 및 최적의 재회 타이밍</p>
+                                        <p>이별 시점의 사주 운의 흐름을 분석해 본 결과, 향후 3개월 뒤 상대방의 방어기제를 나타내는 편관(偏官)의 기운이 약화되고, 나에 대한 그리움과 미련을 자극하는 인수(인수) 기운이 세를 얻는 시기가 연락의 골든 타임입니다.</p>
+                                        <p>가장 성공률이 높은 요일은 일진(일진) 상 나를 돕는 기운이 들어오는 수요일 저녁이며, 이때 다가가는 첫 메시지는 과거를 지적하지 않고 가볍게 시작해야 합니다.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-[12px] font-bold text-amber-400">🚨 행동 지침 및 조심해야 할 최악의 실수</p>
+                                        <p>상대방은 일지에 식신(食神)을 두고 있어, 감정적인 호소나 긴 문장의 해명보다는 일상적이고 부담 없는 대화에서 마음을 열어주는 특성을 보입니다.</p>
+                                        <p>따라서, 긴 장문의 카카오톡 메시지로 이별의 원인을 캐묻거나 사과하는 것은 오히려 강한 거부감과 차단(Block)을 유발할 수 있으므로 절대 삼가야 합니다.</p>
+                                    </div>
+                                    <div className="space-y-2">
+                                        <p className="text-[12px] font-bold text-amber-400">🔑 상대방의 숨겨진 미련 지수와 성향 진단</p>
+                                        <p>상대방은 겉으로는 단호하고 차분해 보이지만, 사주 지지에 감춰진 화(火) 기운의 작용으로 인해 밤 시간대나 혼자 있는 공간에서 급격한 미련과 쓸쓸함을 느끼고 있습니다.</p>
+                                        <p>특히 우리가 제안해 드리는 '이 타이밍'에 가볍게 안부를 묻는 안부형 메시지를 보낼 경우 답장이 올 확률은 78% 이상으로 높게 산출됩니다.</p>
+                                    </div>
+
+                                    {/* 무한 루프 롤러 효과를 위한 복제본 배치 */}
+                                    <div className="space-y-2 pt-4 border-t border-white/5 opacity-50">
+                                        <p className="text-[12px] font-bold text-amber-400">🔮 두 사람의 오행 조화 및 관계 본질 분석</p>
+                                        <p>나의 사주에 부족한 금(金) 기운을 상대방의 지지 유금(酉金)이 보완해 주는 완벽한 상생 구조입니다. 이는 두 사람이 만났을 때 깊은 정서적 안정감과 채워지는 느낌을 받는 원동력입니다.</p>
+                                    </div>
                                 </motion.div>
                             </div>
                         </motion.div>
