@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { TERMS_OF_SERVICE } from "@/constants/policies";
+
+export const metadata: Metadata = {
+  title: "이용약관 | 다시, 우리 🔮",
+  description: "다시, 우리 서비스의 이용약관입니다. 서비스 이용 조건 및 절차에 대한 안내입니다.",
+};
 
 export default function TermsPage() {
     return (

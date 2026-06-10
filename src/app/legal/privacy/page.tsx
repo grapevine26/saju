@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { PRIVACY_POLICY } from "@/constants/policies";
+
+export const metadata: Metadata = {
+  title: "개인정보처리방침 | 다시, 우리 🔮",
+  description: "다시, 우리 서비스의 개인정보처리방침입니다. 고객님의 소중한 개인정보를 어떻게 보호하고 관리하는지 안내해 드립니다.",
+};
 
 export default function PrivacyPage() {
     return (

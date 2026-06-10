@@ -93,6 +93,12 @@ ADMIN_PASSWORD=your_admin_password
 - **`/src/constants/policies.tsx`** 에서 개인정보처리방침, 이용약관, 환불정책을 통합 관리
 - 랜딩페이지 하단 법적 고지 페이지와 결제 모달 내의 법적 고지 팝업에서 동일한 데이터를 동적 렌더링하여 데이터 일관성 보장
 
+### 7. SEO 및 SNS 공유 최적화 (OpenGraph, Sitemap, Robots)
+- **`/public/og-image.png`** (1200×630): 카카오톡, 페이스북, 트위터(X) 등 SNS 공유 시 노출되는 프리미엄 우주/골드 테마 대표 썸네일 이미지 적용
+- **`/sitemap.xml` 및 `/robots.txt`**: 검색 엔진 수집 최적화를 위해 Next.js App Router 방식(`sitemap.ts`, `robots.ts`)으로 자동 생성 구현
+  - 검색 엔진이 메인, 입력 폼, 메뉴, 법적 고지 페이지만 수집하도록 유도하고, 개인 분석 데이터 및 관리자 영역은 크롤링에서 안전하게 제외
+- Google Search Console 소유권 인증 완료 (`google7a7b83c9e215be27.html`)
+
 ---
 
 ## 📂 프로젝트 구조

@@ -1,6 +1,12 @@
+import type { Metadata } from "next";
 import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { REFUND_POLICY } from "@/constants/policies";
+
+export const metadata: Metadata = {
+  title: "취소 및 환불 정책 | 다시, 우리 🔮",
+  description: "다시, 우리 서비스의 취소 및 환불 정책입니다. 환불 규정과 관련 절차에 관한 상세 안내입니다.",
+};
 
 export default function RefundPage() {
     return (
