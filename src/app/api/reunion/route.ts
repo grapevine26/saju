@@ -144,7 +144,7 @@ ${BASE_SYSTEM_INSTRUCTION}
         };
 
         const model1 = genAI.getGenerativeModel({
-            model: "gemini-1.5-flash",
+            model: "gemini-3.1-flash-lite",
             systemInstruction,
             generationConfig: { responseMimeType: "application/json", responseSchema: schema1 }
         });

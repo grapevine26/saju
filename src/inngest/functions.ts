@@ -125,13 +125,13 @@ export const processPremiumAnalysis = inngest.createFunction(
 
       // --- 2-2. AI 모델 준비 ---
       const model2 = genAI.getGenerativeModel({
-        model: "gemini-1.5-pro",
+        model: "gemini-3.5-flash",
         systemInstruction: BASE_SYSTEM_INSTRUCTION,
         generationConfig: { responseMimeType: "application/json", responseSchema: schema2 }
       });
 
       const model3 = genAI.getGenerativeModel({
-        model: "gemini-1.5-pro",
+        model: "gemini-3.5-flash",
         systemInstruction: SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
         generationConfig: { responseMimeType: "application/json", responseSchema: schema3 }
       });
@@ -172,7 +172,7 @@ export const processPremiumAnalysis = inngest.createFunction(
         (async () => {
           if (raw_data.packageId === 'signature') {
             const model4 = genAI.getGenerativeModel({
-              model: "gemini-1.5-pro",
+              model: "gemini-3.5-flash",
               systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY,
               generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
             });
