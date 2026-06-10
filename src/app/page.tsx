@@ -851,7 +851,7 @@ export default function Home() {
                         <p>사업자등록번호 : 207-30-92414</p>
                         <p>통신판매업신고번호 : 제 2026-서울관악-0869호</p>
                         <p>이메일 : support@dasisaju.com | 전화 : 070-8098-4109</p>
-                        <p>주소 : 서울특별시 관악구 난곡로 284, 603호</p>
+                        <p>주소 : 서울특별시 관악구 난곡로 284, 603호 | 호스팅 서비스 제공자 : Vercel Inc.</p>
                         <p className="mt-4 text-slate-600">© {new Date().getFullYear()} 인사이트랩. All rights reserved.</p>
                     </div>
                 </div>
