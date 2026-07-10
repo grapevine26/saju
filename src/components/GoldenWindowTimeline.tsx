@@ -24,8 +24,8 @@ interface GoldenWindowTimelineProps {
 const MONTH_NAMES = ['', '1월', '2월', '3월', '4월', '5월', '6월', '7월', '8월', '9월', '10월', '11월', '12월'];
 
 const getBarColor = (score: number, isGolden: boolean) => {
-    if (isGolden) return 'from-amber-500 to-yellow-400';
-    if (score >= 55) return 'from-indigo-500 to-purple-400';
+    if (isGolden) return 'from-[#F5C842] to-[#D4960A]';
+    if (score >= 55) return 'from-slate-500 to-slate-400';
     if (score >= 40) return 'from-slate-500 to-slate-400';
     return 'from-rose-500/60 to-rose-400/60';
 };
@@ -43,23 +43,23 @@ export default function GoldenWindowTimeline({ windows, bestMonth }: GoldenWindo
                     className="border-glow-gold glass-card-strong p-5"
                 >
                     <div className="flex items-center gap-2 mb-3">
-                        <Sparkles className="w-5 h-5 text-amber-400" />
-                        <h3 className="text-sm font-bold text-amber-400">🏆 최적의 골든 윈도우</h3>
+                        <Sparkles className="w-5 h-5 text-[var(--accent-gold)]" />
+                        <h3 className="text-sm font-bold text-[var(--accent-gold)]">최적의 골든 윈도우</h3>
                     </div>
                     <div className="flex items-baseline gap-1.5 mb-2">
                         <span className="text-3xl font-black text-gradient-gold">
                             {bestMonth.year}년 {MONTH_NAMES[bestMonth.month]}
                         </span>
-                        <span className="text-lg font-bold text-amber-500/60">
+                        <span className="text-lg font-bold text-[var(--accent-amber)]" style={{opacity:0.6}}>
                             ({bestMonth.monthGan}{bestMonth.monthZhi}월)
                         </span>
                     </div>
-                    <p className="text-sm text-slate-400 leading-relaxed mb-3">
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed mb-3">
                         {bestMonth.reasons[0]}
                     </p>
                     {bestMonth.advice && (
-                        <div className="bg-amber-500/10 border border-amber-500/15 rounded-xl p-3 mt-3">
-                            <p className="text-xs text-amber-300/80 leading-relaxed whitespace-pre-line">
+                        <div className="bg-[var(--accent-soft)] border border-[var(--accent-border)] rounded-xl p-3 mt-3">
+                            <p className="text-xs text-[var(--accent-gold)] leading-relaxed whitespace-pre-line" style={{opacity:0.8}}>
                                 💡 {bestMonth.advice}
                             </p>
                         </div>
@@ -70,8 +70,8 @@ export default function GoldenWindowTimeline({ windows, bestMonth }: GoldenWindo
             {/* 타임라인 바 차트 */}
             <div className="glass-card p-5">
                 <div className="flex items-center gap-2 mb-5">
-                    <CalendarHeart className="w-4 h-4 text-indigo-400" />
-                    <h3 className="text-sm font-bold text-slate-300">월별 재회 에너지 흐름</h3>
+                    <CalendarHeart className="w-4 h-4" style={{ color: '#F06A7E' }} />
+                    <h3 className="text-sm font-bold text-[var(--text-secondary)]">월별 재회 에너지 흐름</h3>
                 </div>
 
                 <div className="space-y-3">
@@ -85,7 +85,7 @@ export default function GoldenWindowTimeline({ windows, bestMonth }: GoldenWindo
                         >
                             {/* 월 라벨 */}
                             <div className="w-12 text-right shrink-0">
-                                <span className={`text-xs font-bold ${w.isGolden ? 'text-amber-400' : 'text-slate-500'}`}>
+                                <span className={`text-xs font-bold ${w.isGolden ? 'text-[var(--accent-gold)]' : 'text-[var(--text-muted)]'}`}>
                                     {MONTH_NAMES[w.month]}
                                 </span>
                             </div>
@@ -96,18 +96,18 @@ export default function GoldenWindowTimeline({ windows, bestMonth }: GoldenWindo
                                     initial={{ width: 0 }}
                                     animate={{ width: `${(w.score / maxScore) * 100}%` }}
                                     transition={{ delay: 0.5 + i * 0.08, duration: 0.8, ease: "easeOut" }}
-                                    className={`h-full rounded-lg bg-gradient-to-r ${getBarColor(w.score, w.isGolden)} ${w.isGolden ? 'shadow-[0_0_12px_rgba(245,158,11,0.3)]' : ''}`}
+                                    className={`h-full rounded-lg bg-gradient-to-r ${getBarColor(w.score, w.isGolden)} ${w.isGolden ? 'shadow-[0_0_14px_rgba(245,200,66,0.35)]' : ''}`}
                                 />
                                 {w.isGolden && (
                                     <div className="absolute right-2 top-1/2 -translate-y-1/2">
-                                        <Sparkles className="w-3.5 h-3.5 text-amber-300 animate-pulse" />
+                                        <Sparkles className="w-3.5 h-3.5 text-[var(--accent-amber)] animate-pulse" />
                                     </div>
                                 )}
                             </div>
 
                             {/* 점수 */}
                             <div className="w-10 text-right shrink-0">
-                                <span className={`text-xs font-bold tabular-nums ${w.isGolden ? 'text-amber-400' : 'text-slate-500'}`}>
+                                <span className={`text-xs font-bold tabular-nums ${w.isGolden ? 'text-[var(--accent-gold)]' : 'text-[var(--text-muted)]'}`}>
                                     {w.score}
                                 </span>
                             </div>
@@ -117,13 +117,13 @@ export default function GoldenWindowTimeline({ windows, bestMonth }: GoldenWindo
             </div>
 
             {/* 범례 */}
-            <div className="flex items-center justify-center gap-4 text-xs text-slate-500">
+            <div className="flex items-center justify-center gap-4 text-xs text-[var(--text-muted)]">
                 <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-amber-500 to-yellow-400" />
+                    <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-[#F5C842] to-[#D4960A]" />
                     <span>골든 윈도우</span>
                 </div>
                 <div className="flex items-center gap-1.5">
-                    <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-indigo-500 to-purple-400" />
+                    <div className="w-3 h-3 rounded-sm bg-gradient-to-r from-slate-500 to-slate-400" />
                     <span>양호</span>
                 </div>
                 <div className="flex items-center gap-1.5">

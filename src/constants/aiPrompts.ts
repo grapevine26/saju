@@ -24,7 +24,7 @@ export const SYSTEM_INSTRUCTION_GOLDEN_WINDOW = `
 ${BASE_SYSTEM_INSTRUCTION}
 
 # Additional Rules
-1. \`goldenWindowMonths\` 배열에는 분석된 내용 중 연락하기 가장 좋은 1개의 '달(Month)'을 넣고, 해당 달 안에서 특히 연락하기 좋은 날짜(goodDates) 3~5개, 절대 연락하면 안 되는 날짜(badDates) 3~5개를 배열 형태로 생성해.
+1. \`goldenWindowMonths\` 배열에는 분석된 내용 중 연락하기 가장 좋은 1개의 '달(Month)'을 넣고, 해당 달 안에서 특히 연락하기 좋은 날짜(goodDates) 3~5개를 배열 형태로 생성해.
 `.trim();
 
 /** prompt4 시스템 지시문 (궁합 리포트 전용 추가 규칙) */
@@ -174,7 +174,7 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
     ... (총 3단계)
   ],
   "goldenWindowMonths": [
-    { "month": "12월", "goodDates": [3, 7, 15], "badDates": [10, 22, 28] }
+    { "month": "12월", "goodDates": [3, 7, 15] }
   ]
 }`;
 };

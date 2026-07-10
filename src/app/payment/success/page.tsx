@@ -169,7 +169,7 @@ function PaymentSuccessContent() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-center min-h-screen p-6 bg-[#0a0e1a] text-white selection:bg-amber-900/50">
+        <div className="flex flex-col items-center justify-center min-h-screen p-6 text-[var(--text-primary)] bg-[var(--bg-primary)]">
             {status === "confirming" && (
                 <motion.div
                     initial={{ opacity: 0, y: 20 }}
@@ -179,7 +179,7 @@ function PaymentSuccessContent() {
                     <motion.div
                         animate={{ rotate: 360 }}
                         transition={{ repeat: Infinity, duration: 2, ease: "linear" }}
-                        className="w-16 h-16 border-4 border-amber-500/20 border-t-amber-500 rounded-full mx-auto"
+                        className="w-16 h-16 border-4 border-[var(--accent-border)] border-t-[var(--accent-gold)] rounded-full mx-auto"
                     />
                     <h2 className="text-xl font-bold">결제 정보를 확인하고 있습니다...</h2>
                 </motion.div>
@@ -223,7 +223,7 @@ function PaymentSuccessContent() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 0.5 }}
-                        className="bg-white/[0.03] border border-white/[0.06] rounded-2xl p-5 mb-6 text-left space-y-3.5"
+                        className="bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-2xl p-5 mb-6 text-left space-y-3.5"
                     >
                         {[
                             { text: "결제 승인 완료", done: true },
@@ -242,15 +242,15 @@ function PaymentSuccessContent() {
                                         <span className="text-emerald-400 text-[10px]">✓</span>
                                     </div>
                                 ) : (
-                                    <div className="w-5 h-5 rounded-full border border-amber-500/40 flex items-center justify-center flex-shrink-0">
+                                    <div className="w-5 h-5 rounded-full border border-[var(--accent-border)] flex items-center justify-center flex-shrink-0">
                                         <motion.div
                                             animate={{ opacity: [0.3, 1, 0.3] }}
                                             transition={{ repeat: Infinity, duration: 1.5 }}
-                                            className="w-2 h-2 rounded-full bg-amber-500"
+                                            className="w-2 h-2 rounded-full bg-[var(--accent-gold)]"
                                         />
                                     </div>
                                 )}
-                                <span className={`text-[13px] font-medium ${step.done ? 'text-slate-500' : step.active ? 'text-white' : 'text-slate-500'}`}>
+                                <span className={`text-[13px] font-medium ${step.done ? 'text-[var(--text-muted)]' : step.active ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
                                     {step.text}
                                 </span>
                             </motion.div>
@@ -262,13 +262,13 @@ function PaymentSuccessContent() {
                         initial={{ opacity: 0, y: 10 }}
                         animate={{ opacity: 1, y: 0 }}
                         transition={{ delay: 1 }}
-                        className="bg-amber-500/[0.08] border border-amber-500/20 rounded-xl p-4 mb-6"
+                        className="bg-[var(--accent-soft)] border border-[var(--accent-border)] rounded-xl p-4 mb-6"
                     >
                         <div className="flex items-start gap-3">
                             <span className="text-lg mt-0.5">📱</span>
                             <div className="text-left">
-                                <p className="text-[13px] font-bold text-amber-300 mb-1">이 화면을 닫아도 괜찮아요</p>
-                                <p className="text-[12px] text-slate-400 leading-relaxed break-keep">
+                                <p className="text-[13px] font-bold text-[var(--accent-amber)] mb-1">이 화면을 닫아도 괜찮아요</p>
+                                <p className="text-[12px] text-[var(--text-secondary)] leading-relaxed break-keep">
                                     분석이 완료되면 <span className="text-white font-medium">이메일</span>로 결과 링크를 보내드립니다.
                                 </p>
                             </div>
@@ -280,8 +280,8 @@ function PaymentSuccessContent() {
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 1.2 }}
-                        onClick={() => router.push('/')}
-                        className="text-[13px] text-slate-500 hover:text-slate-300 transition-colors font-medium underline underline-offset-4 decoration-slate-700"
+                        onClick={() => router.push('/saju')}
+                        className="text-[13px] text-[var(--text-muted)] hover:text-[var(--text-secondary)] transition-colors font-medium underline underline-offset-4 decoration-[var(--border-glass)]"
                     >
                         홈으로 돌아가기
                     </motion.button>
@@ -303,7 +303,7 @@ function PaymentSuccessContent() {
                         ✓
                     </motion.div>
                     <h2 className="text-2xl font-bold">분석이 완료되었습니다!</h2>
-                    <p className="text-slate-400 text-sm">결과 페이지로 이동합니다...</p>
+                    <p className="text-[var(--text-secondary)] text-sm">결과 페이지로 이동합니다...</p>
                 </motion.div>
             )}
 
@@ -317,10 +317,10 @@ function PaymentSuccessContent() {
                         !
                     </div>
                     <h2 className="text-xl font-bold text-rose-400">결제/분석 오류</h2>
-                    <p className="text-slate-400 text-sm break-keep">{errorMessage}</p>
+                    <p className="text-[var(--text-secondary)] text-sm break-keep">{errorMessage}</p>
                     <button
-                        onClick={() => router.push('/')}
-                        className="px-6 py-3 bg-white/5 hover:bg-white/10 border border-white/10 rounded-xl font-medium transition-colors text-sm"
+                        onClick={() => router.push('/saju')}
+                        className="px-6 py-3 bg-[var(--bg-glass)] hover:opacity-80 border border-[var(--border-glass)] rounded-xl font-medium transition-opacity text-sm"
                     >
                         홈으로 돌아가기
                     </button>
@@ -332,7 +332,7 @@ function PaymentSuccessContent() {
 
 export default function PaymentSuccessPage() {
     return (
-        <Suspense fallback={<div className="min-h-screen bg-[#0a0e1a]"></div>}>
+        <Suspense fallback={<div className="min-h-screen bg-[var(--bg-primary)]"></div>}>
             <PaymentSuccessContent />
         </Suspense>
     );

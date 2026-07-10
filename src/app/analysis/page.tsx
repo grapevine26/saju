@@ -24,6 +24,25 @@ import UpgradeModal from "@/components/UpgradeModal";
 import PaymentModal from "@/components/PaymentModal";
 import { createClient } from '@/utils/supabase/client';
 
+const C = {
+  bg: '#0A090C',
+  accent: '#D8485E',
+  accentBright: '#F06A7E',
+  accentSoft: 'rgba(216,72,94,0.10)',
+  accentBorder: 'rgba(216,72,94,0.35)',
+  ink: '#F0EAEB',
+  sub: '#9C9199',
+  muted: '#5F565D',
+  line: 'rgba(240,234,235,0.13)',
+  lineSoft: 'rgba(240,234,235,0.07)',
+  card: 'rgba(240,234,235,0.04)',
+  cardBorder: 'rgba(240,234,235,0.10)',
+  btnBg: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)',
+  btnInk: '#FFF0F2',
+  btnShadow: '0 6px 30px rgba(216,72,94,0.30)',
+  serif: "'Noto Serif KR', serif",
+  r: 14,
+};
 
 export default function AnalysisPage() {
     const router = useRouter();
@@ -103,6 +122,12 @@ export default function AnalysisPage() {
                 breakupDate,
                 breakupReason
             }));
+
+            if (isDev) {
+                const dummyPaymentKey = `dev_payment_key_${Date.now()}`;
+                window.location.href = `/payment/success?paymentKey=${dummyPaymentKey}&orderId=${orderId}&amount=${amount}`;
+                return;
+            }
 
             const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
             const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
@@ -238,7 +263,7 @@ export default function AnalysisPage() {
             const timer = setTimeout(() => {
                 // 1초가 지나도 값이 없으면 (진짜 유실된 경우) 튕김
                 toast.error("입력 데이터가 초기화되었습니다. 메인으로 돌아갑니다.");
-                router.push("/");
+                router.push("/saju");
             }, 1000);
             return () => clearTimeout(timer);
         }
@@ -309,7 +334,7 @@ export default function AnalysisPage() {
 
     const handleRestart = () => {
         resetAll();
-        router.push("/");
+        router.push("/saju");
     };
 
     const handleUpgradeClick = () => {
@@ -320,9 +345,13 @@ export default function AnalysisPage() {
     // 에러 화면
     if (error) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
+            <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }} className="flex flex-col items-center justify-center p-6 text-center">
                 <p className="text-rose-400 mb-4 font-medium">{error}</p>
-                <button onClick={handleRestart} className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium hover:bg-white/15 transition-colors">
+                <button
+                    onClick={handleRestart}
+                    style={{ background: C.card, border: `1px solid ${C.cardBorder}`, color: C.sub, borderRadius: C.r }}
+                    className="px-6 py-3 font-medium hover:opacity-80 transition-opacity"
+                >
                     돌아가기
                 </button>
             </div>
@@ -332,26 +361,27 @@ export default function AnalysisPage() {
     // 로딩 화면
     if (!result) {
         return (
-            <div className="flex flex-col items-center justify-center min-h-screen p-6 selection:bg-amber-900/50">
+            <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }} className="flex flex-col items-center justify-center p-6">
                 <motion.div
                     animate={{ rotate: 360 }}
                     transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
                     className="relative w-32 h-32 mb-12 flex items-center justify-center"
                 >
-                    <div className="absolute inset-0 w-full h-full border border-white/5 rounded-full border-dashed" />
-                    <div className="absolute top-0 w-3 h-3 bg-amber-500 rounded-full blur-[2px]" />
+                    <div style={{ border: `1px dashed ${C.lineSoft}` }} className="absolute inset-0 w-full h-full rounded-full" />
+                    <div style={{ background: C.accentBright }} className="absolute top-0 w-3 h-3 rounded-full blur-[2px]" />
                     <div className="absolute bottom-0 w-3 h-3 bg-indigo-500 rounded-full blur-[2px]" />
                     <div className="absolute left-0 w-3 h-3 bg-rose-500 rounded-full blur-[2px]" />
                     <div className="absolute right-0 w-3 h-3 bg-purple-500 rounded-full blur-[2px]" />
-                    <div className="w-12 h-12 bg-gradient-to-tr from-amber-500 to-rose-500 rounded-full animate-pulse shadow-[0_0_30px_rgba(245,158,11,0.4)]" />
+                    <div className="w-12 h-12 rounded-full animate-pulse" style={{ background: C.btnBg, boxShadow: '0 0 30px rgba(216,72,94,0.4)' }} />
                 </motion.div>
 
                 <div className="space-y-3 text-center">
                     <h2 className="text-2xl font-bold">
-                        <span className="text-gradient-gold">두 사람의 인연을 분석하는 중</span> 🔮
+                        <span style={{ background: `linear-gradient(135deg, ${C.accentBright}, ${C.accent})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>두 사람의 인연을 분석하는 중</span> 🔮
                     </h2>
                     <motion.p
-                        className="text-slate-500 text-sm font-medium"
+                        style={{ color: C.muted }}
+                        className="text-sm font-medium"
                         animate={{ opacity: [0.3, 1, 0.3] }}
                         transition={{ repeat: Infinity, duration: 2 }}
                     >
@@ -366,12 +396,33 @@ export default function AnalysisPage() {
     const compatibility = result.compatibility;
 
     return (
-        <div className="min-h-screen pb-24 relative">
-            <header className={`fixed top-0 left-0 right-0 max-w-[480px] mx-auto flex items-center justify-between p-4 bg-[#0a0e1a]/90 backdrop-blur-md z-50 border-b border-white/5 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
-                <Link href="/" className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full transition-colors">
+        <div style={{ background: C.bg, minHeight: '100dvh', paddingBottom: 96, color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
+            <header
+                style={{
+                    position: 'fixed',
+                    top: 0,
+                    left: 0,
+                    right: 0,
+                    maxWidth: 480,
+                    margin: '0 auto',
+                    background: 'rgba(10,9,12,0.90)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    borderBottom: `1px solid ${C.lineSoft}`,
+                    zIndex: 50,
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    padding: '0 16px',
+                    height: 56,
+                    transform: showHeader ? 'translateY(0)' : 'translateY(-100%)',
+                    transition: 'transform 300ms',
+                }}
+            >
+                <Link href="/saju" style={{ color: C.sub, display: 'flex', padding: 8, marginLeft: -8, borderRadius: 9999 }} className="hover:opacity-80 transition-opacity">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
-                <span className="font-semibold text-white">분석 리포트</span>
+                <span style={{ position: 'absolute', left: '50%', transform: 'translateX(-50%)', fontWeight: 600, color: C.ink }}>분석 리포트</span>
             </header>
 
             <main className="p-6 pt-20 space-y-8">
@@ -381,18 +432,19 @@ export default function AnalysisPage() {
                     initial={{ scale: 0.8, opacity: 0 }}
                     animate={{ scale: 1, opacity: 1 }}
                     transition={{ type: "spring", damping: 15 }}
-                    className="glass-card p-8 text-center"
+                    style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r }}
+                    className="p-8 text-center"
                 >
-                    <p className="text-sm text-slate-500 mb-1 font-medium">
+                    <p style={{ color: C.sub }} className="text-sm mb-1 font-medium">
                         {name || "나"} ✕ {partnerName || "그 사람"}
                     </p>
                     <ReunionGauge score={result.reunionScore || compatibility.reunionScore} />
 
-                    <div className="mt-6 pt-5 border-t border-white/5">
-                        <p className="text-xs font-bold text-amber-500 bg-amber-500/10 inline-block px-3 py-1 rounded-full mb-3">
+                    <div style={{ borderTop: `1px solid ${C.lineSoft}` }} className="mt-6 pt-5">
+                        <p className="text-xs font-bold inline-block px-3 py-1 rounded-full mb-3" style={{ color: C.accentBright, background: C.accentSoft }}>
                             {result.reunionKeyword}
                         </p>
-                        <p className="text-sm text-slate-400 leading-relaxed font-medium">
+                        <p style={{ color: C.sub }} className="text-sm leading-relaxed font-medium">
                             {result.summary}
                         </p>
                     </div>
@@ -404,8 +456,8 @@ export default function AnalysisPage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.2 }}
                 >
-                    <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-amber-400" />
+                    <h2 style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Sparkles className="w-4 h-4" style={{ color: C.accentBright }} />
                         관계 에너지 분석
                     </h2>
                     <CompatibilityChart
@@ -428,20 +480,20 @@ export default function AnalysisPage() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.25 }}
                     >
-                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                        <h2 style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
                             <Heart className="w-4 h-4 text-rose-400" />
                             두 사람의 관계 본질
                         </h2>
-                        <div className="glass-card p-5 space-y-4">
+                        <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r }} className="p-5 space-y-4">
                             {result.essenceAnalysis.subtitle && (
                                 <div className="flex items-start gap-2">
                                     <span className="text-lg">✨</span>
-                                    <p className="text-[15px] font-bold text-amber-400 leading-snug">
+                                    <p style={{ color: C.accentBright }} className="text-[15px] font-bold leading-snug">
                                         {result.essenceAnalysis.subtitle}
                                     </p>
                                 </div>
                             )}
-                            <div className="text-slate-300 text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
+                            <div style={{ color: C.ink }} className="text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
                                 {result.essenceAnalysis.content}
                             </div>
                         </div>
@@ -454,26 +506,34 @@ export default function AnalysisPage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.28 }}
                 >
-                    <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        {isPremium ? <Sparkles className="w-4 h-4 text-amber-400" /> : <Lock className="w-4 h-4 text-rose-400" />}
+                    <h2 style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        {isPremium ? <Sparkles className="w-4 h-4" style={{ color: C.accentBright }} /> : <Lock className="w-4 h-4 text-rose-400" />}
                         {isPremium ? "핵심 행동 지침 요약" : "핵심 행동 지침"}
                     </h2>
-                    <div className={`glass-card p-5 relative overflow-hidden ${isPremium ? 'border-amber-500/30 shadow-[0_0_20px_rgba(245,158,11,0.05)]' : 'border-rose-500/20 shadow-[0_0_20px_rgba(225,29,72,0.05)]'}`}>
+                    <div
+                        style={{
+                            background: C.card,
+                            border: `1px solid ${isPremium ? C.accentBorder : 'rgba(225,29,72,0.20)'}`,
+                            borderRadius: C.r,
+                            boxShadow: isPremium ? '0 0 20px rgba(216,72,94,0.05)' : '0 0 20px rgba(225,29,72,0.05)',
+                        }}
+                        className="p-5 relative overflow-hidden"
+                    >
                         {!isPremium && <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />}
-                        {isPremium && <div className="absolute top-0 right-0 w-24 h-24 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />}
-                        <div className="text-[14px] leading-[1.8] text-slate-300 font-medium whitespace-pre-wrap break-keep relative z-10">
+                        {isPremium && <div style={{ background: C.accentSoft }} className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl pointer-events-none" />}
+                        <div style={{ color: C.ink }} className="text-[14px] leading-[1.8] font-medium whitespace-pre-wrap break-keep relative z-10">
                             {(result.secretTeaser || `분석 결과, 두 사람의 재회 타이밍은 앞으로 [BLUR]1개월 내[/BLUR]에 찾아옵니다. 이때 상대방의 감정 변화는 [BLUR]그리움과 미련[/BLUR] 상태로 접어들며, 먼저 연락을 [BLUR]기다리는[/BLUR] 것이 핵심 전략입니다.`).split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part: string, i: number) => {
                                 if (part.startsWith('[BLUR]') && part.endsWith('[/BLUR]')) {
                                     const blurredText = part.replace('[BLUR]', '').replace('[/BLUR]', '');
                                     return isPremium ? (
-                                        <span key={i} className="text-amber-400 font-bold mx-1">
+                                        <span key={i} style={{ color: C.accentBright, fontWeight: 700 }} className="mx-1">
                                             {blurredText || '절대하면안되는행동'}
                                         </span>
                                     ) : (
                                         <span key={i} className="inline-flex relative mx-1 align-middle translate-y-[-1px]">
                                             <span className="blur-[4px] select-none opacity-60 bg-slate-700 text-transparent rounded px-2">{blurredText || '절대하면안되는행동'}</span>
                                             <span className="absolute inset-0 flex items-center justify-center">
-                                                <Lock className="w-3.5 h-3.5 text-amber-400 drop-shadow-md" />
+                                                <Lock style={{ color: C.accentBright }} className="w-3.5 h-3.5 drop-shadow-md" />
                                             </span>
                                         </span>
                                     );
@@ -484,7 +544,8 @@ export default function AnalysisPage() {
                         {!isPremium && (
                             <button
                                 onClick={handleUpgradeClick}
-                                className="mt-5 w-full bg-white/5 border border-amber-500/30 text-amber-400 hover:bg-amber-500/10 font-bold py-3.5 rounded-xl flex justify-center items-center gap-2 transition-all text-[14px] active:scale-[0.98] relative z-10"
+                                style={{ background: C.accentSoft, border: `1px solid ${C.accentBorder}`, color: C.accentBright, borderRadius: 12 }}
+                                className="mt-5 w-full hover:opacity-80 font-bold py-3.5 flex justify-center items-center gap-2 transition-all text-[14px] active:scale-[0.98] relative z-10"
                             >
                                 <Lock className="w-4 h-4" />
                                 가려진 내용 확인하기
@@ -499,8 +560,8 @@ export default function AnalysisPage() {
                     animate={{ y: 0, opacity: 1 }}
                     transition={{ delay: 0.3 }}
                 >
-                    <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                        <Sparkles className="w-4 h-4 text-amber-400" />
+                    <h2 style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                        <Sparkles className="w-4 h-4" style={{ color: C.accentBright }} />
                         재회 전략 리포트
                     </h2>
                     <SajuAccordion
@@ -517,8 +578,8 @@ export default function AnalysisPage() {
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4 }}
                     >
-                        <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                            <CalendarHeart className="w-4 h-4 text-amber-400" />
+                        <h2 style={{ fontSize: 15, fontWeight: 700, color: C.ink, marginBottom: 16, display: 'flex', alignItems: 'center', gap: 8 }}>
+                            <CalendarHeart className="w-4 h-4" style={{ color: C.accentBright }} />
                             골든 윈도우 캘린더
                         </h2>
                         <GoldenWindowTimeline
@@ -534,19 +595,18 @@ export default function AnalysisPage() {
                         {/* 월별 에너지 흐름 카드 UI */}
                         {result.goldenWindows.monthlyEnergies && result.goldenWindows.monthlyEnergies.length > 0 && (
                             <div className="mt-8">
-                                <h3 className="text-sm font-bold text-slate-300 mb-4 px-2 tracking-tight">
-                                    월별 에너지 흐름
-                                </h3>
+                                <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16, paddingLeft: 8 }}>
+                                    <Sparkles className="w-4 h-4 flex-shrink-0" style={{ color: C.accentBright }} />
+                                    <h3 style={{ fontSize: 14, fontWeight: 700, color: C.ink, margin: 0 }} className="tracking-tight">월별 에너지 흐름</h3>
+                                </div>
                                 <MonthlyEnergyFlow energies={result.goldenWindows.monthlyEnergies} />
                             </div>
                         )}
 
-
-
                         {/* 장기 전략 로드맵 3단계 타임라인 UI */}
                         {result.goldenWindows.roadmapStages && result.goldenWindows.roadmapStages.length > 0 && (
                             <div className="mt-10 mb-2 p-1">
-                                <h3 className="text-sm font-bold text-slate-300 mb-5 px-1 tracking-tight flex items-center gap-2">
+                                <h3 style={{ fontSize: 14, fontWeight: 700, color: C.ink, marginBottom: 20, paddingLeft: 4 }} className="tracking-tight flex items-center gap-2">
                                     <Route className="w-4 h-4 text-emerald-400" />
                                     장기 전략 로드맵
                                 </h3>
@@ -569,24 +629,25 @@ export default function AnalysisPage() {
                         initial={{ y: 30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.4 }}
-                        className="glass-card py-10 px-6 text-center relative overflow-hidden my-8 min-h-[420px] flex flex-col items-center justify-center"
+                        style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r }}
+                        className="py-10 px-6 text-center relative overflow-hidden my-8 min-h-[420px] flex flex-col items-center justify-center"
                     >
-                        <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0e1a]/90 z-10" />
+                        <div style={{ background: `linear-gradient(to bottom, transparent, rgba(10,9,12,0.90))` }} className="absolute inset-0 z-10" />
                         <div className="absolute inset-0 z-0 opacity-30 pointer-events-none flex flex-col items-center justify-center w-full px-6">
-                            <div className="h-6 bg-white/5 rounded-lg mb-4 w-3/4" />
-                            <div className="h-4 bg-white/5 rounded-lg mb-6 w-1/2" />
+                            <div style={{ background: C.lineSoft }} className="h-6 rounded-lg mb-4 w-3/4" />
+                            <div style={{ background: C.lineSoft }} className="h-4 rounded-lg mb-6 w-1/2" />
                             <div className="space-y-3 w-full">
                                 {[...Array(6)].map((_, i) => (
-                                    <div key={i} className="h-8 bg-white/5 rounded-lg w-full" />
+                                    <div key={i} style={{ background: C.lineSoft }} className="h-8 rounded-lg w-full" />
                                 ))}
                             </div>
                         </div>
                         <div className="relative z-20 flex flex-col items-center justify-center w-full">
-                            <Lock className="w-10 h-10 text-amber-400 mb-6 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
-                            <h3 className="text-[19px] font-bold text-white mb-6 tracking-tight">프리미엄 재회 전략</h3>
-                            <ul className="text-[14px] text-slate-300 mb-8 space-y-3.5 text-center font-medium bg-white/5 py-6 px-6 rounded-2xl border border-white/10 w-full max-w-[90%] shadow-inner">
+                            <Lock style={{ color: C.accentBright }} className="w-10 h-10 mb-6 drop-shadow-[0_0_12px_rgba(216,72,94,0.6)]" />
+                            <h3 style={{ color: C.ink }} className="text-[19px] font-bold mb-6 tracking-tight">프리미엄 재회 전략</h3>
+                            <ul style={{ color: C.ink, background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 16 }} className="text-[14px] mb-8 space-y-3.5 text-center font-medium py-6 px-6 w-full max-w-[90%] shadow-inner">
                                 <li className="flex items-center gap-2 justify-center"><Heart className="w-4 h-4 text-rose-400" /> 재회 전략 리포트 전체 공개</li>
-                                <li className="flex items-center gap-2 justify-center"><CalendarHeart className="w-4 h-4 text-amber-500" /> 연락 최적기 <strong>골든 윈도우 캘린더</strong></li>
+                                <li className="flex items-center gap-2 justify-center"><CalendarHeart className="w-4 h-4" style={{ color: C.accentBright }} /> 연락 최적기 <strong>골든 윈도우 캘린더</strong></li>
                                 <li className="flex items-center gap-2 justify-center"><Sparkles className="w-4 h-4 text-indigo-400" /> 향후 6개월의 <strong>월별 에너지 흐름</strong></li>
                                 <li className="flex items-center gap-2 justify-center"><Route className="w-4 h-4 text-emerald-400" /> 재회 골인 <strong>3단계 장기 로드맵</strong></li>
                             </ul>
@@ -603,16 +664,17 @@ export default function AnalysisPage() {
                         className="relative mt-4"
                     >
                         {/* 배경 글로우 효과 */}
-                        <div className="absolute -inset-3 bg-gradient-to-br from-amber-500/8 via-rose-500/6 to-purple-500/5 rounded-3xl blur-2xl animate-soft-glow pointer-events-none" />
+                        <div className="absolute -inset-3 bg-gradient-to-br from-[rgba(216,72,94,0.08)] via-rose-500/6 to-purple-500/5 rounded-3xl blur-2xl animate-soft-glow pointer-events-none" />
 
                         <div
-                            className="relative overflow-hidden rounded-2xl border border-amber-500/15"
+                            className="relative overflow-hidden rounded-2xl"
                             style={{
-                                background: 'linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(244,63,94,0.04) 40%, rgba(15,23,42,0.95) 100%)',
+                                border: `1px solid ${C.accentBorder}`,
+                                background: 'linear-gradient(165deg, rgba(216,72,94,0.06) 0%, rgba(240,106,126,0.04) 40%, rgba(10,9,12,0.95) 100%)',
                             }}
                         >
                             {/* 상단 은은한 빛 라인 */}
-                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+                            <div style={{ background: `linear-gradient(to right, transparent, rgba(240,106,126,0.30), transparent)` }} className="absolute top-0 left-0 right-0 h-px" />
 
                             <div className="p-7 sm:p-8">
                                 {/* 하트 아이콘 + 타이틀 */}
@@ -626,49 +688,49 @@ export default function AnalysisPage() {
                                             />
                                         </div>
                                     </div>
-                                    <p className="text-[13px] font-bold tracking-widest text-amber-400/80 uppercase">
+                                    <p style={{ color: C.accentBright, opacity: 0.8 }} className="text-[13px] font-bold tracking-widest uppercase">
                                         💌 [다시, 우리]가 당신을 응원합니다
                                     </p>
                                 </div>
 
                                 {/* 감성 위로 메시지 본문 */}
                                 <div className="space-y-4 text-center">
-                                    <p className="text-[15px] sm:text-[16px] leading-[2] text-slate-300 font-medium break-keep">
+                                    <p style={{ color: C.ink }} className="text-[15px] sm:text-[16px] leading-[2] font-medium break-keep">
                                         얼마나 잠 못 이루며<br className="sm:hidden" /> 불안한 밤들을 보내셨나요.
                                     </p>
-                                    <p className="text-[14px] sm:text-[15px] leading-[2] text-slate-400 font-medium break-keep">
+                                    <p style={{ color: C.sub }} className="text-[14px] sm:text-[15px] leading-[2] font-medium break-keep">
                                         어쩌면 그 사람도<br className="sm:hidden" /> 당신과 똑같이 고민하고 있을지도 모릅니다.
                                     </p>
-                                    <p className="text-[14px] sm:text-[15px] leading-[2] text-slate-400 font-medium break-keep">
+                                    <p style={{ color: C.sub }} className="text-[14px] sm:text-[15px] leading-[2] font-medium break-keep">
                                         오늘부터는 너무 아파하지만 말고,<br />
                                         당신의 삶을 단단하게 만드세요.
                                     </p>
 
                                     {/* 구분선 */}
                                     <div className="flex items-center justify-center gap-3 py-2">
-                                        <div className="w-8 h-px bg-gradient-to-r from-transparent to-amber-500/30" />
-                                        <Sparkles className="w-3.5 h-3.5 text-amber-500/50" />
-                                        <div className="w-8 h-px bg-gradient-to-l from-transparent to-amber-500/30" />
+                                        <div style={{ background: `linear-gradient(to right, transparent, rgba(240,106,126,0.30))` }} className="w-8 h-px" />
+                                        <Sparkles style={{ color: `rgba(240,106,126,0.50)` }} className="w-3.5 h-3.5" />
+                                        <div style={{ background: `linear-gradient(to left, transparent, rgba(240,106,126,0.30))` }} className="w-8 h-px" />
                                     </div>
 
-                                    <p className="text-[14px] sm:text-[15px] leading-[2] text-slate-300/90 font-medium break-keep">
+                                    <p style={{ color: C.ink, opacity: 0.9 }} className="text-[14px] sm:text-[15px] leading-[2] font-medium break-keep">
                                         저희가 찾아드린 이 골든 윈도우가<br />
                                         두 사람을 다시 이어주는<br />
-                                        <span className="text-amber-400 font-bold">튼튼한 다리</span>가 되기를<br />
+                                        <span style={{ color: C.accentBright, fontWeight: 700 }}>튼튼한 다리</span>가 되기를<br />
                                         진심으로 기도합니다.
                                     </p>
                                 </div>
 
                                 {/* 하단 서명 */}
-                                <div className="mt-7 pt-5 border-t border-white/5 text-center">
-                                    <p className="text-[12px] text-slate-500 font-medium tracking-wide">
+                                <div style={{ borderTop: `1px solid ${C.lineSoft}` }} className="mt-7 pt-5 text-center">
+                                    <p style={{ color: C.muted }} className="text-[12px] font-medium tracking-wide">
                                         — 다시, 우리 —
                                     </p>
                                 </div>
                             </div>
 
                             {/* 하단 은은한 빛 라인 */}
-                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-400/20 to-transparent" />
+                            <div style={{ background: `linear-gradient(to right, transparent, rgba(244,63,94,0.20), transparent)` }} className="absolute bottom-0 left-0 right-0 h-px" />
                         </div>
                     </motion.div>
                 )}
@@ -677,11 +739,27 @@ export default function AnalysisPage() {
             </main>
 
             {/* 하단 버튼 */}
-            <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-[#0a0e1a]/90 backdrop-blur-md pb-6 border-t border-white/5 z-50">
+            <div
+                style={{
+                    position: 'fixed',
+                    bottom: 0,
+                    left: 0,
+                    right: 0,
+                    maxWidth: 480,
+                    margin: '0 auto',
+                    background: 'rgba(10,9,12,0.92)',
+                    backdropFilter: 'blur(12px)',
+                    WebkitBackdropFilter: 'blur(12px)',
+                    borderTop: `1px solid ${C.lineSoft}`,
+                    zIndex: 50,
+                    padding: '16px 16px 24px',
+                }}
+            >
                 {isPremium ? (
                     <button
                         onClick={handleRestart}
-                        className="w-full bg-white/5 border border-white/10 text-slate-300 active:bg-white/10 font-semibold py-4 rounded-2xl flex justify-center items-center gap-2 transition-all active:scale-[0.98]"
+                        style={{ background: C.card, border: `1px solid ${C.cardBorder}`, color: C.ink, borderRadius: 16 }}
+                        className="w-full active:opacity-80 font-semibold py-4 flex justify-center items-center gap-2 transition-all active:scale-[0.98]"
                     >
                         <RefreshCcw className="w-5 h-5" />
                         새로운 분석 시작
@@ -689,7 +767,8 @@ export default function AnalysisPage() {
                 ) : isPremiumPending ? (
                     <button
                         disabled
-                        className="w-full bg-white/10 border border-white/20 text-white font-semibold py-4 rounded-2xl flex justify-center items-center gap-2"
+                        style={{ background: C.card, border: `1px solid ${C.cardBorder}`, color: C.ink, borderRadius: 16 }}
+                        className="w-full font-semibold py-4 flex justify-center items-center gap-2"
                     >
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
                             <RefreshCcw className="w-5 h-5 opacity-70" />
@@ -700,12 +779,13 @@ export default function AnalysisPage() {
                     <button
                         onClick={handleUpgradeClick}
                         disabled={isUpgrading}
-                        className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-4 rounded-2xl flex flex-col items-center gap-1 shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] disabled:opacity-50"
+                        style={{ background: C.btnBg, color: C.btnInk, boxShadow: C.btnShadow, borderRadius: 16 }}
+                        className="w-full font-bold py-4 flex flex-col items-center gap-1 transition-all active:scale-[0.98] disabled:opacity-50"
                     >
                         {isUpgrading ? <span>요청 중...</span> : (
                             <>
                                 <span className="text-[15px]">Premium 심층 리포트 즉시 열람하기</span>
-                                <span className="text-[12px] font-bold text-amber-100/90 tracking-wider">
+                                <span className="text-[12px] font-bold tracking-wider" style={{ opacity: 0.85 }}>
                                     <span className="line-through opacity-70 mr-1">39,900원</span>13,900원 (~{discountEndsAt} 마감)
                                 </span>
                             </>

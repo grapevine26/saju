@@ -7,32 +7,41 @@ export async function POST(req: Request) {
         const body = await req.json();
         const { paymentKey, orderId, amount, payload } = body;
 
-        const secretKey = process.env.TOSS_SECRET_KEY;
+        let data: any = { method: "CARD", status: "DONE" };
+        const isDev = process.env.NODE_ENV === 'development';
 
-        if (!secretKey) {
-            console.error("TOSS_SECRET_KEY is not set.");
-            return NextResponse.json({ success: false, message: '서버 설정 오류' }, { status: 500 });
-        }
+        if (isDev) {
+            console.log("=================================================");
+            console.log("[DEV MODE] Toss Payments 승인 우회 (가짜 결제 승인 완료)");
+            console.log("orderId:", orderId);
+            console.log("amount:", amount);
+            console.log("=================================================");
+        } else {
+            const secretKey = process.env.TOSS_SECRET_KEY;
+            if (!secretKey) {
+                console.error("TOSS_SECRET_KEY is not set.");
+                return NextResponse.json({ success: false, message: '서버 설정 오류' }, { status: 500 });
+            }
+            const encryptedSecretKey = Buffer.from(`${secretKey}:`).toString("base64");
 
-        const encryptedSecretKey = Buffer.from(`${secretKey}:`).toString("base64");
+            const response = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
+                method: "POST",
+                headers: {
+                    Authorization: `Basic ${encryptedSecretKey}`,
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({
+                    paymentKey,
+                    orderId,
+                    amount,
+                }),
+            });
 
-        const response = await fetch("https://api.tosspayments.com/v1/payments/confirm", {
-            method: "POST",
-            headers: {
-                Authorization: `Basic ${encryptedSecretKey}`,
-                "Content-Type": "application/json",
-            },
-            body: JSON.stringify({
-                paymentKey,
-                orderId,
-                amount,
-            }),
-        });
+            data = await response.json();
 
-        const data = await response.json();
-
-        if (!response.ok) {
-            return NextResponse.json({ success: false, message: data.message || "결제 승인 실패", code: data.code }, { status: response.status });
+            if (!response.ok) {
+                return NextResponse.json({ success: false, message: data.message || "결제 승인 실패", code: data.code }, { status: response.status });
+            }
         }
 
         // 결제 성공 시점에 바로 작업을 생성하고 백그라운드 이벤트 발송 (결제 우회 원천 차단)

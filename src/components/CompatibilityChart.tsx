@@ -32,8 +32,8 @@ const ScoreBar = ({ label, score, color, icon: Icon, delay }: {
         </div>
         <div className="flex-1">
             <div className="flex justify-between items-center mb-1.5">
-                <span className="text-xs font-semibold text-slate-400">{label}</span>
-                <span className="text-xs font-bold text-slate-300">{score}</span>
+                <span className="text-xs font-semibold text-[var(--text-secondary)]">{label}</span>
+                <span className="text-xs font-bold text-[var(--text-primary)]">{score}</span>
             </div>
             <div className="h-2 bg-white/5 rounded-full overflow-hidden">
                 <motion.div
@@ -42,7 +42,7 @@ const ScoreBar = ({ label, score, color, icon: Icon, delay }: {
                     transition={{ delay: delay + 0.3, duration: 1, ease: "easeOut" }}
                     className={`h-full rounded-full ${
                         label === '갈등 지수' ? 'bg-gradient-to-r from-rose-500 to-red-400'
-                        : label === '끌림 지수' ? 'bg-gradient-to-r from-amber-500 to-yellow-400'
+                        : label === '끌림 지수' ? 'bg-gradient-to-r from-[#F06A7E] to-[#D8485E]'
                         : 'bg-gradient-to-r from-indigo-500 to-purple-400'
                     }`}
                 />
@@ -60,34 +60,34 @@ export default function CompatibilityChart({
         <div className="space-y-6">
             {/* 점수 바 */}
             <div className="glass-card p-5 space-y-4">
-                <h3 className="text-sm font-bold text-slate-300 mb-3">관계 에너지 분석</h3>
-                <ScoreBar label="끌림 지수" score={attractionScore} color="bg-amber-500/20 text-amber-400" icon={Heart} delay={0} />
+                <h3 className="text-sm font-bold text-[var(--text-secondary)] mb-3">관계 에너지 분석</h3>
+                <ScoreBar label="끌림 지수" score={attractionScore} color="bg-[var(--accent-soft)] text-[var(--accent-gold)]" icon={Heart} delay={0} />
                 <ScoreBar label="오행 보완도" score={complementScore} color="bg-indigo-500/20 text-indigo-400" icon={Shield} delay={0.1} />
                 <ScoreBar label="갈등 지수" score={conflictScore} color="bg-rose-500/20 text-rose-400" icon={Zap} delay={0.2} />
             </div>
 
             {/* 일주 관계 */}
             <div className="glass-card p-5">
-                <h3 className="text-sm font-bold text-slate-300 mb-3">핵심 관계 요약</h3>
+                <h3 className="text-sm font-bold text-[var(--text-secondary)] mb-3">핵심 관계 요약</h3>
                 <div className="space-y-2">
-                    <p className="text-sm text-slate-400 leading-relaxed">🌟 {dayMasterRelation}</p>
-                    <p className="text-sm text-slate-400 leading-relaxed">💑 {spouseHouseRelation}</p>
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">🌟 {dayMasterRelation}</p>
+                    <p className="text-sm text-[var(--text-secondary)] leading-relaxed">💑 {spouseHouseRelation}</p>
                 </div>
             </div>
 
             {/* 합/충 목록 */}
             {(hapList.length > 0 || chungList.length > 0 || hyeongList.length > 0 || haeList.length > 0) && (
                 <div className="glass-card p-5">
-                    <h3 className="text-sm font-bold text-slate-300 mb-3">합(合)·충(沖) 관계도</h3>
+                    <h3 className="text-sm font-bold text-[var(--text-secondary)] mb-3">합(合)·충(沖) 관계도</h3>
                     <div className="grid grid-cols-2 gap-3">
                         {hapList.length > 0 && (
-                            <div className="bg-amber-500/10 border border-amber-500/20 rounded-xl p-3">
+                            <div className="bg-[var(--accent-soft)] border border-[var(--accent-border)] rounded-xl p-3">
                                 <div className="flex items-center gap-1.5 mb-2">
-                                    <Heart className="w-3.5 h-3.5 text-amber-400" />
-                                    <span className="text-xs font-bold text-amber-400">합 (끌림)</span>
+                                    <Heart className="w-3.5 h-3.5 text-[var(--accent-gold)]" />
+                                    <span className="text-xs font-bold text-[var(--accent-gold)]">합 (끌림)</span>
                                 </div>
                                 {hapList.map((h, i) => (
-                                    <p key={i} className="text-xs text-amber-300/80 leading-relaxed">{h.description}</p>
+                                    <p key={i} className="text-xs text-[var(--accent-gold)] leading-relaxed" style={{opacity:0.8}}>{h.description}</p>
                                 ))}
                             </div>
                         )}

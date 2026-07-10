@@ -3,19 +3,20 @@ import { Toaster } from "react-hot-toast";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "다시, 우리 | 프리미엄 재회 컨설팅 🔮",
-  description: "사주 데이터 분석을 통한 정밀한 재회 가능성 진단. 최적의 연락 타이밍과 전략을 알려드립니다.",
+  metadataBase: new URL("https://dasisaju.com"),
+  title: "묘연 妙緣 | 재회 사주 · 연애 타로 · 작명",
+  description: "닿을 듯 닿지 않는 인연의 실마리를 읽습니다. 재회 사주 '다시, 우리', 연애 타로 'ODD TAROT', 작명소 '윤명' — 세 가지 길로 당신의 인연을 비춥니다.",
   openGraph: {
-    title: "다시, 우리 | 프리미엄 재회 컨설팅 🔮",
-    description: "사주 데이터 기반, 연락 최적기와 성공 전략을 알려드립니다.",
+    title: "묘연 妙緣 | 재회 사주 · 연애 타로 · 작명",
+    description: "재회 사주 · 연애 타로 · 정통 성명학 작명. 세 가지 길로 당신의 인연을 비춥니다.",
     url: "https://dasisaju.com",
-    siteName: "다시, 우리",
+    siteName: "묘연",
     images: [
       {
         url: "/og-image.png", // 퍼블릭 폴더에 위치할 이미지
         width: 1200,
         height: 630,
-        alt: "다시, 우리 서비스 썸네일",
+        alt: "묘연 서비스 썸네일",
       },
     ],
     locale: "ko_KR",
@@ -23,8 +24,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "다시, 우리 | 프리미엄 재회 컨설팅 🔮",
-    description: "사주 데이터 기반, 연락 최적기와 성공 전략을 알려드립니다.",
+    title: "묘연 妙緣 | 재회 사주 · 연애 타로 · 작명",
+    description: "재회 사주 · 연애 타로 · 정통 성명학 작명. 세 가지 길로 당신의 인연을 비춥니다.",
     images: ["/og-image.png"],
   },
   icons: {
@@ -55,7 +56,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet" />
       </head>
-      <body className="antialiased flex justify-center min-h-screen bg-[#0a0e1a]">
+      <body className="antialiased flex justify-center min-h-screen" style={{background:'radial-gradient(ellipse 1200px 700px at 50% 10%, #1E0C12 0%, #0F080B 45%, #0A090C 75%)'}}>
         <ChannelTalk />
         <Toaster
           position="top-center"

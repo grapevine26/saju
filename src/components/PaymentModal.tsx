@@ -53,15 +53,15 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                 animate={{ opacity: 1, y: 0 }}
                 exit={{ opacity: 0, y: "100%" }}
                 transition={{ type: "spring", damping: 25, stiffness: 300 }}
-                className="bg-[#0f1423] w-full max-w-[480px] rounded-t-3xl sm:rounded-2xl border-t sm:border border-white/10 flex flex-col max-h-[90vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden"
+                className="bg-[var(--bg-primary)] w-full max-w-[480px] rounded-t-3xl sm:rounded-2xl border-t sm:border border-[var(--border-glass)] flex flex-col max-h-[90vh] shadow-[0_-10px_40px_rgba(0,0,0,0.5)] relative overflow-hidden"
             >
                 {/* 배경 장식 */}
-                <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-amber-500/10 to-transparent pointer-events-none" />
+                <div className="absolute top-0 left-0 w-full h-40 bg-gradient-to-b from-[var(--accent-soft)] to-transparent pointer-events-none" />
 
                 {/* 헤더 */}
-                <div className="flex items-center justify-between p-5 border-b border-white/5 relative z-10">
-                    <h3 className="text-[18px] font-bold text-white tracking-tight">상세 분석 리포트 결제</h3>
-                    <button onClick={onClose} className="p-2 -mr-2 text-slate-400 hover:text-white rounded-full transition-colors bg-white/5">
+                <div className="flex items-center justify-between p-5 border-b border-[var(--line-soft)] relative z-10">
+                    <h3 className="text-[18px] font-bold text-[var(--text-primary)] tracking-tight">상세 분석 리포트 결제</h3>
+                    <button onClick={onClose} className="p-2 -mr-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors bg-[var(--bg-glass)]">
                         <X className="w-5 h-5" />
                     </button>
                 </div>
@@ -82,7 +82,7 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
 
                     {/* 이메일 입력 */}
                     <div className="space-y-2">
-                        <label className="text-[13px] font-bold text-slate-300 ml-1">
+                        <label className="text-[13px] font-bold text-[var(--text-primary)] ml-1">
                             이메일 주소 <span className="text-rose-400 text-[11px] font-medium">*필수</span>
                         </label>
                         <input
@@ -90,9 +90,9 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                             placeholder="example@email.com"
                             value={email}
                             onChange={(e) => setEmail(e.target.value)}
-                            className="w-full bg-[#0a0e1a]/50 border border-white/10 rounded-xl px-4 py-3.5 text-white text-[14px] placeholder:text-slate-600 focus:outline-none focus:border-amber-500/50 transition-colors"
+                            className="w-full bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-xl px-4 py-3.5 text-[var(--text-primary)] text-[14px] placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-border)] transition-colors"
                         />
-                        <p className="text-[11px] text-slate-500 ml-1">
+                        <p className="text-[11px] text-[var(--text-muted)] ml-1">
                             분석이 완료되면 해당 이메일로 링크를 보내드립니다.
                         </p>
                     </div>
@@ -100,8 +100,8 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                     {/* 패키지 리스트 */}
                     <div>
                         <div className="flex items-center gap-2 mb-3">
-                            <h4 className="text-slate-300 font-bold text-sm">패키지 선택</h4>
-                            <Gift className="w-4 h-4 text-amber-500" />
+                            <h4 className="text-[var(--text-primary)] font-bold text-sm">패키지 선택</h4>
+                            <Gift className="w-4 h-4 text-[var(--accent-gold)]" />
                         </div>
                         <div className="space-y-3">
                             {PACKAGES.map((pkg) => {
@@ -112,14 +112,14 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                                         onClick={() => setSelectedPkg(pkg.id)}
                                         className={`w-full text-left p-4 rounded-2xl border transition-all duration-200 relative overflow-hidden
                                             ${isSelected
-                                                ? 'bg-amber-500/10 border-amber-500 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
-                                                : 'bg-white/5 border-white/10 hover:border-white/20 hover:bg-white/10'
+                                                ? 'bg-[var(--accent-soft)] border-[var(--accent-gold)] shadow-[0_0_15px_rgba(216,72,94,0.15)]'
+                                                : 'bg-[var(--bg-glass)] border-[var(--border-glass)] hover:opacity-80'
                                             }
                                         `}
                                     >
                                         <div className="flex justify-between items-center">
                                             <div className="flex items-center gap-3">
-                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-amber-500 bg-amber-500' : 'border-slate-500'}`}>
+                                                <div className={`w-5 h-5 rounded-full border-2 flex items-center justify-center shrink-0 ${isSelected ? 'border-[var(--accent-gold)] bg-[var(--accent-gold)]' : 'border-[var(--text-muted)]'}`}>
                                                     {isSelected && <Check className="w-3 h-3 text-white" />}
                                                 </div>
                                                 <div>
@@ -130,7 +130,7 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                                                         )}
                                                     </div>
                                                     {pkg.subtitle && (
-                                                        <p className="text-[12px] text-slate-400 font-medium mt-1">{pkg.subtitle}</p>
+                                                        <p className="text-[12px] text-[var(--text-secondary)] font-medium mt-1">{pkg.subtitle}</p>
                                                     )}
                                                 </div>
                                             </div>
@@ -141,7 +141,7 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                                                         <span className="text-[12px] text-slate-500 line-through">{pkg.originalPrice.toLocaleString()}원</span>
                                                     </div>
                                                 )}
-                                                <div className={`text-[16px] font-bold ${isSelected ? 'text-amber-400' : 'text-slate-200'}`}>
+                                                <div className={`text-[16px] font-bold ${isSelected ? 'text-[var(--accent-gold)]' : 'text-[var(--text-primary)]'}`}>
                                                     {pkg.price.toLocaleString()}원
                                                 </div>
                                             </div>
@@ -153,10 +153,10 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                     </div>
 
                     {/* 결제 요약 */}
-                    <div className="bg-[#0a0e1a]/50 p-5 rounded-2xl border border-white/5 space-y-3">
+                    <div className="bg-[var(--bg-glass)] p-5 rounded-2xl border border-[var(--border-glass)] space-y-3">
                         <div className="flex justify-between items-center text-sm">
-                            <span className="text-slate-400 font-medium">상품 판매가</span>
-                            <span className="text-slate-300">{(currentPackage.originalPrice || currentPackage.price).toLocaleString()}원</span>
+                            <span className="text-[var(--text-secondary)] font-medium">상품 판매가</span>
+                            <span className="text-[var(--text-primary)]">{(currentPackage.originalPrice || currentPackage.price).toLocaleString()}원</span>
                         </div>
                         {totalDiscount > 0 && (
                             <div className="flex justify-between items-center text-sm">
@@ -164,9 +164,9 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                                 <span className="text-rose-400 font-bold">-{totalDiscount.toLocaleString()}원</span>
                             </div>
                         )}
-                        <div className="flex justify-between items-center pt-3 border-t border-white/5">
-                            <span className="text-white font-bold text-[15px]">최종 결제 금액</span>
-                            <span className="text-amber-400 font-bold text-[20px]">{currentPackage.price.toLocaleString()}원</span>
+                        <div className="flex justify-between items-center pt-3 border-t border-[var(--line-soft)]">
+                            <span className="text-[var(--text-primary)] font-bold text-[15px]">최종 결제 금액</span>
+                            <span className="text-[var(--accent-gold)] font-bold text-[20px]">{currentPackage.price.toLocaleString()}원</span>
                         </div>
                     </div>
 
@@ -175,10 +175,10 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                         <button
                             onClick={() => handlePaymentClick('general')}
                             disabled={!email || !email.includes('@')}
-                            className={`w-full py-4 rounded-[12px] flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all text-[16px] font-bold ${email && email.includes('@')
-                                ? 'bg-gradient-to-r from-amber-500 to-amber-600 text-white shadow-[0_8px_32px_rgba(245,158,11,0.3)]'
-                                : 'bg-white/5 text-slate-600 cursor-not-allowed border border-white/5'
-                                }`}
+                            className="w-full py-4 rounded-[12px] flex items-center justify-center gap-2 shadow-xl active:scale-[0.98] transition-all text-[16px] font-bold"
+                            style={email && email.includes('@')
+                                ? {background: 'var(--btn-bg)', color: 'var(--btn-ink)', boxShadow: 'var(--btn-shadow)'}
+                                : {background: 'var(--bg-glass)', color: 'var(--text-muted)', cursor: 'not-allowed', border: '1px solid var(--border-glass)'}}
                         >
                             <CreditCard className="w-5 h-5" />
                             {currentPackage.price.toLocaleString()}원 결제하기
@@ -187,8 +187,8 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
 
                     {/* 동의 안내 문구 */}
                     <div className="space-y-3 pb-8 text-center px-2">
-                        <p className="text-[11px] text-slate-500 leading-relaxed break-keep">
-                            결제 정보를 확인하였으며 <button onClick={() => setLegalModalType('privacy')} className="text-slate-400 font-bold underline underline-offset-2 hover:text-amber-400">개인정보 처리방침</button> 및 <button onClick={() => setLegalModalType('terms')} className="text-slate-400 font-bold underline underline-offset-2 hover:text-amber-400">이용약관</button>, <button onClick={() => setLegalModalType('refund')} className="text-slate-400 font-bold underline underline-offset-2 hover:text-amber-400">환불정책</button>에 동의합니다.
+                        <p className="text-[11px] text-[var(--text-muted)] leading-relaxed break-keep">
+                            결제 정보를 확인하였으며 <button onClick={() => setLegalModalType('privacy')} className="text-[var(--text-secondary)] font-bold underline underline-offset-2 hover:text-[var(--accent-gold)]">개인정보 처리방침</button> 및 <button onClick={() => setLegalModalType('terms')} className="text-[var(--text-secondary)] font-bold underline underline-offset-2 hover:text-[var(--accent-gold)]">이용약관</button>, <button onClick={() => setLegalModalType('refund')} className="text-[var(--text-secondary)] font-bold underline underline-offset-2 hover:text-[var(--accent-gold)]">환불정책</button>에 동의합니다.
                         </p>
                     </div>
 
@@ -202,7 +202,7 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         exit={{ opacity: 0 }}
-                        className="absolute inset-0 z-[110] flex items-center justify-center p-4 bg-[#0a0e1a]/95 backdrop-blur-sm"
+                        className="absolute inset-0 z-[110] flex items-center justify-center p-4 bg-[var(--bg-primary)]/95 backdrop-blur-sm"
                     >
                         <motion.div
                             initial={{ opacity: 0, scale: 0.95, y: 20 }}

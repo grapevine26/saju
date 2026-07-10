@@ -226,7 +226,7 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
     return (
         <div className="relative w-full" ref={wrapperRef}>
             <div className="relative flex items-center">
-                <Search className="absolute left-4 w-5 h-5 text-slate-400" />
+                <Search className="absolute left-4 w-5 h-5 text-[var(--text-muted)]" />
                 <input
                     type="text"
                     disabled={disabled}
@@ -238,12 +238,12 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
                     onFocus={() => setIsOpen(true)}
                     placeholder="태어난 도시 검색 (예: 서울, 부산, 대전)"
                     data-location-input={dataLocationInput || undefined}
-                    className="w-full p-4 pl-12 pr-12 rounded-xl bg-white border border-slate-200 outline-none focus:border-purple-500 focus:ring-1 focus:ring-purple-500 text-slate-900 font-medium disabled:opacity-50 disabled:bg-slate-100 transition-colors"
+                    className="w-full p-4 pl-12 pr-12 rounded-xl bg-[var(--bg-glass)] border border-[var(--border-glass)] outline-none focus:border-[var(--accent-border)] text-[var(--text-primary)] font-medium placeholder:text-[var(--text-muted)] disabled:opacity-50 transition-colors"
                 />
                 {!disabled && query && (
                     <button
                         onClick={handleClear}
-                        className="absolute right-4 p-1 text-slate-400 hover:text-slate-600 rounded-full hover:bg-slate-100 transition-colors focus:outline-none"
+                        className="absolute right-4 p-1 text-[var(--text-muted)] hover:text-[var(--text-secondary)] rounded-full hover:bg-[var(--bg-glass)] transition-colors focus:outline-none"
                     >
                         <X className="w-5 h-5" />
                     </button>
@@ -252,10 +252,10 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
 
             {/* 자동완성 드롭다운 결과 목록 */}
             {isOpen && query && query.trim().length >= 2 && !disabled && (
-                <div className="absolute z-50 w-full mt-2 bg-white border border-slate-200 shadow-xl rounded-xl overflow-hidden max-h-64 overflow-y-auto animate-fade-in-up">
+                <div className="absolute z-50 w-full mt-2 border border-[var(--border-glass)] shadow-2xl rounded-xl overflow-hidden max-h-64 overflow-y-auto animate-fade-in-up" style={{background:'var(--bg-primary)'}}>
                     {isLoading ? (
-                        <div className="p-4 flex items-center justify-center text-slate-500 text-sm">
-                            <span className="w-4 h-4 border-2 border-slate-300 border-t-purple-500 rounded-full animate-spin mr-2"></span>
+                        <div className="p-4 flex items-center justify-center text-[var(--text-muted)] text-sm">
+                            <span className="w-4 h-4 border-2 border-[var(--border-glass)] border-t-[var(--accent-gold)] rounded-full animate-spin mr-2"></span>
                             검색 중...
                         </div>
                     ) : results.length > 0 ? (
@@ -264,15 +264,15 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
                                 <li key={loc.id}>
                                     <button
                                         onClick={() => handleSelect(loc)}
-                                        className="w-full text-left px-4 py-3 hover:bg-purple-50 transition-colors flex items-start gap-3 border-b border-slate-50 last:border-0"
+                                        className="w-full text-left px-4 py-3 hover:bg-[var(--accent-soft)] transition-colors flex items-start gap-3 border-b border-[var(--line-soft)] last:border-0"
                                     >
-                                        <MapPin className="w-5 h-5 text-slate-400 mt-0.5 shrink-0" />
+                                        <MapPin className="w-5 h-5 text-[var(--text-muted)] mt-0.5 shrink-0" />
                                         <div className="flex flex-col">
-                                            <span className="text-slate-900 font-bold">{loc.name}</span>
-                                            <span className="text-slate-500 text-xs mt-1">
+                                            <span className="text-[var(--text-primary)] font-bold">{loc.name}</span>
+                                            <span className="text-[var(--text-secondary)] text-xs mt-1">
                                                 {loc.admin1 && `${loc.admin1}, `}{loc.country}
                                             </span>
-                                            <span className="text-slate-400 text-[10px] uppercase tracking-wide mt-1 font-mono">
+                                            <span className="text-[var(--text-muted)] text-[10px] uppercase tracking-wide mt-1 font-mono">
                                                 TZ: {loc.timezone}
                                             </span>
                                         </div>
@@ -281,7 +281,7 @@ export default function LocationSearch({ value, disabled = false, dataLocationIn
                             ))}
                         </ul>
                     ) : (
-                        <div className="p-4 text-center text-slate-500 text-sm">
+                        <div className="p-4 text-center text-[var(--text-muted)] text-sm">
                             "{query}" 검색 결과가 없습니다.
                         </div>
                     )}

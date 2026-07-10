@@ -44,7 +44,7 @@ export default function ProfileDetailPage() {
         }
     }, [params.id, profiles, router]);
 
-    if (!profile || !baziData) return <div className="min-h-screen bg-slate-50 flex items-center justify-center">불러오는 중...</div>;
+    if (!profile || !baziData) return <div className="min-h-screen flex items-center justify-center text-[var(--text-secondary)]" style={{background:'var(--bg-primary)'}}>불러오는 중...</div>;
 
     const handleEdit = () => {
         loadProfileToInput(profile);
@@ -65,13 +65,13 @@ export default function ProfileDetailPage() {
     };
 
     return (
-        <div className="min-h-screen bg-slate-50 pb-24">
-            <header className="flex items-center justify-between p-4 sticky top-0 bg-slate-50/80 backdrop-blur z-10 border-b border-slate-100">
+        <div className="min-h-screen pb-24" style={{background:'var(--bg-primary)'}}>
+            <header className="flex items-center justify-between p-4 sticky top-0 bg-[var(--bg-primary)]/80 backdrop-blur z-10 border-b border-[var(--line-soft)]">
                 <div className="flex items-center">
-                    <button onClick={() => router.push('/profiles')} className="p-2 -ml-2 text-slate-600 hover:bg-slate-200 rounded-full transition-colors mr-2">
+                    <button onClick={() => router.push('/profiles')} className="p-2 -ml-2 text-[var(--text-secondary)] hover:bg-[var(--bg-glass)] rounded-full transition-colors mr-2">
                         <ArrowLeft className="w-6 h-6" />
                     </button>
-                    <span className="font-semibold text-slate-800 text-lg">명식 확인</span>
+                    <span className="font-semibold text-[var(--text-primary)] text-lg">명식 확인</span>
                 </div>
             </header>
 
@@ -81,19 +81,19 @@ export default function ProfileDetailPage() {
                         <div className="flex flex-col items-center gap-2 shrink-0">
                             <AvatarIcon gan={profile.dayGan} zhi={profile.dayZhi} size={64} className="shadow-sm" />
                             {profile.dayGan && profile.dayZhi && (
-                                <span className="inline-block bg-slate-100 text-slate-600 text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md border border-slate-200 text-center whitespace-nowrap">
+                                <span className="inline-block bg-[var(--bg-glass)] text-[var(--text-secondary)] text-[10px] sm:text-[11px] font-bold px-2 py-0.5 rounded-md border border-[var(--border-glass)] text-center whitespace-nowrap">
                                     {profile.dayGan}{profile.dayZhi}일주<br />({GAN_COLOR_DESC[profile.dayGan]} {ZHI_ANIMAL[profile.dayZhi]})
                                 </span>
                             )}
                         </div>
                         <div className="min-w-0">
                             <div className="flex items-center gap-2 mb-2 flex-wrap">
-                                <h1 className="text-2xl font-bold text-slate-900 whitespace-nowrap">{profile.name}</h1>
-                                <span className="text-sm font-medium text-slate-500 bg-slate-100 px-2.5 py-0.5 rounded-full whitespace-nowrap">
+                                <h1 className="text-2xl font-bold text-[var(--text-primary)] whitespace-nowrap">{profile.name}</h1>
+                                <span className="text-sm font-medium text-[var(--text-muted)] bg-[var(--bg-glass)] px-2.5 py-0.5 rounded-full whitespace-nowrap border border-[var(--border-glass)]">
                                     {profile.gender === 'male' ? '남자' : '여자'}
                                 </span>
                             </div>
-                            <div className="flex flex-col gap-1.5 text-sm font-medium text-slate-600">
+                            <div className="flex flex-col gap-1.5 text-sm font-medium text-[var(--text-secondary)]">
                                 <div className="flex items-center gap-2">
                                     <span className="w-1.5 h-1.5 shrink-0 rounded-full bg-purple-400"></span>
                                     <span className="truncate">{profile.calendarType === 'solar' ? '양력' : '음력'} {profile.birthYear}.{profile.birthMonth}.{profile.birthDay}</span>
@@ -112,12 +112,12 @@ export default function ProfileDetailPage() {
                         </div>
                     </div>
                     {/* 수정 & 삭제 버튼 영역 */}
-                    <div className="flex gap-1 bg-white shadow-sm border border-slate-200 rounded-xl p-1 w-full sm:w-auto shrink-0 self-start">
-                        <button onClick={handleEdit} className="flex-1 sm:flex-none justify-center px-4 py-2 text-slate-500 hover:text-purple-600 hover:bg-purple-50 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold">
+                    <div className="flex gap-1 bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-xl p-1 w-full sm:w-auto shrink-0 self-start">
+                        <button onClick={handleEdit} className="flex-1 sm:flex-none justify-center px-4 py-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] hover:bg-[var(--accent-soft)] rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold">
                             <Edit3 className="w-4 h-4" /> 수정
                         </button>
-                        <div className="w-[1px] bg-slate-100 my-1"></div>
-                        <button onClick={handleDelete} className="flex-1 sm:flex-none justify-center px-4 py-2 text-slate-500 hover:text-red-600 hover:bg-red-50 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold">
+                        <div className="w-[1px] bg-[var(--line-soft)] my-1"></div>
+                        <button onClick={handleDelete} className="flex-1 sm:flex-none justify-center px-4 py-2 text-[var(--text-secondary)] hover:text-rose-400 hover:bg-rose-500/10 rounded-lg transition-colors flex items-center gap-1.5 text-sm font-semibold">
                             <Trash2 className="w-4 h-4" /> 삭제
                         </button>
                     </div>
@@ -125,7 +125,7 @@ export default function ProfileDetailPage() {
 
 
 
-                <h2 className="text-lg font-bold text-slate-800 mb-4 px-2 mt-8">나의 사주 팔자 (명식)</h2>
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 px-2 mt-8">나의 사주 팔자 (명식)</h2>
                 {/* 만세력 원국 표 */}
                 <ManseryeokTable
                     data={baziData.manseryeok}
@@ -140,18 +140,19 @@ export default function ProfileDetailPage() {
                     }}
                 />
 
-                <h2 className="text-lg font-bold text-slate-800 mb-4 px-2 mt-8">오행 분포</h2>
+                <h2 className="text-lg font-bold text-[var(--text-primary)] mb-4 px-2 mt-8">오행 분포</h2>
                 <div className="mb-6">
                     <OhhaengRadarChart manseryeok={baziData.manseryeok as any} />
                 </div>
             </main>
 
-            <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-white/90 backdrop-blur pb-6 border-t border-slate-100">
+            <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-[var(--bg-primary)]/90 backdrop-blur pb-6 border-t border-[var(--line-soft)]">
                 <button
                     onClick={handleAnalyze}
-                    className="w-full bg-slate-900 text-white font-bold text-lg py-5 rounded-2xl shadow-lg flex justify-center items-center gap-2 transition-all active:scale-[0.98] hover:bg-slate-800"
+                    className="w-full font-bold text-lg py-5 rounded-2xl flex justify-center items-center gap-2 transition-all active:scale-[0.98]"
+                    style={{background:'var(--btn-bg)', color:'var(--btn-ink)', boxShadow:'var(--btn-shadow)'}}
                 >
-                    <Sparkles className="w-5 h-5 text-yellow-300" />
+                    <Sparkles className="w-5 h-5 text-[var(--btn-ink)]" />
                     정밀 사주 분석 보러가기
                 </button>
             </div>

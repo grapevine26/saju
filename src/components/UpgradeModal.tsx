@@ -81,22 +81,23 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pen
                 <motion.div
                     initial={{ opacity: 0, scale: 0.95 }}
                     animate={{ opacity: 1, scale: 1 }}
-                    className="bg-[#0f1423] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl"
+                    className="bg-[var(--bg-primary)] border border-[var(--border-glass)] p-6 rounded-2xl w-full max-w-sm shadow-2xl"
                 >
-                    <h3 className="text-xl font-bold text-white mb-2 text-center">결제 및 분석 시작</h3>
-                    <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
+                    <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 text-center">결제 및 분석 시작</h3>
+                    <p className="text-sm text-[var(--text-secondary)] mb-6 text-center leading-relaxed">
                         계정이 연동되었습니다.<br />분석이 완료되면(약 3분) 자동으로 기록에 저장됩니다.
                     </p>
                     <div className="flex gap-3 mt-2">
                         <button
                             onClick={onClose}
-                            className="flex-1 py-3.5 rounded-xl font-semibold bg-white/5 text-slate-300 active:bg-white/10"
+                            className="flex-1 py-3.5 rounded-xl font-semibold bg-[var(--bg-glass)] text-[var(--text-primary)] active:opacity-80"
                         >
                             취소
                         </button>
                         <button
                             onClick={() => onStartMember(user.id)}
-                            className="flex-1 py-3.5 rounded-xl font-bold bg-amber-500 text-white shadow-[0_4px_20px_rgba(245,158,11,0.3)] active:bg-amber-600"
+                            className="flex-1 py-3.5 rounded-xl font-bold"
+                            style={{background: 'var(--btn-bg)', color: 'var(--btn-ink)', boxShadow: 'var(--btn-shadow)'}}
                         >
                             결제하고 시작
                         </button>
@@ -111,10 +112,10 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pen
             <motion.div
                 initial={{ opacity: 0, scale: 0.95 }}
                 animate={{ opacity: 1, scale: 1 }}
-                className="bg-[#0f1423] border border-white/10 p-6 rounded-2xl w-full max-w-sm shadow-2xl"
+                className="bg-[var(--bg-primary)] border border-[var(--border-glass)] p-6 rounded-2xl w-full max-w-sm shadow-2xl"
             >
-                <h3 className="text-xl font-bold text-white mb-2 text-center">기록 평생 보관하기</h3>
-                <p className="text-sm text-slate-400 mb-6 text-center leading-relaxed">
+                <h3 className="text-xl font-bold text-[var(--text-primary)] mb-2 text-center">기록 평생 보관하기</h3>
+                <p className="text-sm text-[var(--text-secondary)] mb-6 text-center leading-relaxed">
                     프리미엄 리포트를 평생 소장하려면<br />1초 만에 안전하게 시작하세요.
                 </p>
 
@@ -136,14 +137,14 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pen
                 </div>
 
                 <div className="mt-6 flex items-center gap-3">
-                    <div className="flex-1 h-px bg-white/10"></div>
-                    <span className="text-xs text-slate-500 font-medium">또는</span>
-                    <div className="flex-1 h-px bg-white/10"></div>
+                    <div className="flex-1 h-px bg-[var(--border-glass)]"></div>
+                    <span className="text-xs text-[var(--text-muted)] font-medium">또는</span>
+                    <div className="flex-1 h-px bg-[var(--border-glass)]"></div>
                 </div>
 
                 <button
                     onClick={() => onStartGuest('')}
-                    className="w-full mt-6 py-3.5 rounded-xl font-medium border border-white/10 text-slate-300 hover:bg-white/5 active:scale-95 transition-all"
+                    className="w-full mt-6 py-3.5 rounded-xl font-medium border border-[var(--border-glass)] text-[var(--text-primary)] hover:bg-[var(--bg-glass)] active:scale-95 transition-all"
                 >
                     비회원으로 결제하기
                 </button>

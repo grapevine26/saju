@@ -7,6 +7,9 @@ export default function sitemap(): MetadataRoute.Sitemap {
   // 크롤링을 허용할 공개 정적 페이지들
   const routes = [
     '',
+    '/saju',
+    '/tarot',
+    '/yunmyeong',
     '/input',
     '/menu',
     '/legal/privacy',

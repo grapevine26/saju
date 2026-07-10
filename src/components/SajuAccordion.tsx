@@ -61,7 +61,7 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
         if (title.includes("속궁합") || title.includes("스킨십")) return <Flame className="w-5 h-5 text-rose-500" />;
         if (title.includes("욕망")) return <Eye className="w-5 h-5 text-indigo-400" />;
         if (title.includes("무게 추") || title.includes("애정")) return <Heart className="w-5 h-5 text-pink-500" />;
-        if (title.includes("주도권")) return <Zap className="w-5 h-5 text-amber-400" />;
+        if (title.includes("주도권")) return <Zap className="w-5 h-5 text-[var(--accent-gold)]" />;
         if (title.includes("평행선") || title.includes("타협")) return <HeartCrack className="w-5 h-5 text-orange-500" />;
         if (title.includes("동거") || title.includes("결혼")) return <CalendarHeart className="w-5 h-5 text-emerald-400" />;
         if (title.includes("재물") || title.includes("돈")) return <Coins className="w-5 h-5 text-yellow-400" />;
@@ -75,13 +75,13 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
         if (title.includes("속마음") || title.includes("미련")) return <Eye className="w-5 h-5 text-purple-400" />;
         if (title.includes("경고") || title.includes("실수") || title.includes("금지")) return <AlertCircle className="w-5 h-5 text-red-500" />;
         if (title.includes("길일") || title.includes("연락") && title.includes("타이밍")) return <CalendarHeart className="w-5 h-5 text-blue-400" />;
-        if (title.includes("비법") || title.includes("극대화") || title.includes("전략")) return <Zap className="w-5 h-5 text-amber-400" />;
+        if (title.includes("비법") || title.includes("극대화") || title.includes("전략")) return <Zap className="w-5 h-5 text-[var(--accent-gold)]" />;
         if (title.includes("선택") || title.includes("새로운 인연") || title.includes("미래")) return <Cherry className="w-5 h-5 text-emerald-400" />;
         // 기존 사주 분석용 아이콘 (호환성)
         if (title.includes("관계")) return <Heart className="w-5 h-5 text-rose-400" />;
         if (title.includes("이별") || title.includes("원인")) return <AlertCircle className="w-5 h-5 text-orange-400" />;
         if (title.includes("마음")) return <Sparkles className="w-5 h-5 text-purple-400" />;
-        if (title.includes("전략") || title.includes("접근")) return <Compass className="w-5 h-5 text-amber-400" />;
+        if (title.includes("전략") || title.includes("접근")) return <Compass className="w-5 h-5 text-[var(--accent-gold)]" />;
         if (title.includes("메시지")) return <MessageCircle className="w-5 h-5 text-blue-400" />;
         if (title.includes("⚠️")) return <Shield className="w-5 h-5 text-red-400" />;
         if (title.includes("에너지") || title.includes("월별")) return <CalendarHeart className="w-5 h-5 text-indigo-400" />;
@@ -94,7 +94,7 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
         if (title.includes("재물")) return <Coins className="w-5 h-5 text-yellow-400" />;
         if (title.includes("건강")) return <Activity className="w-5 h-5 text-red-400" />;
         if (title.includes("대운")) return <Clock className="w-5 h-5 text-indigo-400" />;
-        return <Sparkles className="w-5 h-5 text-amber-400" />;
+        return <Sparkles className="w-5 h-5 text-[var(--accent-gold)]" />;
     };
 
     // 챕터 섹션 나뉘는 기준 (10개 기준이 아닐 때는 구분선 없이 렌더링)
@@ -116,10 +116,10 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
                                 <div className={`flex items-center gap-3 py-3 px-4 rounded-2xl bg-gradient-to-r ${chapterInfo.color} border border-white/5`}>
                                     <span className="text-xl">{chapterInfo.emoji}</span>
                                     <div>
-                                        <p className="text-[10px] text-slate-500 font-bold tracking-widest uppercase mb-0.5">
+                                        <p className="text-[10px] text-[var(--text-muted)] font-bold tracking-widest uppercase mb-0.5">
                                             Chapter {chapterInfo.chapter}
                                         </p>
-                                        <p className="text-[14px] font-bold text-white tracking-tight">
+                                        <p className="text-[14px] font-bold text-[var(--text-primary)] tracking-tight">
                                             {chapterInfo.label}
                                         </p>
                                     </div>
@@ -131,13 +131,13 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
                         <div className="glass-card overflow-hidden">
                             <button
                                 onClick={() => toggleAccordion(idx)}
-                                className="w-full flex items-center justify-between p-4 text-left focus:outline-none hover:bg-white/[0.02] transition-colors"
+                                className="w-full flex items-center justify-between p-4 text-left focus:outline-none hover:bg-[var(--bg-glass)] transition-colors"
                             >
                                 <div className="flex items-center gap-3 pr-3">
-                                    <div className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center border ${isLocked ? 'bg-white/[0.03] border-white/5' : 'bg-white/5 border-white/10'}`}>
-                                        {isLocked ? <Lock className="w-4 h-4 text-slate-600" /> : getIcon(detail.title)}
+                                    <div className={`flex-shrink-0 w-9 h-9 rounded-xl flex items-center justify-center border ${isLocked ? 'bg-[var(--bg-glass)] border-[var(--border-glass)]' : 'bg-[var(--bg-glass)] border-[var(--border-glass)]'}`}>
+                                        {isLocked ? <Lock className="w-4 h-4 text-[var(--text-muted)]" /> : getIcon(detail.title)}
                                     </div>
-                                    <div className={`font-bold text-[13px] leading-snug ${isLocked ? 'text-slate-500' : 'text-white'}`}>
+                                    <div className={`font-bold text-[13px] leading-snug ${isLocked ? 'text-[var(--text-muted)]' : 'text-[var(--text-primary)]'}`}>
                                         {detail.title}
                                     </div>
                                 </div>
@@ -148,33 +148,33 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
 
                             {isOpen && (
                                 <div className="px-4 pb-5 pt-1 relative">
-                                    <div className={`mt-2 p-4 bg-white/[0.02] rounded-xl border border-white/5 transition-all ${isLocked ? 'blur-sm select-none opacity-40' : ''}`}>
+                                    <div className={`mt-2 p-4 bg-[var(--bg-glass)] rounded-xl border border-[var(--border-glass)] transition-all ${isLocked ? 'blur-sm select-none opacity-40' : ''}`}>
                                         {detail.subtitle && (
-                                            <div className="font-bold text-amber-400 text-[15px] mb-4 leading-snug flex items-start gap-2">
+                                            <div className="font-bold text-[var(--accent-gold)] text-[15px] mb-4 leading-snug flex items-start gap-2">
                                                 <span>✨</span> 
                                                 <span>{detail.subtitle}</span>
                                             </div>
                                         )}
-                                        <div className="text-slate-300 text-[14px] leading-[1.8] whitespace-pre-wrap font-medium pb-2">
+                                        <div className="text-[var(--text-primary)] text-[14px] leading-[1.8] whitespace-pre-wrap font-medium pb-2">
                                             {isLocked ? detail.content.substring(0, 100) + '...' : detail.content}
                                         </div>
                                     </div>
                                     
                                     {/* 잠금 오버레이 */}
                                     {isLocked && (
-                                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-t from-[#0a0e1a] via-[#0a0e1a]/80 to-transparent">
+                                        <div className="absolute inset-0 z-10 flex flex-col items-center justify-center bg-gradient-to-t from-[#0A090C] via-[#0A090C]/80 to-transparent">
                                             <div className="flex flex-col items-center justify-center pb-2">
                                                 <div className="flex items-center gap-2 mb-2 relative">
-                                                    <span className="text-[11px] font-bold text-amber-500 bg-[#0a0e1a] px-3 py-1 rounded-full border border-amber-500/30 shadow-[0_0_15px_rgba(245,158,11,0.2)]">
+                                                    <span className="text-[11px] font-bold text-[var(--accent-gold)] bg-[#0A090C] px-3 py-1 rounded-full border border-[var(--accent-border)] shadow-[0_0_15px_rgba(245,158,11,0.2)]">
                                                         🔒 Premium 전용
                                                     </span>
                                                 </div>
-                                                <p className="text-[13px] text-slate-300 font-medium mb-4">
+                                                <p className="text-[13px] text-[var(--text-secondary)] font-medium mb-4">
                                                     더 깊은 분석은 업그레이드 후 확인할 수 있어요
                                                 </p>
                                                 <button
                                                     onClick={onUpgrade}
-                                                    className="bg-gradient-to-r from-amber-500 to-amber-600 hover:from-amber-400 hover:to-amber-500 text-[#0a0e1a] font-bold text-sm px-5 py-2.5 rounded-xl shadow-lg transition-all flex items-center gap-2 active:scale-95"
+                                                    className="btn-theme font-bold text-sm px-5 py-2.5 rounded-xl transition-all flex items-center gap-2 active:scale-95"
                                                 >
                                                     Premium 심층 리포트 열기 (1,900원)
                                                 </button>

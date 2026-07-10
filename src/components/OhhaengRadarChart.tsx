@@ -59,10 +59,10 @@ export default function OhhaengRadarChart({ manseryeok }: OhhaengRadarChartProps
         if (active && payload && payload.length) {
             const data = payload[0].payload;
             return (
-                <div className="bg-white/95 backdrop-blur-sm p-3 border border-slate-100 rounded-xl shadow-lg text-sm font-medium">
-                    <p className="text-slate-800 mb-1">{data.name}</p>
-                    <p className="text-purple-600">
-                        {data.value}개 <span className="text-slate-400 text-xs font-normal">({Math.round((data.value / totalOhhaengCount) * 100)}%)</span>
+                <div className="p-3 border border-[var(--border-glass)] rounded-xl shadow-lg text-sm font-medium" style={{background:'var(--bg-primary)'}}>
+                    <p className="text-[var(--text-primary)] mb-1">{data.name}</p>
+                    <p className="text-[var(--accent-gold)]">
+                        {data.value}개 <span className="text-[var(--text-muted)] text-xs font-normal">({Math.round((data.value / totalOhhaengCount) * 100)}%)</span>
                     </p>
                 </div>
             );
@@ -84,7 +84,7 @@ export default function OhhaengRadarChart({ manseryeok }: OhhaengRadarChartProps
                 <text x={x} y={y + yOffset} textAnchor={textAnchor} fill={entry.color} fontSize={14} fontWeight={700}>
                     {entry.name}
                 </text>
-                <text x={x} y={y + yOffset + 18} textAnchor={textAnchor} fill="#64748b" fontSize={13} fontWeight={500}>
+                <text x={x} y={y + yOffset + 18} textAnchor={textAnchor} fill="#9C9199" fontSize={13} fontWeight={500}>
                     {entry.percent}%
                 </text>
             </g>
@@ -103,21 +103,21 @@ export default function OhhaengRadarChart({ manseryeok }: OhhaengRadarChartProps
                 r={4}
                 stroke="#fff"
                 strokeWidth={1.5}
-                fill={entry ? entry.color : "#d8b4fe"}
+                fill={entry ? entry.color : "#F06A7E"}
             />
         );
     };
 
     return (
-        <div className="w-full bg-white rounded-3xl shadow-sm border border-slate-100 p-6 flex flex-col items-center">
-            <h3 className="text-center font-bold text-slate-800 text-lg mb-1">📊 나의 오행 분포도</h3>
-            <p className="text-center text-xs text-slate-500 font-medium mb-6">
+        <div className="w-full glass-card rounded-3xl p-6 flex flex-col items-center">
+            <h3 className="text-center font-bold text-[var(--text-primary)] text-lg mb-1">📊 나의 오행 분포도</h3>
+            <p className="text-center text-xs text-[var(--text-secondary)] font-medium mb-6">
                 사주 8글자 내 각 오행 기운의 비율입니다.
             </p>
             <div className="w-full max-w-[340px] h-[340px] -mt-4">
                 <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="60%" data={data}>
-                        <PolarGrid stroke="#f1f5f9" />
+                        <PolarGrid stroke="rgba(240,234,235,0.13)" />
                         <PolarAngleAxis
                             dataKey="name"
                             tick={renderCustomLabel}
@@ -127,10 +127,10 @@ export default function OhhaengRadarChart({ manseryeok }: OhhaengRadarChartProps
                         <Radar
                             name="오행 비율"
                             dataKey="percent"
-                            stroke="#c084fc" // 보라색 테두리
+                            stroke="#F06A7E"
                             strokeWidth={2}
-                            fill="#d8b4fe" // 연보라색 채움
-                            fillOpacity={0.5}
+                            fill="#D8485E"
+                            fillOpacity={0.3}
                             isAnimationActive={true}
                             dot={renderCustomDot}
                         />

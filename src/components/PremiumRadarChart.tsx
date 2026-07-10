@@ -25,38 +25,38 @@ export default function PremiumRadarChart({ data }: { data: RadarData }) {
             <div className="w-full h-[280px]">
                 <ResponsiveContainer width="100%" height="100%">
                     <RadarChart cx="50%" cy="50%" outerRadius="70%" data={chartData}>
-                        <PolarGrid stroke="rgba(255,255,255,0.1)" />
-                        <PolarAngleAxis 
-                            dataKey="subject" 
-                            tick={{ fill: 'rgba(255,255,255,0.7)', fontSize: 13, fontWeight: 600 }}
+                        <PolarGrid stroke="rgba(240,234,235,0.13)" />
+                        <PolarAngleAxis
+                            dataKey="subject"
+                            tick={{ fill: 'rgba(240,234,235,0.7)', fontSize: 13, fontWeight: 600 }}
                         />
                         <PolarRadiusAxis angle={30} domain={[0, 100]} tick={false} axisLine={false} />
-                        <Tooltip 
-                            contentStyle={{ backgroundColor: 'rgba(10, 14, 26, 0.9)', border: '1px solid rgba(255,255,255,0.1)', borderRadius: '12px', color: '#fff' }}
-                            itemStyle={{ color: '#F59E0B', fontWeight: 'bold' }}
+                        <Tooltip
+                            contentStyle={{ backgroundColor: '#0A090C', border: '1px solid rgba(240,234,235,0.13)', borderRadius: '12px', color: '#F0EAEB' }}
+                            itemStyle={{ color: '#D8485E', fontWeight: 'bold' }}
                             formatter={(value: any) => [`${value}점`, '점수']}
                         />
                         <Radar
                             name="우리 궁합"
                             dataKey="A"
-                            stroke="#F59E0B"
+                            stroke="#F06A7E"
                             strokeWidth={2}
-                            fill="#F59E0B"
-                            fillOpacity={0.4}
-                            label={{ position: 'outside', fill: '#FCD34D', fontSize: 12, fontWeight: 'bold', formatter: (val: any) => `${val}점` }}
+                            fill="#D8485E"
+                            fillOpacity={0.3}
+                            label={{ position: 'outside', fill: '#F06A7E', fontSize: 12, fontWeight: 'bold', formatter: (val: any) => `${val}점` }}
                         />
                     </RadarChart>
                 </ResponsiveContainer>
             </div>
-            <div className="mt-4 p-5 bg-white/5 rounded-xl border border-white/10 w-full text-center">
+            <div className="mt-4 p-5 bg-[var(--bg-glass)] rounded-xl border border-[var(--border-glass)] w-full text-center">
                 {data.subtitle && (
-                    <div className="mb-3 pb-3 border-b border-white/5">
-                        <span className="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-amber-400 to-rose-400">
+                    <div className="mb-3 pb-3 border-b border-[var(--line-soft)]">
+                        <span className="text-[15px] font-black text-transparent bg-clip-text bg-gradient-to-r from-[#F06A7E] to-[#D8485E]">
                             ✨ {data.subtitle}
                         </span>
                     </div>
                 )}
-                <p className="text-[14px] text-slate-300 font-medium leading-[1.8] break-keep text-left">
+                <p className="text-[14px] text-[var(--text-secondary)] font-medium leading-[1.8] break-keep text-left">
                     {data.summary}
                 </p>
             </div>

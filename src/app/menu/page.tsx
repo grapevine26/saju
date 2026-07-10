@@ -6,7 +6,7 @@
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Archive, LogIn, LogOut, Heart, Sparkles, ChevronRight, HelpCircle, FileText } from "lucide-react";
+import { ArrowLeft, Archive, LogIn, LogOut, Heart, Sparkles, ChevronRight, HelpCircle, Moon } from "lucide-react";
 import Link from "next/link";
 import { createClient } from "@/utils/supabase/client";
 import { useSajuStore } from "@/store/useSajuStore";
@@ -66,24 +66,31 @@ export default function MenuPage() {
             label: "리포트 보관함",
             subtitle: reunionHistory.length > 0 ? `${reunionHistory.length}개의 리포트` : "아직 분석 기록이 없어요",
             href: "/history",
-            color: "text-amber-400",
+            color: "text-[var(--accent-gold)]",
+        },
+        {
+            icon: <Moon className="w-5 h-5" />,
+            label: "타로 리딩",
+            subtitle: "7장으로 읽는 그 사람의 진심",
+            href: "/tarot",
+            color: "text-violet-400",
         },
         {
             icon: <HelpCircle className="w-5 h-5" />,
             label: "고객센터",
             subtitle: "실시간 상담하기",
             href: "#",
-            color: "text-slate-400",
+            color: "text-[var(--text-secondary)]",
         },
     ];
 
     return (
-        <div className="min-h-screen bg-[#0a0e1a] flex flex-col">
+        <div className="min-h-screen flex flex-col" style={{background: 'var(--bg-primary)'}}>
             {/* 상단 헤더 */}
-            <header className="flex items-center justify-between p-4 border-b border-white/5">
+            <header className="flex items-center justify-between p-4 border-b border-[var(--line-soft)]">
                 <button
                     onClick={() => router.back()}
-                    className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full transition-colors"
+                    className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors"
                 >
                     <ArrowLeft className="w-6 h-6" />
                 </button>
@@ -101,19 +108,19 @@ export default function MenuPage() {
                 className="mx-4 mt-5"
             >
                 <Link href="/input">
-                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-amber-500/15 to-purple-500/15 border border-amber-500/20 p-5">
-                        <div className="absolute top-0 right-0 w-32 h-32 bg-amber-500/10 rounded-full blur-2xl pointer-events-none" />
+                    <div className="relative overflow-hidden rounded-2xl bg-gradient-to-r from-[var(--accent-soft)] to-purple-500/10 border border-[var(--accent-border)] p-5">
+                        <div className="absolute top-0 right-0 w-32 h-32 bg-[var(--accent-soft)] rounded-full blur-2xl pointer-events-none" />
                         <div className="relative z-10">
-                            <p className="text-[12px] text-amber-400/80 font-medium mb-1">
+                            <p className="text-[12px] text-[var(--accent-gold)] font-medium mb-1" style={{opacity:0.8}}>
                                 재회 가능성이 궁금하다면
                             </p>
-                            <p className="text-[16px] font-bold text-white leading-snug">
+                            <p className="text-[16px] font-bold text-[var(--text-primary)] leading-snug">
                                 지금 바로 사주 리포트를 확인하세요
                             </p>
                         </div>
                         <div className="absolute right-4 top-1/2 -translate-y-1/2">
-                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-amber-500/30 to-purple-500/30 flex items-center justify-center">
-                                <Sparkles className="w-6 h-6 text-amber-400" />
+                            <div className="w-12 h-12 rounded-full bg-gradient-to-br from-[var(--accent-soft)] to-purple-500/20 flex items-center justify-center">
+                                <Sparkles className="w-6 h-6 text-[var(--accent-gold)]" />
                             </div>
                         </div>
                     </div>
@@ -129,17 +136,17 @@ export default function MenuPage() {
             >
                 {user ? (
                     <div>
-                        <p className="text-amber-400 text-[15px] font-bold mb-1">환영합니다 ✨</p>
-                        <p className="text-[13px] text-slate-500 font-medium">
+                        <p className="text-[var(--accent-gold)] text-[15px] font-bold mb-1">환영합니다 ✨</p>
+                        <p className="text-[13px] text-[var(--text-secondary)] font-medium">
                             {user.user_metadata?.full_name || user.user_metadata?.name || user.user_metadata?.preferred_username || "회원"}님의 리포트를 확인해보세요.
                         </p>
                     </div>
                 ) : (
                     <div>
-                        <p className="text-amber-400 text-[15px] font-bold mb-1">
+                        <p className="text-[var(--accent-gold)] text-[15px] font-bold mb-1">
                             감동을 주는 나만의 특별한 이야기,
                         </p>
-                        <p className="text-white text-[17px] font-black">다시, 우리 재회 사주</p>
+                        <p className="text-[var(--text-primary)] text-[17px] font-black">다시, 우리 재회 사주</p>
                     </div>
                 )}
             </motion.div>
@@ -149,15 +156,15 @@ export default function MenuPage() {
                 {menuItems.map((item, i) => {
                     const isChannelTalk = item.label === "고객센터";
                     const content = (
-                        <div className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors group cursor-pointer text-left w-full">
+                        <div className="flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-[var(--bg-glass)] active:opacity-80 transition-colors group cursor-pointer text-left w-full">
                             <span className={item.color}>{item.icon}</span>
                             <div className="flex-1 min-w-0">
-                                <p className="text-[15px] font-semibold text-white">{item.label}</p>
+                                <p className="text-[15px] font-semibold text-[var(--text-primary)]">{item.label}</p>
                                 {item.subtitle && (
-                                    <p className="text-[12px] text-slate-500 font-medium mt-0.5 truncate">{item.subtitle}</p>
+                                    <p className="text-[12px] text-[var(--text-muted)] font-medium mt-0.5 truncate">{item.subtitle}</p>
                                 )}
                             </div>
-                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                            <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
                         </div>
                     );
 
@@ -199,13 +206,13 @@ export default function MenuPage() {
                     >
                         <button
                             onClick={handleLogout}
-                            className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-white/5 active:bg-white/10 transition-colors group"
+                            className="w-full flex items-center gap-4 px-4 py-4 rounded-xl hover:bg-[var(--bg-glass)] active:opacity-80 transition-colors group"
                         >
                             <span className="text-rose-400"><LogOut className="w-5 h-5" /></span>
                             <div className="flex-1 text-left">
-                                <p className="text-[15px] font-semibold text-white">로그아웃</p>
+                                <p className="text-[15px] font-semibold text-[var(--text-primary)]">로그아웃</p>
                             </div>
-                            <ChevronRight className="w-4 h-4 text-slate-600 group-hover:text-slate-400 transition-colors" />
+                            <ChevronRight className="w-4 h-4 text-[var(--text-muted)] group-hover:text-[var(--text-secondary)] transition-colors" />
                         </button>
                     </motion.div>
                 )}
@@ -213,7 +220,7 @@ export default function MenuPage() {
 
             {/* 하단 구분선 */}
             <div className="px-4 mt-auto">
-                <div className="border-t border-white/5 my-4" />
+                <div className="border-t border-[var(--line-soft)] my-4" />
             </div>
 
             {/* 하단 로그인 버튼 또는 유저 정보 */}
@@ -226,15 +233,15 @@ export default function MenuPage() {
                 {loading ? (
                     <div className="h-14 rounded-2xl bg-white/5 animate-pulse" />
                 ) : user ? (
-                    <div className="flex items-center gap-3 bg-white/5 border border-white/10 rounded-2xl px-5 py-4">
-                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-amber-500/30 to-purple-500/30 flex items-center justify-center shrink-0">
-                            <Heart className="w-5 h-5 text-amber-400" />
+                    <div className="flex items-center gap-3 bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-2xl px-5 py-4">
+                        <div className="w-10 h-10 rounded-full bg-gradient-to-br from-[var(--accent-soft)] to-purple-500/20 flex items-center justify-center shrink-0">
+                            <Heart className="w-5 h-5 text-[var(--accent-gold)]" />
                         </div>
                         <div className="flex-1 min-w-0">
-                            <p className="text-[13px] font-bold text-white truncate">
+                            <p className="text-[13px] font-bold text-[var(--text-primary)] truncate">
                                 {user.user_metadata?.name || user.email || "회원"}
                             </p>
-                            <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+                            <p className="text-[11px] text-[var(--text-muted)] truncate">{user.email}</p>
                         </div>
                     </div>
                 ) : (
@@ -260,12 +267,12 @@ export default function MenuPage() {
             </motion.div>
 
             {/* 하단 법적 링크 */}
-            <div className="px-4 pb-6 flex items-center justify-center gap-3 text-[11px] text-slate-600">
-                <Link href="/legal/terms" className="hover:text-slate-400 transition-colors">이용약관</Link>
+            <div className="px-4 pb-6 flex items-center justify-center gap-3 text-[11px] text-[var(--text-muted)]">
+                <Link href="/legal/terms" className="hover:text-[var(--text-secondary)] transition-colors">이용약관</Link>
                 <span>·</span>
-                <Link href="/legal/privacy" className="hover:text-slate-400 transition-colors">개인정보처리방침</Link>
+                <Link href="/legal/privacy" className="hover:text-[var(--text-secondary)] transition-colors">개인정보처리방침</Link>
                 <span>·</span>
-                <Link href="/legal/refund" className="hover:text-slate-400 transition-colors">환불정책</Link>
+                <Link href="/legal/refund" className="hover:text-[var(--text-secondary)] transition-colors">환불정책</Link>
             </div>
         </div>
     );

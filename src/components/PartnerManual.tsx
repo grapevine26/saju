@@ -38,8 +38,8 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                                 ? tab.color === "rose" ? "bg-rose-500/15 text-rose-400 border border-rose-500/30"
                                 : tab.color === "emerald" ? "bg-emerald-500/15 text-emerald-400 border border-emerald-500/30"
                                 : tab.color === "indigo" ? "bg-indigo-500/15 text-indigo-400 border border-indigo-500/30"
-                                : "bg-amber-500/15 text-amber-400 border border-amber-500/30"
-                                : "bg-white/5 text-slate-500 border border-transparent hover:bg-white/8 hover:text-slate-400"
+                                : "bg-[var(--accent-soft)] text-[var(--accent-gold)] border border-[var(--accent-border)]"
+                                : "bg-[var(--bg-glass)] text-[var(--text-muted)] border border-transparent hover:bg-[var(--accent-soft)] hover:text-[var(--text-secondary)]"
                         }`}
                     >
                         {tab.label}
@@ -66,7 +66,7 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                                 <p className="text-[14px] font-bold text-rose-300 mb-1.5 break-keep">
                                     &ldquo;{item.word}&rdquo;
                                 </p>
-                                <p className="text-[12px] text-slate-400 leading-relaxed break-keep">
+                                <p className="text-[12px] text-[var(--text-muted)] leading-relaxed break-keep">
                                     {item.reason}
                                 </p>
                             </div>
@@ -85,7 +85,7 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                                 <p className="text-[14px] font-bold text-emerald-300 mb-1.5 break-keep">
                                     &ldquo;{item.keyword}&rdquo;
                                 </p>
-                                <p className="text-[12px] text-slate-400 leading-relaxed break-keep">
+                                <p className="text-[12px] text-[var(--text-muted)] leading-relaxed break-keep">
                                     {item.effect}
                                 </p>
                             </div>
@@ -104,7 +104,7 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                                 <p className="text-[14px] font-bold text-indigo-300 mb-1.5 break-keep">
                                     {item.place}
                                 </p>
-                                <p className="text-[12px] text-slate-400 leading-relaxed break-keep">
+                                <p className="text-[12px] text-[var(--text-muted)] leading-relaxed break-keep">
                                     {item.reason}
                                 </p>
                             </div>
@@ -114,18 +114,18 @@ export default function PartnerManual({ data }: PartnerManualProps) {
 
                 {/* 💬 문자 예시 */}
                 {activeTab === "text" && data.textExamples.map((item, i) => (
-                    <div key={i} className="bg-amber-500/[0.04] border border-amber-500/15 rounded-xl p-4 space-y-3">
-                        <p className="text-[12px] font-bold text-amber-400/80 tracking-wide">
+                    <div key={i} className="bg-white/[0.03] border border-white/[0.10] rounded-xl p-4 space-y-3">
+                        <p className="text-[12px] font-bold text-[var(--accent-gold)] tracking-wide" style={{opacity:0.8}}>
                             💬 상황: {item.situation}
                         </p>
                         <div className="space-y-2">
                             <div className="bg-emerald-500/[0.06] border border-emerald-500/15 rounded-lg px-3.5 py-2.5">
                                 <p className="text-[10px] font-bold text-emerald-500 mb-1">✓ 이렇게 보내세요</p>
-                                <p className="text-[13px] text-slate-300 break-keep leading-relaxed">{item.good}</p>
+                                <p className="text-[13px] text-[var(--text-secondary)] break-keep leading-relaxed">{item.good}</p>
                             </div>
                             <div className="bg-rose-500/[0.06] border border-rose-500/15 rounded-lg px-3.5 py-2.5">
                                 <p className="text-[10px] font-bold text-rose-500 mb-1">✕ 이건 절대 안 돼요</p>
-                                <p className="text-[13px] text-slate-400 break-keep leading-relaxed line-through decoration-rose-500/30">{item.bad}</p>
+                                <p className="text-[13px] text-[var(--text-secondary)] break-keep leading-relaxed">{item.bad}</p>
                             </div>
                         </div>
                     </div>

@@ -1,23 +1,32 @@
-@import "tailwindcss";
+﻿@import "tailwindcss";
 
 :root {
-  /* 다크 코스믹 테마 */
-  --bg-primary: #0a0e1a;
-  --bg-secondary: #111827;
-  --bg-card: #1a1f35;
-  --bg-glass: rgba(255, 255, 255, 0.04);
-  --border-glass: rgba(255, 255, 255, 0.08);
-  --accent-gold: #f59e0b;
-  --accent-amber: #fbbf24;
-  --accent-warm: #fb923c;
-  --accent-rose: #f43f5e;
-  --accent-indigo: #818cf8;
-  --accent-purple: #a78bfa;
-  --text-primary: #f1f5f9;
-  --text-secondary: #94a3b8;
-  --text-muted: #64748b;
-  --background: #0a0e1a;
-  --foreground: #f1f5f9;
+  /* 운명의 붉은 실 */
+  --bg-primary:     #0A090C;
+  --bg-secondary:   #13101A;
+  --bg-card:        rgba(240, 234, 235, 0.04);
+  --bg-glass:       rgba(240, 234, 235, 0.04);
+  --border-glass:   rgba(240, 234, 235, 0.13);
+  --accent-gold:    #D8485E;
+  --accent-amber:   #F06A7E;
+  --accent-warm:    #F06A7E;
+  --accent-rose:    #F06A7E;
+  --accent-indigo:  #D8485E;
+  --accent-purple:  #F06A7E;
+  --text-primary:   #F0EAEB;
+  --text-secondary: #9C9199;
+  --text-muted:     #5F565D;
+  --background:     #0A090C;
+  --foreground:     #F0EAEB;
+
+  /* 붉은 실 전용 토큰 */
+  --accent-soft:    rgba(216, 72, 94, 0.10);
+  --accent-border:  rgba(216, 72, 94, 0.35);
+  --btn-bg:         linear-gradient(135deg, #F06A7E 0%, #A82E42 100%);
+  --btn-ink:        #FFF0F2;
+  --btn-shadow:     0 6px 30px rgba(216, 72, 94, 0.30);
+  --line:           rgba(240, 234, 235, 0.13);
+  --line-soft:      rgba(240, 234, 235, 0.07);
 }
 
 @theme inline {
@@ -49,42 +58,58 @@ body {
 
 /* 글래스모피즘 카드 */
 .glass-card {
-  background: rgba(255, 255, 255, 0.04);
+  background: var(--bg-glass);
   backdrop-filter: blur(20px);
   -webkit-backdrop-filter: blur(20px);
-  border: 1px solid rgba(255, 255, 255, 0.08);
+  border: 1px solid var(--border-glass);
   border-radius: 1.25rem;
 }
 
 .glass-card-strong {
-  background: rgba(255, 255, 255, 0.08);
+  background: var(--bg-glass);
   backdrop-filter: blur(24px);
   -webkit-backdrop-filter: blur(24px);
-  border: 1px solid rgba(255, 255, 255, 0.12);
+  border: 1px solid var(--accent-border);
   border-radius: 1.25rem;
 }
 
-/* 골드 그라데이션 텍스트 */
+/* 붉은 실 그라데이션 텍스트 */
 .text-gradient-gold {
-  background: linear-gradient(135deg, #f59e0b, #fbbf24, #f59e0b);
+  background: linear-gradient(135deg, #F06A7E, #D8485E, #F06A7E);
   -webkit-background-clip: text;
   -webkit-text-fill-color: transparent;
   background-clip: text;
 }
 
-/* 코스믹 그라데이션 배경 */
+/* 스크롤바 숨김 */
+.hide-scrollbar::-webkit-scrollbar { display: none; }
+
+/* 후기 자동 스크롤 */
+@keyframes review-scroll {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-50%); }
+}
+.review-track {
+  animation: review-scroll 28s linear infinite;
+}
+.review-track:hover,
+.review-track.paused {
+  animation-play-state: paused;
+}
+
+/* 붉은 실 히어로 배경 */
 .bg-cosmic {
-  background: radial-gradient(ellipse at top, #1a1040 0%, #0a0e1a 50%, #050714 100%);
+  background: radial-gradient(ellipse 130% 60% at 50% -5%, #1C1014 0%, #0A090C 68%);
 }
 
 .bg-cosmic-subtle {
-  background: linear-gradient(180deg, #111827 0%, #0a0e1a 100%);
+  background: linear-gradient(180deg, #150a0d 0%, #0A090C 100%);
 }
 
-/* 골드 보더 그로우 */
+/* 붉은 실 보더 그로우 */
 .border-glow-gold {
-  box-shadow: 0 0 20px rgba(245, 158, 11, 0.15), inset 0 0 20px rgba(245, 158, 11, 0.05);
-  border: 1px solid rgba(245, 158, 11, 0.3);
+  box-shadow: 0 0 20px rgba(216, 72, 94, 0.20), inset 0 0 20px rgba(216, 72, 94, 0.06);
+  border: 1px solid var(--accent-border);
 }
 
 /* 커스텀 테마 애니메이션 */
@@ -137,12 +162,62 @@ body {
 }
 
 @keyframes pulse-gold {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.4); }
-  50% { box-shadow: 0 0 0 12px rgba(245, 158, 11, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(216, 72, 94, 0.4); }
+  50% { box-shadow: 0 0 0 12px rgba(216, 72, 94, 0); }
 }
 
 .animate-pulse-gold {
   animation: pulse-gold 2s ease-in-out infinite;
+}
+
+/* ─── 타로 미스틱 테마 ─── */
+.tarot-theme {
+  --tarot-bg:            #0D1026;
+  --tarot-bg-card:       rgba(27, 31, 74, 0.45);
+  --tarot-bg-card-hover: rgba(61, 44, 109, 0.35);
+  --tarot-border:        rgba(176, 123, 180, 0.18);
+  --tarot-border-strong: rgba(176, 123, 180, 0.55);
+  --tarot-accent:        #7B5BB8;
+  --tarot-accent-light:  #B07BB4;
+  --tarot-accent-blush:  #F6D6E8;
+  --tarot-accent-gold:   #D4A853;
+  --tarot-accent-dim:    rgba(123, 91, 184, 0.18);
+  --tarot-glow:          0 0 16px rgba(176, 123, 180, 0.42);
+  --tarot-glow-strong:   0 0 28px rgba(168, 85, 247, 0.58), 0 0 56px rgba(61, 44, 109, 0.30);
+  --tarot-text-1:        #EDE8F8;
+  --tarot-text-2:        #B07BB4;
+  --tarot-text-3:        rgba(176, 123, 180, 0.52);
+  --tarot-card-bg:       #1B1F4A;
+  --tarot-card-border:   rgba(176, 123, 180, 0.40);
+  --tarot-btn-bg:        linear-gradient(135deg, #6B3FA8 0%, #3D2C6D 100%);
+  --tarot-btn-shadow:    0 6px 28px rgba(107, 63, 168, 0.58), 0 0 24px rgba(168, 85, 247, 0.20);
+}
+
+@keyframes tarot-card-select {
+  0%   { transform: scale(1); }
+  40%  { transform: scale(1.08); }
+  70%  { transform: scale(0.94); }
+  100% { transform: scale(0.97); }
+}
+
+@keyframes tarot-glow-pulse {
+  0%, 100% { box-shadow: 0 0 0 0 rgba(176, 123, 180, 0.55); }
+  50%       { box-shadow: 0 0 0 8px rgba(176, 123, 180, 0); }
+}
+
+/* 감성 헤드라인용 세리프 — 루트 레이아웃에서 Noto Serif KR 700;900 로드됨 */
+.tarot-serif {
+  font-family: 'Noto Serif KR', serif;
+}
+
+@keyframes tarot-float-in {
+  from { opacity: 0; transform: translateY(-24px) rotate(-2deg); }
+  to   { opacity: 1; transform: translateY(0)     rotate(0deg);  }
+}
+
+@keyframes tarot-shine {
+  0%   { background-position: -200% center; }
+  100% { background-position:  200% center; }
 }
 
 @keyframes glow-rotate {
@@ -204,6 +279,264 @@ input[type="number"] {
 
 /* 선택 하이라이트 */
 ::selection {
-  background-color: rgba(245, 158, 11, 0.3);
-  color: #fbbf24;
+  background-color: rgba(216, 72, 94, 0.30);
+  color: #F06A7E;
+}
+
+/* 테마 버튼 */
+.btn-theme {
+  background: var(--btn-bg);
+  color: var(--btn-ink);
+  box-shadow: var(--btn-shadow);
+}
+
+/* ============================================================
+   윤명(潤名) — 작명 서비스 전용 디자인 토큰 & 컴포넌트
+   /yunmyeong 하위에서만 사용. 기존 재회 서비스 스타일과 격리하기 위해
+   data-md-theme 속성 스코프 + --md- 프리픽스만 사용한다. (:root 미접촉)
+   원본: design_handoff_myeongdam/css/base.css
+   ============================================================ */
+
+[data-md-theme] {
+  --md-font-serif: 'Noto Serif KR', serif;
+  --md-radius-sm: 8px;
+  --md-radius-md: 14px;
+  --md-radius-lg: 22px;
+  --md-shadow-card: 0 8px 32px rgba(0, 0, 0, 0.28);
+  --md-ease-smooth: cubic-bezier(0.22, 1, 0.36, 1);
+  word-break: keep-all;
+  background: var(--md-bg);
+  color: var(--md-text);
+}
+
+/* ---------- 테마 · 오브시디언 (딥블랙 + 골드) — 로딩·진단·리포트 ---------- */
+[data-md-theme="obsidian"] {
+  --md-bg: #0a0b0f;
+  --md-bg-raise: #12131a;
+  --md-surface: #16171f;
+  --md-surface-2: #1d1e28;
+  --md-line: rgba(201, 169, 110, 0.16);
+  --md-line-strong: rgba(201, 169, 110, 0.38);
+  --md-text: #f0ebdf;
+  --md-text-2: #a8a294;
+  --md-text-3: #6e6a5e;
+  --md-accent: #c9a96e;
+  --md-accent-strong: #e3c98f;
+  --md-accent-ink: #1a1408;
+  --md-accent-soft: rgba(201, 169, 110, 0.1);
+  --md-danger: #d98c7a;
+  --md-good: #9ec49a;
+  --md-chart-fill: rgba(201, 169, 110, 0.22);
+  --md-chart-stroke: #c9a96e;
+  --md-overlay: rgba(10, 11, 15, 0.6);
+  --md-hero-grad: radial-gradient(120% 90% at 50% 0%, #1b1a22 0%, #0a0b0f 64%);
+}
+
+/* ---------- 테마 · 한지 (정갈한 베이지 + 먹빛 네이비) — 랜딩·입력 ---------- */
+[data-md-theme="hanji"] {
+  --md-bg: #f3eee3;
+  --md-bg-raise: #faf7ef;
+  --md-surface: #fcfaf4;
+  --md-surface-2: #f0ead9;
+  --md-line: rgba(31, 42, 61, 0.12);
+  --md-line-strong: rgba(31, 42, 61, 0.3);
+  --md-text: #20283a;
+  --md-text-2: #5b6172;
+  --md-text-3: #9b9c95;
+  --md-accent: #2b3a56;
+  --md-accent-strong: #1f2a3d;
+  --md-accent-ink: #faf7ef;
+  --md-accent-soft: rgba(43, 58, 86, 0.07);
+  --md-danger: #b0563f;
+  --md-good: #4d7c54;
+  --md-chart-fill: rgba(43, 58, 86, 0.14);
+  --md-chart-stroke: #2b3a56;
+  --md-overlay: rgba(243, 238, 227, 0.55);
+  --md-shadow-card: 0 8px 28px rgba(31, 42, 61, 0.12);
+  --md-hero-grad: radial-gradient(120% 90% at 50% 0%, #faf6ea 0%, #f3eee3 64%);
+}
+
+/* ---------- 윤명 앱 셸: 모바일 중심 컬럼 ---------- */
+.md-app {
+  width: 100%;
+  max-width: 460px;
+  min-height: 100dvh;
+  margin: 0 auto;
+  position: relative;
+  background: var(--md-hero-grad);
+  display: flex;
+  flex-direction: column;
+  overflow: clip;
+}
+@media (min-width: 560px) {
+  .md-app {
+    border-left: 1px solid var(--md-line);
+    border-right: 1px solid var(--md-line);
+  }
+}
+
+.md-serif {
+  font-family: var(--md-font-serif);
+}
+
+/* 화면 전환 (의도적으로 opacity 페이드 없음 — 프리렌더 투명 고착 방지) */
+.md-screen {
+  animation: md-fadeup 0.55s var(--md-ease-smooth) both;
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+}
+@keyframes md-fadeup {
+  from { transform: translateY(14px); }
+  to { transform: translateY(0); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-screen { animation: none; }
+}
+
+/* ---------- 공용 컴포넌트 ---------- */
+.md-btn {
+  display: flex; align-items: center; justify-content: center; gap: 8px;
+  width: 100%; min-height: 54px; padding: 0 20px;
+  border-radius: var(--md-radius-md);
+  background: var(--md-accent); color: var(--md-accent-ink);
+  font-size: 16px; font-weight: 700; letter-spacing: -0.01em;
+  cursor: pointer; border: none;
+  transition: transform 0.18s var(--md-ease-smooth), opacity 0.18s, box-shadow 0.18s;
+  box-shadow: 0 4px 18px var(--md-accent-soft);
+}
+.md-btn:hover { transform: translateY(-1px); }
+.md-btn:active { transform: translateY(0) scale(0.985); }
+.md-btn:disabled { opacity: 0.35; cursor: default; transform: none; }
+.md-btn--ghost {
+  background: transparent; color: var(--md-text-2);
+  border: 1px solid var(--md-line); box-shadow: none; font-weight: 500;
+}
+.md-btn--ghost:hover { color: var(--md-text); border-color: var(--md-line-strong); }
+
+.md-card {
+  background: var(--md-surface);
+  border: 1px solid var(--md-line);
+  border-radius: var(--md-radius-lg);
+  box-shadow: var(--md-shadow-card);
+}
+
+.md-chip {
+  display: flex; align-items: center; justify-content: center; gap: 6px;
+  min-height: 52px; padding: 10px 16px;
+  border-radius: var(--md-radius-md);
+  border: 1px solid var(--md-line);
+  background: var(--md-surface);
+  font-size: 15px; font-weight: 600; color: var(--md-text-2);
+  cursor: pointer;
+  transition: all 0.2s var(--md-ease-smooth);
+}
+.md-chip:hover { border-color: var(--md-line-strong); color: var(--md-text); }
+.md-chip.is-on {
+  border-color: var(--md-accent);
+  background: var(--md-accent-soft);
+  color: var(--md-text);
+  box-shadow: 0 0 0 1px var(--md-accent) inset;
+}
+
+.md-input {
+  width: 100%; min-height: 58px; padding: 0 18px;
+  border-radius: var(--md-radius-md);
+  border: 1px solid var(--md-line);
+  background: var(--md-surface);
+  color: var(--md-text);
+  font-size: 18px; outline: none;
+  transition: border 0.2s;
+}
+.md-input::placeholder { color: var(--md-text-3); }
+.md-input:focus { border-color: var(--md-accent); }
+
+.md-eyebrow {
+  font-size: 12px; font-weight: 700; letter-spacing: 0.22em;
+  color: var(--md-accent); text-transform: uppercase;
+  white-space: nowrap;
+}
+
+/* 스텝 진행바 */
+.md-progress { display: flex; gap: 5px; }
+.md-progress span {
+  height: 3px; flex: 1; border-radius: 2px;
+  background: var(--md-line); transition: background 0.3s;
+}
+.md-progress span.is-done { background: var(--md-accent); }
+
+/* 로딩 연출 */
+.md-dots::after {
+  content: '';
+  animation: md-dots 1.4s steps(4) infinite;
+}
+@keyframes md-dots {
+  0% { content: ''; } 25% { content: '.'; } 50% { content: '..'; } 75% { content: '...'; }
+}
+.md-orbit {
+  position: absolute; inset: 0;
+  animation: md-spin 18s linear infinite;
+}
+.md-orbit .md-orbit-glyph {
+  animation: md-counterspin 18s linear infinite;
+}
+@keyframes md-spin { to { transform: rotate(360deg); } }
+@keyframes md-counterspin {
+  from { transform: rotate(calc(var(--a) * -1)); }
+  to { transform: rotate(calc(var(--a) * -1 - 360deg)); }
+}
+.md-breathe { animation: md-breathe 2.4s var(--md-ease-smooth) infinite; }
+@keyframes md-breathe {
+  0%, 100% { opacity: 0.55; transform: scale(0.97); }
+  50% { opacity: 1; transform: scale(1); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .md-orbit, .md-orbit .md-orbit-glyph, .md-breathe { animation: none; }
+}
+
+/* 블러 페이월 */
+.md-locked {
+  filter: blur(7px) saturate(0.85);
+  user-select: none;
+  pointer-events: none;
+}
+
+/* 바텀 시트 */
+.md-sheet-overlay {
+  position: fixed; inset: 0; z-index: 60;
+  background: var(--md-overlay);
+  backdrop-filter: blur(3px);
+  animation: md-fade 0.3s both;
+  display: flex; align-items: flex-end; justify-content: center;
+}
+@keyframes md-fade { from { opacity: 0; } to { opacity: 1; } }
+.md-sheet {
+  width: 100%;
+  max-width: 460px;
+  background: var(--md-bg-raise);
+  border: 1px solid var(--md-line);
+  border-bottom: none;
+  border-radius: 24px 24px 0 0;
+  padding: 14px 22px 30px;
+  animation: md-sheetup 0.42s var(--md-ease-smooth) both;
+  max-height: 86%;
+  overflow: auto;
+}
+@keyframes md-sheetup {
+  from { transform: translateY(60px); }
+  to { transform: translateY(0); }
+}
+
+/* 토스트 */
+.md-toast {
+  position: fixed; left: 50%; bottom: 96px; transform: translateX(-50%);
+  background: var(--md-text); color: var(--md-bg);
+  padding: 11px 20px; border-radius: 99px;
+  font-size: 13.5px; font-weight: 600; white-space: nowrap;
+  animation: md-toast 2.6s var(--md-ease-smooth) both; z-index: 80;
+}
+@keyframes md-toast {
+  0% { opacity: 0; transform: translateX(-50%) translateY(8px); }
+  10%, 85% { opacity: 1; transform: translateX(-50%) translateY(0); }
+  100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }

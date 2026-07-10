@@ -1,4 +1,4 @@
-"use client";
+﻿"use client";
 
 import { useSajuStore } from "@/store/useSajuStore";
 import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Lock, RefreshCcw, Share2, Route, LogOut } from "lucide-react";
@@ -84,6 +84,12 @@ export default function HistoryDetailPage() {
                 breakupDate: (currentRecord as any)?.breakupDate || '',
                 breakupReason: (currentRecord as any)?.breakupReason || ''
             }));
+
+            if (isDev) {
+                const dummyPaymentKey = `dev_payment_key_${Date.now()}`;
+                window.location.href = `/payment/success?paymentKey=${dummyPaymentKey}&orderId=${orderId}&amount=${amount}`;
+                return;
+            }
 
             const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
             const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
@@ -237,11 +243,11 @@ export default function HistoryDetailPage() {
 
     if (!record) {
         return (
-            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">
-                <AlertCircle className="w-12 h-12 text-slate-500 mb-4" />
-                <h2 className="text-xl font-bold text-white mb-2">기록을 찾을 수 없어요</h2>
-                <p className="text-slate-400 mb-6">삭제되었거나 존재하지 않는 분석 결과입니다.</p>
-                <button onClick={() => router.push('/history')} className="px-6 py-3 bg-white/10 text-white rounded-xl font-medium">목록으로 돌아가기</button>
+            <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center" style={{background:'var(--bg-primary)'}}>
+                <AlertCircle className="w-12 h-12 text-[var(--text-muted)] mb-4" />
+                <h2 className="text-xl font-bold text-[var(--text-primary)] mb-2">기록을 찾을 수 없어요</h2>
+                <p className="text-[var(--text-secondary)] mb-6">삭제되었거나 존재하지 않는 분석 결과입니다.</p>
+                <button onClick={() => router.push('/history')} className="px-6 py-3 bg-[var(--bg-glass)] border border-[var(--border-glass)] text-[var(--text-primary)] rounded-xl font-medium">목록으로 돌아가기</button>
             </div>
         );
     }
@@ -261,28 +267,28 @@ export default function HistoryDetailPage() {
     };
 
     return (
-        <div className="min-h-screen pb-24 relative">
-            <header className={`fixed top-0 left-0 right-0 max-w-[480px] mx-auto flex items-center justify-between p-4 bg-[#0a0e1a]/90 backdrop-blur-md z-50 border-b border-white/5 transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
-                <button onClick={() => router.back()} className="p-2 -ml-2 text-slate-400 hover:text-white rounded-full transition-colors mr-1">
+        <div className="min-h-screen pb-24 relative" style={{background:'var(--bg-primary)'}}>
+            <header className={`fixed top-0 left-0 right-0 max-w-[480px] mx-auto flex items-center justify-between p-4 bg-[var(--bg-primary)]/90 backdrop-blur-md z-50 border-b border-[var(--line-soft)] transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
+                <button onClick={() => router.back()} className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors mr-1">
                     <ArrowLeft className="w-6 h-6" />
                 </button>
-                <span className="font-semibold text-white">지난 분석 리포트</span>
+                <span className="font-semibold text-[var(--text-primary)]">지난 분석 리포트</span>
             </header>
 
             <main className="p-6 pt-20 space-y-8">
                 {/* 탭 헤더 (궁합 패키지 데이터가 있을 때만 노출) */}
                 {resultData.compatibilityReport && (
-                    <div className="sticky top-[60px] z-40 bg-[#0a0e1a]/95 backdrop-blur-xl py-2 -mx-2 px-2 shadow-lg">
-                        <div className="flex bg-white/5 rounded-2xl p-1 border border-white/10">
+                    <div className="sticky top-[60px] z-40 bg-[var(--bg-primary)]/95 backdrop-blur-xl py-2 -mx-2 px-2 shadow-lg">
+                        <div className="flex bg-[var(--bg-glass)] rounded-2xl p-1 border border-[var(--border-glass)]">
                             <button
                                 onClick={() => setActiveTab('personal')}
-                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-amber-500/20 text-amber-400' : 'text-slate-400 hover:text-white'}`}
+                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'personal' ? 'bg-[var(--accent-soft)] text-[var(--accent-gold)]' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                             >
                                 🔮 재회 리포트
                             </button>
                             <button
                                 onClick={() => setActiveTab('compatibility')}
-                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-slate-400 hover:text-white'}`}
+                                className={`flex-1 py-3 text-[15px] font-bold rounded-xl transition-colors ${activeTab === 'compatibility' ? 'bg-indigo-500/20 text-indigo-400' : 'text-[var(--text-secondary)] hover:text-[var(--text-primary)]'}`}
                             >
                                 💫 1:1 궁합 리포트
                             </button>
@@ -300,18 +306,18 @@ export default function HistoryDetailPage() {
                             className="glass-card p-8 text-center relative overflow-hidden"
                         >
                             <div className="absolute top-0 right-0 p-3">
-                                <span className="text-xs bg-white/10 text-slate-400 font-medium px-2 py-1 rounded-bl-xl rounded-tr-xl">과거 기록</span>
+                                <span className="text-xs bg-[var(--bg-glass)] text-[var(--text-muted)] font-medium px-2 py-1 rounded-bl-xl rounded-tr-xl">과거 기록</span>
                             </div>
-                            <p className="text-sm text-slate-500 mb-1 font-medium mt-2">
+                            <p className="text-sm text-[var(--text-muted)] mb-1 font-medium mt-2">
                                 {myInfo.name} ✕ {partnerInfo.name}
                             </p>
                             <ReunionGauge score={resultData.reunionScore || (compatibility && compatibility.reunionScore)} />
 
-                            <div className="mt-6 pt-5 border-t border-white/5">
-                                <p className="text-xs font-bold text-amber-500 bg-amber-500/10 inline-block px-3 py-1 rounded-full mb-3">
+                            <div className="mt-6 pt-5 border-t border-[var(--line-soft)]">
+                                <p className="text-xs font-bold text-[var(--accent-gold)] bg-[var(--accent-soft)] inline-block px-3 py-1 rounded-full mb-3">
                                     {resultData.reunionKeyword}
                                 </p>
-                                <p className="text-sm text-slate-400 leading-relaxed font-medium">
+                                <p className="text-sm text-[var(--text-secondary)] leading-relaxed font-medium">
                                     {resultData.summary}
                                 </p>
                             </div>
@@ -324,8 +330,8 @@ export default function HistoryDetailPage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.2 }}
                             >
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
                                     관계 에너지 분석
                                 </h2>
                                 <CompatibilityChart
@@ -349,7 +355,7 @@ export default function HistoryDetailPage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.25 }}
                             >
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                     <Heart className="w-4 h-4 text-rose-400" />
                                     두 사람의 관계 본질
                                 </h2>
@@ -357,12 +363,12 @@ export default function HistoryDetailPage() {
                                     {resultData.essenceAnalysis.subtitle && (
                                         <div className="flex items-start gap-2">
                                             <span className="text-lg">✨</span>
-                                            <p className="text-[15px] font-bold text-amber-400 leading-snug">
+                                            <p className="text-[15px] font-bold text-[var(--accent-gold)] leading-snug">
                                                 {resultData.essenceAnalysis.subtitle}
                                             </p>
                                         </div>
                                     )}
-                                    <div className="text-slate-300 text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
+                                    <div className="text-[var(--text-secondary)] text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
                                         {resultData.essenceAnalysis.content}
                                     </div>
                                 </div>
@@ -376,8 +382,8 @@ export default function HistoryDetailPage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.3 }}
                             >
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                                    <Sparkles className="w-4 h-4 text-amber-400" />
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
                                     재회 전략 리포트
                                 </h2>
                                 <SajuAccordion
@@ -394,7 +400,7 @@ export default function HistoryDetailPage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.35 }}
                             >
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                     <span className="text-base">🎯</span>
                                     상대방 공략 매뉴얼
                                 </h2>
@@ -409,8 +415,8 @@ export default function HistoryDetailPage() {
                                 animate={{ y: 0, opacity: 1 }}
                                 transition={{ delay: 0.4 }}
                             >
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                                    <CalendarHeart className="w-4 h-4 text-amber-400" />
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                    <CalendarHeart className="w-4 h-4 text-[var(--accent-gold)]" />
                                     골든 윈도우 캘린더
                                 </h2>
                                 <GoldenWindowTimeline
@@ -420,7 +426,7 @@ export default function HistoryDetailPage() {
 
                                 {resultData.goldenWindows.monthlyEnergies && resultData.goldenWindows.monthlyEnergies.length > 0 && (
                                     <div className="mt-8">
-                                        <h3 className="text-sm font-bold text-slate-300 mb-4 px-2 tracking-tight">월별 에너지 흐름</h3>
+                                        <h3 className="text-sm font-bold text-[var(--text-secondary)] mb-4 px-2 tracking-tight">월별 에너지 흐름</h3>
                                         <MonthlyEnergyFlow energies={resultData.goldenWindows.monthlyEnergies} />
                                     </div>
                                 )}
@@ -432,7 +438,7 @@ export default function HistoryDetailPage() {
 
                                 {resultData.goldenWindows.roadmapStages && resultData.goldenWindows.roadmapStages.length > 0 && (
                                     <div className="mt-10 mb-2 p-1">
-                                        <h3 className="text-sm font-bold text-slate-300 mb-5 px-1 tracking-tight flex items-center gap-2">
+                                        <h3 className="text-sm font-bold text-[var(--text-secondary)] mb-5 px-1 tracking-tight flex items-center gap-2">
                                             <Route className="w-4 h-4 text-emerald-400" />
                                             장기 전략 로드맵
                                         </h3>
@@ -454,7 +460,7 @@ export default function HistoryDetailPage() {
                                 transition={{ delay: 0.4 }}
                                 className="glass-card py-10 px-6 text-center relative overflow-hidden my-8 min-h-[420px] flex flex-col items-center justify-center"
                             >
-                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[#0a0e1a]/90 z-10" />
+                                <div className="absolute inset-0 bg-gradient-to-b from-transparent to-[var(--bg-primary)]/90 z-10" />
                                 <div className="absolute inset-0 z-0 opacity-30 pointer-events-none flex flex-col items-center justify-center w-full px-6">
                                     <div className="h-6 bg-white/5 rounded-lg mb-4 w-3/4" />
                                     <div className="h-4 bg-white/5 rounded-lg mb-6 w-1/2" />
@@ -465,11 +471,11 @@ export default function HistoryDetailPage() {
                                     </div>
                                 </div>
                                 <div className="relative z-20 flex flex-col items-center justify-center w-full">
-                                    <Lock className="w-10 h-10 text-amber-400 mb-6 drop-shadow-[0_0_12px_rgba(251,191,36,0.6)]" />
-                                    <h3 className="text-[19px] font-bold text-white mb-6 tracking-tight">프리미엄 재회 전략</h3>
-                                    <ul className="text-[14px] text-slate-300 mb-8 space-y-3.5 text-center font-medium bg-white/5 py-6 px-6 rounded-2xl border border-white/10 w-full max-w-[90%] shadow-inner">
+                                    <Lock className="w-10 h-10 text-[var(--accent-gold)] mb-6 drop-shadow-[0_0_12px_rgba(216,72,94,0.5)]" />
+                                    <h3 className="text-[19px] font-bold text-[var(--text-primary)] mb-6 tracking-tight">프리미엄 재회 전략</h3>
+                                    <ul className="text-[14px] text-[var(--text-secondary)] mb-8 space-y-3.5 text-center font-medium bg-[var(--bg-glass)] py-6 px-6 rounded-2xl border border-[var(--border-glass)] w-full max-w-[90%] shadow-inner">
                                         <li className="flex items-center gap-2 justify-center"><Heart className="w-4 h-4 text-rose-400" /> 재회 전략 리포트 전체 공개</li>
-                                        <li className="flex items-center gap-2 justify-center"><CalendarHeart className="w-4 h-4 text-amber-500" /> 연락 최적기 <strong>골든 윈도우 캘린더</strong></li>
+                                        <li className="flex items-center gap-2 justify-center"><CalendarHeart className="w-4 h-4 text-[var(--accent-gold)]" /> 연락 최적기 <strong>골든 윈도우 캘린더</strong></li>
                                         <li className="flex items-center gap-2 justify-center"><Sparkles className="w-4 h-4 text-indigo-400" /> 향후 6개월의 <strong>월별 에너지 흐름</strong></li>
                                         <li className="flex items-center gap-2 justify-center"><Route className="w-4 h-4 text-emerald-400" /> 재회 골인 <strong>3단계 장기 로드맵</strong></li>
                                     </ul>
@@ -484,7 +490,7 @@ export default function HistoryDetailPage() {
                         {/* 커플 유형 진단 */}
                         {resultData.compatibilityReport.coupleType && (
                             <section>
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                     <span className="text-lg">💘</span>
                                     커플 유형 진단
                                 </h2>
@@ -498,11 +504,11 @@ export default function HistoryDetailPage() {
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/30 to-transparent" />
                                     <div className="p-6 text-center">
                                         <div className="text-5xl mb-3">{resultData.compatibilityReport.coupleType.emoji}</div>
-                                        <h3 className="text-xl font-black text-white mb-1">
+                                        <h3 className="text-xl font-black text-[var(--text-primary)] mb-1">
                                             {resultData.compatibilityReport.coupleType.label}
                                         </h3>
                                         <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto my-4 rounded-full" />
-                                        <p className="text-[13px] text-slate-300 leading-[1.85] whitespace-pre-wrap font-medium text-left">
+                                        <p className="text-[13px] text-[var(--text-secondary)] leading-[1.85] whitespace-pre-wrap font-medium text-left">
                                             {resultData.compatibilityReport.coupleType.description}
                                         </p>
                                     </div>
@@ -513,7 +519,7 @@ export default function HistoryDetailPage() {
 
                         {/* 레이더 차트 */}
                         <section>
-                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-indigo-400" />
                                 5대 궁합 지표 분석
                             </h2>
@@ -522,7 +528,7 @@ export default function HistoryDetailPage() {
 
                         {/* VS 카드 */}
                         <section>
-                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                 <Heart className="w-4 h-4 text-rose-400" />
                                 극과 극 성향 비교
                             </h2>
@@ -535,8 +541,8 @@ export default function HistoryDetailPage() {
 
                         {/* 궁합 디테일 (9개 아코디언) */}
                         <section>
-                            <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-amber-400" />
+                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
                                 심층 궁합 해부 리포트
                             </h2>
                             <SajuAccordion
@@ -549,21 +555,21 @@ export default function HistoryDetailPage() {
                         {/* 궁합 종합 등급 */}
                         {resultData.compatibilityReport.overallGrade && (
                             <section>
-                                <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                     <span className="text-lg">📊</span>
                                     궁합 종합 등급
                                 </h2>
                                 <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    className="relative overflow-hidden rounded-2xl border border-amber-500/20"
-                                    style={{ background: 'linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(244,63,94,0.04) 40%, rgba(15,23,42,0.95) 100%)' }}
+                                    className="relative overflow-hidden rounded-2xl border border-[var(--accent-border)]"
+                                    style={{ background: 'linear-gradient(165deg, rgba(216,72,94,0.06) 0%, rgba(240,106,126,0.04) 40%, rgba(10,9,12,0.95) 100%)' }}
                                 >
-                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+                                    <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-amber)]/30 to-transparent" />
                                     <div className="p-6">
                                         {/* 등급 뱃지 */}
                                         <div className="text-center mb-5">
-                                            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl font-black mb-2 ${resultData.compatibilityReport.overallGrade.grade === 'S' ? 'bg-gradient-to-br from-amber-500/20 to-amber-600/10 text-amber-400 border border-amber-500/30 shadow-[0_0_30px_rgba(245,158,11,0.15)]' :
+                                            <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl font-black mb-2 ${resultData.compatibilityReport.overallGrade.grade === 'S' ? 'bg-gradient-to-br from-[#F06A7E]/20 to-[#D8485E]/10 text-[#F06A7E] border border-[#D8485E]/30 shadow-[0_0_30px_rgba(216,72,94,0.20)]' :
                                                 resultData.compatibilityReport.overallGrade.grade === 'A' ? 'bg-gradient-to-br from-emerald-500/20 to-emerald-600/10 text-emerald-400 border border-emerald-500/30' :
                                                     resultData.compatibilityReport.overallGrade.grade === 'B' ? 'bg-gradient-to-br from-blue-500/20 to-blue-600/10 text-blue-400 border border-blue-500/30' :
                                                         resultData.compatibilityReport.overallGrade.grade === 'C' ? 'bg-gradient-to-br from-slate-500/20 to-slate-600/10 text-slate-400 border border-slate-500/30' :
@@ -571,7 +577,7 @@ export default function HistoryDetailPage() {
                                                 }`}>
                                                 {resultData.compatibilityReport.overallGrade.grade}
                                             </div>
-                                            <p className="text-sm font-bold text-white">{resultData.compatibilityReport.overallGrade.label}</p>
+                                            <p className="text-sm font-bold text-[var(--text-primary)]">{resultData.compatibilityReport.overallGrade.label}</p>
                                         </div>
 
                                         {/* 강점/약점 */}
@@ -580,7 +586,7 @@ export default function HistoryDetailPage() {
                                                 <p className="text-[11px] font-bold text-emerald-400 mb-2.5 tracking-wide">✦ 강점</p>
                                                 <div className="space-y-1.5">
                                                     {resultData.compatibilityReport.overallGrade.strengths.map((s: string, i: number) => (
-                                                        <p key={i} className="text-[12px] text-slate-300 leading-snug">• {s}</p>
+                                                        <p key={i} className="text-[12px] text-[var(--text-secondary)] leading-snug">• {s}</p>
                                                     ))}
                                                 </div>
                                             </div>
@@ -588,20 +594,20 @@ export default function HistoryDetailPage() {
                                                 <p className="text-[11px] font-bold text-rose-400 mb-2.5 tracking-wide">✦ 약점</p>
                                                 <div className="space-y-1.5">
                                                     {resultData.compatibilityReport.overallGrade.weaknesses.map((w: string, i: number) => (
-                                                        <p key={i} className="text-[12px] text-slate-300 leading-snug">• {w}</p>
+                                                        <p key={i} className="text-[12px] text-[var(--text-secondary)] leading-snug">• {w}</p>
                                                     ))}
                                                 </div>
                                             </div>
                                         </div>
 
                                         {/* 최종 메시지 */}
-                                        <div className="bg-white/[0.03] border border-white/[0.06] rounded-xl p-4">
-                                            <p className="text-[13px] text-slate-300 leading-[1.8] whitespace-pre-wrap font-medium">
+                                        <div className="bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-xl p-4">
+                                            <p className="text-[13px] text-[var(--text-secondary)] leading-[1.8] whitespace-pre-wrap font-medium">
                                                 {resultData.compatibilityReport.overallGrade.finalMessage}
                                             </p>
                                         </div>
                                     </div>
-                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-500/20 to-transparent" />
+                                    <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-gold)]/20 to-transparent" />
                                 </motion.div>
                             </section>
                         )}
@@ -616,9 +622,9 @@ export default function HistoryDetailPage() {
                         transition={{ delay: 0.6, duration: 0.8, ease: "easeOut" }}
                         className="relative mt-4"
                     >
-                        <div className="absolute -inset-3 bg-gradient-to-br from-amber-500/8 via-rose-500/6 to-purple-500/5 rounded-3xl blur-2xl pointer-events-none" />
-                        <div className="relative overflow-hidden rounded-2xl border border-amber-500/15" style={{ background: 'linear-gradient(165deg, rgba(245,158,11,0.06) 0%, rgba(244,63,94,0.04) 40%, rgba(15,23,42,0.95) 100%)' }}>
-                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-amber-400/30 to-transparent" />
+                        <div className="absolute -inset-3 bg-gradient-to-br from-[var(--accent-soft)] via-rose-500/6 to-purple-500/5 rounded-3xl blur-2xl pointer-events-none" />
+                        <div className="relative overflow-hidden rounded-2xl border border-[var(--accent-border)]" style={{ background: 'linear-gradient(165deg, rgba(216,72,94,0.06) 0%, rgba(240,106,126,0.04) 40%, rgba(10,9,12,0.95) 100%)' }}>
+                            <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-amber)]/30 to-transparent" />
                             <div className="p-7 sm:p-8">
                                 <div className="flex flex-col items-center mb-6">
                                     <div className="relative mb-4">
@@ -627,24 +633,24 @@ export default function HistoryDetailPage() {
                                             <Heart className="w-7 h-7 text-rose-400 drop-shadow-[0_0_12px_rgba(244,63,94,0.4)]" fill="currentColor" />
                                         </div>
                                     </div>
-                                    <p className="text-[13px] font-bold tracking-widest text-amber-400/80 uppercase">💌 [다시, 우리]가 당신을 응원합니다</p>
+                                    <p className="text-[13px] font-bold tracking-widest text-[var(--accent-amber)] uppercase" style={{opacity:0.8}}>💌 [다시, 우리]가 당신을 응원합니다</p>
                                 </div>
                                 <div className="space-y-4 text-center">
-                                    <p className="text-[15px] leading-[2] text-slate-300 font-medium break-keep">얼마나 잠 못 이루며<br className="sm:hidden" /> 불안한 밤들을 보내셨나요.</p>
-                                    <p className="text-[14px] leading-[2] text-slate-400 font-medium break-keep">어쩌면 그 사람도<br className="sm:hidden" /> 당신과 똑같이 고민하고 있을지도 모릅니다.</p>
-                                    <p className="text-[14px] leading-[2] text-slate-400 font-medium break-keep">오늘부터는 너무 아파하지만 말고,<br />당신의 삶을 단단하게 만드세요.</p>
+                                    <p className="text-[15px] leading-[2] text-[var(--text-secondary)] font-medium break-keep">얼마나 잠 못 이루며<br className="sm:hidden" /> 불안한 밤들을 보내셨나요.</p>
+                                    <p className="text-[14px] leading-[2] text-[var(--text-muted)] font-medium break-keep">어쩌면 그 사람도<br className="sm:hidden" /> 당신과 똑같이 고민하고 있을지도 모릅니다.</p>
+                                    <p className="text-[14px] leading-[2] text-[var(--text-muted)] font-medium break-keep">오늘부터는 너무 아파하지만 말고,<br />당신의 삶을 단단하게 만드세요.</p>
                                     <div className="flex items-center justify-center gap-3 py-2">
-                                        <div className="w-8 h-px bg-gradient-to-r from-transparent to-amber-500/30" />
-                                        <Sparkles className="w-3.5 h-3.5 text-amber-500/50" />
-                                        <div className="w-8 h-px bg-gradient-to-l from-transparent to-amber-500/30" />
+                                        <div className="w-8 h-px bg-gradient-to-r from-transparent to-[var(--accent-gold)]/30" />
+                                        <Sparkles className="w-3.5 h-3.5 text-[var(--accent-gold)]" style={{opacity:0.5}} />
+                                        <div className="w-8 h-px bg-gradient-to-l from-transparent to-[var(--accent-gold)]/30" />
                                     </div>
-                                    <p className="text-[14px] leading-[2] text-slate-300/90 font-medium break-keep">저희가 찾아드린 이 골든 윈도우가<br />두 사람을 다시 이어주는<br /><span className="text-amber-400 font-bold">튼튼한 다리</span>가 되기를<br />진심으로 기도합니다.</p>
+                                    <p className="text-[14px] leading-[2] text-[var(--text-secondary)] font-medium break-keep">저희가 찾아드린 이 골든 윈도우가<br />두 사람을 다시 이어주는<br /><span className="text-[var(--accent-gold)] font-bold">튼튼한 다리</span>가 되기를<br />진심으로 기도합니다.</p>
                                 </div>
-                                <div className="mt-7 pt-5 border-t border-white/5 text-center">
-                                    <p className="text-[12px] text-slate-500 font-medium tracking-wide">— 다시, 우리 —</p>
+                                <div className="mt-7 pt-5 border-t border-[var(--border-glass)] text-center">
+                                    <p className="text-[12px] text-[var(--text-muted)] font-medium tracking-wide">— 다시, 우리 —</p>
                                 </div>
                             </div>
-                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-rose-400/20 to-transparent" />
+                            <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-gold)]/20 to-transparent" />
                         </div>
                     </motion.div>
                 )}
@@ -653,11 +659,11 @@ export default function HistoryDetailPage() {
             </main>
 
             {/* 하단 고정 버튼 */}
-            <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-[#0a0e1a]/90 backdrop-blur-md pb-6 border-t border-white/5 z-50">
+            <div className="fixed bottom-0 left-0 right-0 max-w-[480px] mx-auto p-4 bg-[var(--bg-primary)]/90 backdrop-blur-md pb-6 border-t border-[var(--line-soft)] z-50">
                 {!isLite ? (
                     <button
                         onClick={() => router.push('/input')}
-                        className="w-full bg-white/5 border border-white/10 text-slate-300 active:bg-white/10 font-semibold py-4 rounded-2xl flex justify-center items-center gap-2 transition-all active:scale-[0.98]"
+                        className="w-full bg-[var(--bg-glass)] border border-[var(--border-glass)] text-[var(--text-secondary)] active:opacity-80 font-semibold py-4 rounded-2xl flex justify-center items-center gap-2 transition-all active:scale-[0.98]"
                     >
                         <RefreshCcw className="w-5 h-5" />
                         새로운 분석 시작
@@ -665,7 +671,7 @@ export default function HistoryDetailPage() {
                 ) : isPremiumPending ? (
                     <button
                         disabled
-                        className="w-full bg-white/10 border border-white/20 text-white font-semibold py-4 rounded-2xl flex justify-center items-center gap-2"
+                        className="w-full bg-[var(--bg-glass)] border border-[var(--border-glass)] text-[var(--text-secondary)] font-semibold py-4 rounded-2xl flex justify-center items-center gap-2 opacity-60"
                     >
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
                             <RefreshCcw className="w-5 h-5 opacity-70" />
@@ -676,12 +682,13 @@ export default function HistoryDetailPage() {
                     <button
                         onClick={handleUpgradeClick}
                         disabled={isUpgrading}
-                        className="w-full bg-gradient-to-r from-amber-500 to-amber-600 text-white font-bold py-4 rounded-2xl flex flex-col items-center gap-1 shadow-[0_8px_32px_rgba(245,158,11,0.3)] transition-all active:scale-[0.98] disabled:opacity-50"
+                        className="w-full font-bold py-4 rounded-2xl flex flex-col items-center gap-1 transition-all active:scale-[0.98] disabled:opacity-50"
+                        style={{background:'var(--btn-bg)', color:'var(--btn-ink)', boxShadow:'var(--btn-shadow)'}}
                     >
                         {isUpgrading ? <span>분석 준비 중...</span> : (
                             <>
                                 <span className="text-[15px]">Premium 심층 리포트 열람하기</span>
-                                <span className="text-[12px] font-bold text-amber-100/90 tracking-wider">
+                                <span className="text-[12px] font-bold tracking-wider opacity-90">
                                     <span className="line-through opacity-70 mr-1">39,900원</span>13,900원 (~{discountEndsAt} 마감)
                                 </span>
                             </>

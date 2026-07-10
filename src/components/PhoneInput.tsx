@@ -63,7 +63,7 @@ export default function PhoneInput({ value, onChange }: PhoneInputProps) {
         }
     };
 
-    const inputClass = "w-full bg-[#1a2133] border border-white/10 text-white px-0 py-4 text-center rounded-xl focus:outline-none focus:border-amber-500/50 focus:ring-1 focus:ring-amber-500/50 transition-all font-bold text-lg placeholder-slate-600";
+    const inputClass = "w-full bg-[var(--bg-glass)] border border-white/10 text-white px-0 py-4 text-center rounded-xl focus:outline-none focus:border-[var(--accent-border)] focus:ring-1 focus:ring-[rgba(216,72,94,0.35)] transition-all font-bold text-lg placeholder-slate-600";
 
     return (
         <div className="flex items-center gap-2 mb-6">
