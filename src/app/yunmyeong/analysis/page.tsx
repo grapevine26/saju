@@ -152,7 +152,7 @@ export default function NamingAnalysisPage() {
     };
 
     /** 토스 결제 요청 (기존 결제 플로우 — NAMING_PAYMENT_ENABLED=true일 때만 도달) */
-    const requestTossPayment = async () => {
+    const requestTossPayment = async (customerEmail: string) => {
         if (!input || !result) return;
         const pricing = mdPricing(input.serviceType, mdLacking(result.diagnosis).el, input.currentName);
         try {
@@ -160,7 +160,7 @@ export default function NamingAnalysisPage() {
 
             sessionStorage.setItem(NAMING_PENDING_KEY, JSON.stringify({
                 namingInput: input,
-                customerEmail: null,
+                customerEmail: customerEmail || null,
                 orderId,
             }));
 
@@ -171,8 +171,13 @@ export default function NamingAnalysisPage() {
                 return;
             }
 
+            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
+            if (!clientKey) {
+                toast('결제 설정 오류입니다. 잠시 후 다시 시도해 주세요.');
+                return;
+            }
             const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
-            const tossPayments = await loadTossPayments(process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || '');
+            const tossPayments = await loadTossPayments(clientKey);
             const payment = tossPayments.payment({ customerKey: ANONYMOUS });
 
             await payment.requestPayment({
@@ -260,7 +265,7 @@ export default function NamingAnalysisPage() {
             {sheetOpen ? (
                 <MdPaymentSheet
                     pricing={pricing}
-                    onPay={async () => { await requestTossPayment(); }}
+                    onPay={async (email) => { await requestTossPayment(email); }}
                     onClose={() => setSheetOpen(false)}
                 />
             ) : null}

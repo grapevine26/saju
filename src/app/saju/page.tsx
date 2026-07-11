@@ -485,6 +485,7 @@ function Reviews() {
     <div style={{ paddingTop:38, paddingBottom:38 }}>
       <div style={{ ...px, textAlign:'center', marginBottom:22 }}>
         <h2 style={{ fontFamily:C.serif, fontSize:21, fontWeight:700, margin:0, lineHeight:1.5, color:C.ink }}>지금까지 많은 분들이<br />타이밍을 찾아냈어요</h2>
+        <p style={{ fontSize:11.5, color:C.muted, marginTop:8 }}>서비스 이해를 돕기 위한 예시 후기입니다</p>
       </div>
       <div style={{ overflow:'hidden', paddingBottom:6 }}>
         <div

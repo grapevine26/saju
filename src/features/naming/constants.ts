@@ -5,9 +5,9 @@
 /**
  * 결제 기능 활성화 여부
  * false면 페이월 대신 무료로 전체 리포트를 즉시 발급한다. (PG 연동 보류 중)
- * true로 바꾸면 기존 토스 결제 퍼널이 그대로 복원된다.
+ * true로 바꾸면 토스 결제 퍼널이 활성화되고, 무료 발급 API(/api/naming/start)는 자동 봉쇄된다.
  */
-export const NAMING_PAYMENT_ENABLED = false;
+export const NAMING_PAYMENT_ENABLED = true;
 
 /** 프리미엄 작명/개명 리포트 정가 (원) */
 export const NAMING_PRICE = 29000;

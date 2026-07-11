@@ -688,7 +688,8 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <SectionLabel>REVIEWS</SectionLabel>
-                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:22, lineHeight:1.45 }}>실제 후기</h2>
+                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>이런 리딩을 만나요</h2>
+                        <p style={{ fontSize:11.5, color:`${P}0.5)`, textAlign:"center", marginBottom:22 }}>서비스 이해를 돕기 위한 예시 후기입니다</p>
                     </motion.div>
 
                     <div style={{ display:"flex", flexDirection:"column", gap:16 }}>

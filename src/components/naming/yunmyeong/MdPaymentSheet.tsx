@@ -12,18 +12,21 @@ import { MdPricing, mdWon } from '@/features/naming/yunmyeong';
 
 interface Props {
     pricing: MdPricing;
-    /** 실제 결제 요청 (토스 SDK 호출). resolve 전까지 busy 연출 유지 */
-    onPay: () => Promise<void>;
+    /** 실제 결제 요청 (토스 SDK 호출). 완성 리포트 링크를 보낼 이메일을 함께 전달 */
+    onPay: (email: string) => Promise<void>;
     onClose: () => void;
 }
 
 export default function MdPaymentSheet({ pricing, onPay, onClose }: Props) {
     const [busy, setBusy] = useState(false);
+    const [email, setEmail] = useState('');
+    const emailValid = /.+@.+\..+/.test(email.trim());
 
     const pay = async () => {
+        if (!emailValid) return;
         setBusy(true);
         try {
-            await onPay();
+            await onPay(email.trim());
         } finally {
             setBusy(false);
         }
@@ -46,10 +49,27 @@ export default function MdPaymentSheet({ pricing, onPay, onClose }: Props) {
                             <span style={{ fontSize: 13.5, color: 'var(--md-text-2)', lineHeight: 1.5, paddingRight: 16 }}>{pricing.headline}</span>
                             <strong className="md-serif" style={{ fontSize: 17, whiteSpace: 'nowrap' }}>{mdWon(pricing.price)}</strong>
                         </div>
-                        <p style={{ fontSize: 12, color: 'var(--md-text-3)', lineHeight: 1.6, margin: '14px 0 18px' }}>
-                            카카오페이 · 토스페이 · 신용카드 중 원하는 결제수단을 다음 화면에서 선택하실 수 있어요.
+                        <div style={{ margin: '16px 0 6px' }}>
+                            <label style={{ fontSize: 12, color: 'var(--md-text-2)', display: 'block', marginBottom: 6 }}>결과 링크를 받을 이메일</label>
+                            <input
+                                type="email"
+                                inputMode="email"
+                                value={email}
+                                onChange={(e) => setEmail(e.target.value)}
+                                placeholder="example@email.com"
+                                style={{
+                                    width: '100%', padding: '12px 14px', borderRadius: 10,
+                                    border: '1px solid var(--md-line-strong)', background: 'var(--md-bg-2, rgba(255,255,255,0.04))',
+                                    color: 'var(--md-text)', fontSize: 14, outline: 'none', boxSizing: 'border-box',
+                                }}
+                            />
+                        </div>
+                        <p style={{ fontSize: 11.5, color: 'var(--md-text-3)', lineHeight: 1.6, margin: '8px 0 16px' }}>
+                            리포트가 완성되면 이 이메일로 결과 링크를 보내드립니다. 결제수단(카카오페이·토스페이·카드)은 다음 화면에서 선택하세요.
                         </p>
-                        <button className="md-btn" onClick={pay}>{mdWon(pricing.price)} 결제하기</button>
+                        <button className="md-btn" onClick={pay} disabled={!emailValid} style={!emailValid ? { opacity: 0.5, cursor: 'not-allowed' } : undefined}>
+                            {mdWon(pricing.price)} 결제하기
+                        </button>
                     </div>
                 )}
             </div>
