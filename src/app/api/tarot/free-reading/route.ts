@@ -25,9 +25,11 @@ export async function POST(req: Request) {
         const isNewAnon = !anonId;
         if (!anonId) anonId = randomUUID();
 
+        const today = new Date().toISOString().split('T')[0];
+        let currentCount = 0;
+
         if (!isDev) {
             // 오늘 사용량 조회
-            const today = new Date().toISOString().split('T')[0];
             const { data: usage } = await supabaseAdmin
                 .from('anon_tarot_usage')
                 .select('count')
@@ -35,7 +37,7 @@ export async function POST(req: Request) {
                 .eq('date', today)
                 .maybeSingle();
 
-            const currentCount = usage?.count ?? 0;
+            currentCount = usage?.count ?? 0;
 
             if (currentCount >= DAILY_LIMIT) {
                 return NextResponse.json(
@@ -43,14 +45,6 @@ export async function POST(req: Request) {
                     { status: 429 }
                 );
             }
-
-            // 사용량 증가 (AI 호출 전 선점)
-            await supabaseAdmin
-                .from('anon_tarot_usage')
-                .upsert(
-                    { anon_id: anonId, date: today, count: currentCount + 1 },
-                    { onConflict: 'anon_id,date' }
-                );
         }
 
         const model = genAI.getGenerativeModel({
@@ -59,7 +53,24 @@ export async function POST(req: Request) {
         });
 
         const prompt = buildFreeReadingPrompt(input, round1CardIds);
-        const { directAnswer, ...round1 } = await callGemini(model, prompt);
+        const aiResult = await callGemini(model, prompt);
+        const { directAnswer, ...round1 } = aiResult || {};
+
+        // 응답 스키마 최소 검증 — 카드 해석이 비었으면 실패로 간주(횟수 차감 없이 재시도 유도)
+        if (!round1 || !Array.isArray((round1 as any).cards) || (round1 as any).cards.length === 0) {
+            console.error('[tarot/free-reading] AI 응답 스키마 불량:', JSON.stringify(aiResult)?.slice(0, 300));
+            return NextResponse.json({ success: false, error: '카드 해석 생성에 실패했습니다. 잠시 후 다시 시도해 주세요.' }, { status: 502 });
+        }
+
+        // 성공했을 때만 사용량 증가 (AI 실패 시 무료 횟수를 소진시키지 않음)
+        if (!isDev) {
+            await supabaseAdmin
+                .from('anon_tarot_usage')
+                .upsert(
+                    { anon_id: anonId, date: today, count: currentCount + 1 },
+                    { onConflict: 'anon_id,date' }
+                );
+        }
 
         const response = NextResponse.json({ success: true, result: { round1, directAnswer } });
 

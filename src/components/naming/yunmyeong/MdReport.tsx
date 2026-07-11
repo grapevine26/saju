@@ -169,10 +169,21 @@ export function AppraisalVerdict({ appraisal, surnameHangul, surnameHanja, lacki
                     {surnameHanja}{appraisal.chars.map((c) => c!.char).join('')}
                 </div>
             ) : null}
-            <div style={{ margin: '20px auto 8px', width: 116, height: 116, borderRadius: '50%', border: '1px solid var(--md-line-strong)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--md-accent-soft)' }}>
-                <span className="md-serif" style={{ fontSize: 36, fontWeight: 700, color: appraisal.score >= 80 ? 'var(--md-accent)' : 'var(--md-danger)' }}>{appraisal.score}</span>
-                <span style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--md-text-3)' }}>/ 100</span>
-            </div>
+            {appraisal.estimated ? (
+                <div style={{ margin: '20px auto 8px', maxWidth: 300, padding: '16px 18px', borderRadius: 14, border: '1px solid var(--md-line-strong)', background: 'var(--md-accent-soft)' }}>
+                    <div className="md-serif" style={{ fontSize: 20, fontWeight: 700, color: appraisal.fillsLack ? 'var(--md-accent)' : 'var(--md-danger)', marginBottom: 6 }}>
+                        {appraisal.fillsLack ? '결핍 기운 보완' : '결핍 기운 미보완'}
+                    </div>
+                    <p style={{ fontSize: 11.5, lineHeight: 1.6, color: 'var(--md-text-3)', margin: 0 }}>
+                        정밀 수리 점수는 실제 사용 중인 한자를 알아야 산출됩니다. 독음 기준 오행 보완 여부로 안내드려요.
+                    </p>
+                </div>
+            ) : (
+                <div style={{ margin: '20px auto 8px', width: 116, height: 116, borderRadius: '50%', border: '1px solid var(--md-line-strong)', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', background: 'var(--md-accent-soft)' }}>
+                    <span className="md-serif" style={{ fontSize: 36, fontWeight: 700, color: appraisal.score >= 80 ? 'var(--md-accent)' : 'var(--md-danger)' }}>{appraisal.score}</span>
+                    <span style={{ fontSize: 10, letterSpacing: '0.18em', color: 'var(--md-text-3)' }}>/ 100</span>
+                </div>
+            )}
             <p style={{ fontSize: 13.5, lineHeight: 1.8, color: 'var(--md-text-2)', marginTop: 14, textWrap: 'pretty' }}>
                 {appraisal.fillsLack ? (
                     isRename

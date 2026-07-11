@@ -61,7 +61,16 @@ export const processTarotReading = inngest.createFunction(
             });
 
             const prompt = buildPaidReadingPrompt(input, rounds, freeResult);
-            return await callGemini(model, prompt);
+            const result = await callGemini(model, prompt);
+
+            // 핵심 콘텐츠(round2/round3) 검증 — 비면 throw하여 재시도, 최종 실패 시 onFailure가 자동 환불.
+            // (불량 결과를 done으로 저장해 유료 고객에게 빈 화면을 보여주는 것을 방지)
+            const r2 = result?.round2?.cards;
+            const r3 = result?.round3?.cards;
+            if (!Array.isArray(r2) || r2.length === 0 || !Array.isArray(r3) || r3.length === 0) {
+                throw new Error('타로 유료 해석 생성 실패(round2/round3 누락) — 자동 환불 대상');
+            }
+            return result;
         });
 
         await step.run('save-result', async () => {

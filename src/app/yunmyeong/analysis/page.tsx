@@ -176,7 +176,7 @@ export default function NamingAnalysisPage() {
             const payment = tossPayments.payment({ customerKey: ANONYMOUS });
 
             await payment.requestPayment({
-                method: 'CARD', // TODO(결제 재개 시): 카카오페이/토스페이 칩 → easyPay 매핑
+                method: 'CARD', // 토스 결제창에서 카카오페이·토스페이·카드를 모두 선택 가능
                 amount: { currency: 'KRW', value: pricing.price },
                 orderId,
                 orderName: pricing.headline,

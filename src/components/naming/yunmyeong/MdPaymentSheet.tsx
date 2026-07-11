@@ -6,25 +6,24 @@ import { MdPricing, mdWon } from '@/features/naming/yunmyeong';
 // ─────────────────────────────────────────────
 // 윤명 — 결제 바텀시트
 // NAMING_PAYMENT_ENABLED=true일 때만 노출된다.
-// '결제하기'는 기존 토스페이먼츠 플로우(onPay)로 연결한다.
-// TODO(결제 재개 시): 카카오페이/토스페이 칩 → 토스 easyPay 파라미터 매핑
+// '결제하기'는 토스페이먼츠 결제창(onPay)으로 연결하며,
+// 카카오페이·토스페이·카드 선택은 토스 결제창 안에서 이뤄진다.
 // ─────────────────────────────────────────────
 
 interface Props {
     pricing: MdPricing;
     /** 실제 결제 요청 (토스 SDK 호출). resolve 전까지 busy 연출 유지 */
-    onPay: (method: string) => Promise<void>;
+    onPay: () => Promise<void>;
     onClose: () => void;
 }
 
 export default function MdPaymentSheet({ pricing, onPay, onClose }: Props) {
-    const [method, setMethod] = useState('kakao');
     const [busy, setBusy] = useState(false);
 
     const pay = async () => {
         setBusy(true);
         try {
-            await onPay(method);
+            await onPay();
         } finally {
             setBusy(false);
         }
@@ -47,11 +46,9 @@ export default function MdPaymentSheet({ pricing, onPay, onClose }: Props) {
                             <span style={{ fontSize: 13.5, color: 'var(--md-text-2)', lineHeight: 1.5, paddingRight: 16 }}>{pricing.headline}</span>
                             <strong className="md-serif" style={{ fontSize: 17, whiteSpace: 'nowrap' }}>{mdWon(pricing.price)}</strong>
                         </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: 9, margin: '16px 0 20px' }}>
-                            {([['kakao', '카카오페이'], ['toss', '토스페이'], ['card', '신용카드']] as const).map(([v, label]) => (
-                                <button key={v} className={'md-chip' + (method === v ? ' is-on' : '')} style={{ minHeight: 46, fontSize: 13 }} onClick={() => setMethod(v)}>{label}</button>
-                            ))}
-                        </div>
+                        <p style={{ fontSize: 12, color: 'var(--md-text-3)', lineHeight: 1.6, margin: '14px 0 18px' }}>
+                            카카오페이 · 토스페이 · 신용카드 중 원하는 결제수단을 다음 화면에서 선택하실 수 있어요.
+                        </p>
                         <button className="md-btn" onClick={pay}>{mdWon(pricing.price)} 결제하기</button>
                     </div>
                 )}

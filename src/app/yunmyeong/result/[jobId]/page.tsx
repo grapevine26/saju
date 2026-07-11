@@ -64,6 +64,7 @@ export default function NamingResultPage() {
     const [status, setStatus] = useState<'loading' | 'processing' | 'error'>('loading');
     const [toastMsg, toast] = useMdToast();
     const startedRef = useRef(false);
+    const triesRef = useRef(0);
 
     useEffect(() => {
         if (startedRef.current || !params?.jobId) return;
@@ -86,7 +87,12 @@ export default function NamingResultPage() {
                     setStatus('error');
                     return;
                 }
-                // 아직 생성 중이면 3초 후 재시도
+                // 아직 생성 중이면 3초 후 재시도 (최대 5분까지만 — 이후 안내로 전환)
+                triesRef.current += 1;
+                if (triesRef.current > 100) {
+                    setStatus('error');
+                    return;
+                }
                 setStatus('processing');
                 setTimeout(() => { startedRef.current = false; setStatus('loading'); }, 3000);
             } catch (e) {
@@ -209,7 +215,7 @@ export default function NamingResultPage() {
                         {/* ── 이름 카드 ── */}
                         <div style={{ marginTop: 10 }}>
                             <div className="md-eyebrow" style={{ marginBottom: 4 }}>
-                                {isAppraise ? `보완 후보 ${candidates.length}선` : '처방 이름 10선'}
+                                {isAppraise ? `보완 후보 ${candidates.length}선` : `처방 이름 ${candidates.length}선`}
                             </div>
                             <p style={{ fontSize: 12, color: 'var(--md-text-3)', marginBottom: 14 }}>
                                 {lacking.el}({lacking.hanja}) 기운 보강 · {surname.hangul}씨 {surname.strokes}획 기준 수리 연산

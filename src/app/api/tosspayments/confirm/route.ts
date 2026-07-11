@@ -2,20 +2,89 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from "@/lib/supabase";
 import { inngest } from "@/inngest/client";
 
+// 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
+const SAJU_PRICES: Record<string, number> = { premium: 13900, signature: 19900 };
+
+// 결제 건으로 이미 생성된 잡을 조회 (멱등 처리용). paymentKey는 raw_data에 저장됨.
+async function findExistingJob(paymentKey: string) {
+    if (!paymentKey) return null;
+    const { data } = await supabaseAdmin
+        .from("premium_analysis_jobs")
+        .select("id")
+        .filter("raw_data->>paymentKey", "eq", paymentKey)
+        .maybeSingle();
+    return data?.id ?? null;
+}
+
+// 잡 생성 + 백그라운드 분석 이벤트 발송 (한 곳에서만)
+async function createJobAndDispatch(payload: any, paymentKey: string) {
+    const { phoneNumber, userId, rawData, packageId, customerEmail } = payload;
+    const enhancedRawData = { ...rawData, packageId: packageId || 'premium', paymentKey, customerEmail };
+
+    const { data: job, error } = await supabaseAdmin
+        .from("premium_analysis_jobs")
+        .insert({
+            phone_number: phoneNumber || null,
+            user_id: userId || null,
+            status: "pending",
+            raw_data: enhancedRawData,
+        })
+        .select()
+        .single();
+
+    if (error || !job) {
+        console.error("Supabase 작업 생성 실패:", error);
+        return null;
+    }
+
+    await inngest.send({
+        name: "analysis.premium.requested",
+        data: {
+            jobId: job.id,
+            phone_number: phoneNumber || undefined,
+            customerEmail: customerEmail || undefined,
+            user_id: userId || undefined,
+            raw_data: enhancedRawData,
+            paymentKey,
+        },
+    });
+
+    return job.id;
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
         const { paymentKey, orderId, amount, payload } = body;
 
-        let data: any = { method: "CARD", status: "DONE" };
         const isDev = process.env.NODE_ENV === 'development';
 
+        // 1) 서버 가격 검증 — 상품 결제 건(payload 존재)은 금액이 상품 가격과 정확히 일치해야 한다.
+        //    타 서비스(3,900원 타로 등) 결제로 프리미엄 잡을 만드는 교차 우회를 원천 차단.
+        if (payload) {
+            const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
+            const expected = SAJU_PRICES[pkg];
+            if (Number(amount) !== expected) {
+                console.error('[confirm] 금액 불일치:', { amount, expected, pkg, orderId });
+                return NextResponse.json(
+                    { success: false, message: '결제 금액이 상품 가격과 일치하지 않습니다.' },
+                    { status: 400 },
+                );
+            }
+        }
+
+        // 2) 멱등 — 동일 결제로 이미 만든 잡이 있으면 그대로 반환 (새로고침/중복요청/StrictMode)
+        if (payload && paymentKey && !isDev) {
+            const existingId = await findExistingJob(paymentKey);
+            if (existingId) {
+                return NextResponse.json({ success: true, data: { status: 'DONE' }, jobId: existingId });
+            }
+        }
+
+        let data: any = { method: "CARD", status: "DONE" };
+
         if (isDev) {
-            console.log("=================================================");
-            console.log("[DEV MODE] Toss Payments 승인 우회 (가짜 결제 승인 완료)");
-            console.log("orderId:", orderId);
-            console.log("amount:", amount);
-            console.log("=================================================");
+            console.log("[DEV MODE] Toss Payments 승인 우회:", orderId, amount);
         } else {
             const secretKey = process.env.TOSS_SECRET_KEY;
             if (!secretKey) {
@@ -30,55 +99,44 @@ export async function POST(req: Request) {
                     Authorization: `Basic ${encryptedSecretKey}`,
                     "Content-Type": "application/json",
                 },
-                body: JSON.stringify({
-                    paymentKey,
-                    orderId,
-                    amount,
-                }),
+                body: JSON.stringify({ paymentKey, orderId, amount }),
             });
 
             data = await response.json();
 
             if (!response.ok) {
+                // 이미 승인된 결제 — "돈은 나갔는데 잡이 없는" 상황 복구.
+                // GET으로 실제 결제를 다시 검증한 뒤 멱등하게 잡을 생성한다.
+                if (data.code === 'ALREADY_PROCESSED_PAYMENT' && payload && paymentKey) {
+                    const existingId = await findExistingJob(paymentKey);
+                    if (existingId) {
+                        return NextResponse.json({ success: true, data: { status: 'DONE' }, jobId: existingId });
+                    }
+                    const verifyRes = await fetch(`https://api.tosspayments.com/v1/payments/${paymentKey}`, {
+                        headers: { Authorization: `Basic ${encryptedSecretKey}` },
+                    });
+                    const pay = await verifyRes.json();
+                    const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
+                    const valid = verifyRes.ok && pay.status === 'DONE' && pay.totalAmount === SAJU_PRICES[pkg];
+                    if (valid) {
+                        const jobId = await createJobAndDispatch(payload, paymentKey);
+                        if (jobId) {
+                            return NextResponse.json({ success: true, data: pay, jobId });
+                        }
+                    }
+                    console.error('[confirm] ALREADY_PROCESSED 복구 실패:', pay?.code || pay?.status);
+                }
                 return NextResponse.json({ success: false, message: data.message || "결제 승인 실패", code: data.code }, { status: response.status });
             }
         }
 
-        // 결제 성공 시점에 바로 작업을 생성하고 백그라운드 이벤트 발송 (결제 우회 원천 차단)
+        // 3) 결제 성공 시점에 바로 잡 생성 + 백그라운드 분석 시작
         if (payload) {
-            const { phoneNumber, userId, rawData, packageId, customerEmail } = payload;
-            const enhancedRawData = { ...rawData, packageId: packageId || 'premium', paymentKey, customerEmail };
-
-            const { data: job, error } = await supabaseAdmin
-                .from("premium_analysis_jobs")
-                .insert({
-                    phone_number: phoneNumber || null,
-                    user_id: userId || null,
-                    status: "pending",
-                    raw_data: enhancedRawData
-                })
-                .select()
-                .single();
-
-            if (error || !job) {
-                console.error("Supabase 작업 생성 실패:", error);
-                // DB 생성 자체가 실패한 치명적 상황. 수동 환불 필요.
+            const jobId = await createJobAndDispatch(payload, paymentKey);
+            if (!jobId) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
-
-            await inngest.send({
-                name: "analysis.premium.requested",
-                data: {
-                    jobId: job.id,
-                    phone_number: phoneNumber || undefined,
-                    customerEmail: customerEmail || undefined,
-                    user_id: userId || undefined,
-                    raw_data: enhancedRawData,
-                    paymentKey
-                }
-            });
-
-            return NextResponse.json({ success: true, data, jobId: job.id });
+            return NextResponse.json({ success: true, data, jobId });
         }
 
         return NextResponse.json({ success: true, data });

@@ -1,6 +1,7 @@
 "use client";
 
 import { useRouter } from "next/navigation";
+import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown, ChevronRight } from "lucide-react";
 import { useState, useEffect } from "react";
@@ -426,7 +427,7 @@ export default function TarotLandingPage() {
 
             {/* 헤더 */}
             <header style={{ display:"flex", alignItems:"center", justifyContent:"center", padding:"20px 20px 12px", position:"relative", zIndex:10 }}>
-                <div style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4 }}>
+                <Link href="/" aria-label="묘연 홈으로" style={{ display:"flex", flexDirection:"column", alignItems:"center", gap:4, textDecoration:"none", color:"inherit" }}>
                     <div style={{ display:"flex", alignItems:"center", gap:10 }}>
                         <span style={{ fontSize:10, color:`${GOLD_D}0.55)`, letterSpacing:"0.1em" }}>✦</span>
                         <span style={{
@@ -442,7 +443,7 @@ export default function TarotLandingPage() {
                         width:80, height:1,
                         background:`linear-gradient(90deg, transparent, ${GOLD_D}0.4), transparent)`,
                     }} />
-                </div>
+                </Link>
             </header>
 
             {/* 본문 */}

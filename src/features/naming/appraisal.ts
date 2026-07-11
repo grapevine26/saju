@@ -23,6 +23,8 @@ export interface AppraisalResult {
     score: number;
     /** 명식의 결핍 오행을 이 이름이 채우고 있는지 */
     fillsLack: boolean;
+    /** 실제 한자 미상으로 정밀 수리 연산 없이 추정한 결과인지 (true면 점수를 단정적으로 노출하지 않음) */
+    estimated: boolean;
 }
 
 /** 독음으로 인명용 한자 후보를 찾는다 (성별 적합도 필터 포함) */
@@ -65,7 +67,7 @@ export function appraiseName(
     // 두 글자 이름만 정밀 연산 (외자/세 글자는 사전 구조상 추정 불가 → 보수적 점수)
     if (name.length !== 2) {
         const pseudo = 58 + (nameHash(name) % 25);
-        return { name, chars: [], sagyeok: null, score: Math.min(96, pseudo), fillsLack: false };
+        return { name, chars: [], sagyeok: null, score: Math.min(96, pseudo), fillsLack: false, estimated: true };
     }
 
     const candidates1 = findByReading(name[0], gender);
@@ -90,7 +92,7 @@ export function appraiseName(
         const matched = [c1, c2].filter(Boolean) as HanjaEntry[];
         const fillsLack = matched.some((h) => h.element === primary || h.element === lackingEl);
         const pseudo = 58 + (nameHash(name) % 25) + (fillsLack ? 8 : 0);
-        return { name, chars, sagyeok: null, score: Math.min(96, pseudo), fillsLack };
+        return { name, chars, sagyeok: null, score: Math.min(96, pseudo), fillsLack, estimated: true };
     }
 
     const sagyeok = calculateSagyeok(surname.strokes, c1.strokes, c2.strokes);
@@ -109,5 +111,6 @@ export function appraiseName(
         sagyeok,
         score: Math.min(96, score),
         fillsLack: hasPrimary,
+        estimated: false,
     };
 }

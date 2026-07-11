@@ -377,8 +377,13 @@ export function generateNameCandidates(
                         score,
                     };
 
-                    if (startsWithRieul(h1.reading)) continue; // 두음법칙 위반(첫 글자 'ㄹ') 후보는 완전히 비노출
-                    candidates.push(candidate);
+                    // 두음법칙 위반(첫 글자 'ㄹ') 후보는 정상 후보가 부족할 때만 쓰도록 fallback으로 분리.
+                    // (예전엔 continue로 완전히 버려 fallback이 항상 비어 있었음 — 희귀 성씨에서 후보 부족의 원인)
+                    if (startsWithRieul(h1.reading)) {
+                        fallback.push(candidate);
+                    } else {
+                        candidates.push(candidate);
+                    }
                 }
             }
         }

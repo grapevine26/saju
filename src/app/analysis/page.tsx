@@ -222,6 +222,18 @@ export default function AnalysisPage() {
                     return;
                 }
 
+                // 인메모리 recordId가 유실된 상태(OAuth 새로고침)라면 지속 저장된 기록 상세로 이동해 안전하게 재개.
+                // (여기서 결제창을 열면 orderId가 "null..."이 되어 결제 후 원본을 못 찾는 버그가 발생)
+                if (!recordId.current) {
+                    if (pending.recordId) {
+                        router.replace(`/history/${pending.recordId}`);
+                    } else {
+                        localStorage.removeItem('pendingOAuthPayment');
+                        hasResumedPayment.current = false;
+                    }
+                    return;
+                }
+
                 localStorage.removeItem('pendingOAuthPayment');
 
                 // 저장된 결제 정보로 상태 복원
@@ -773,7 +785,7 @@ export default function AnalysisPage() {
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
                             <RefreshCcw className="w-5 h-5 opacity-70" />
                         </motion.div>
-                        분석 중입니다. 문자를 기다려주세요!
+                        분석 중입니다. 완료되면 이메일로 알려드려요!
                     </button>
                 ) : (
                     <button
@@ -808,7 +820,7 @@ export default function AnalysisPage() {
                     onClose={() => setShowUpgradeModal(false)}
                     onStartGuest={() => startPremiumAnalysis({ type: 'guest', value: 'anonymous' }, customerEmail, selectedPackageId)}
                     onStartMember={(userId) => startPremiumAnalysis({ type: 'member', value: userId }, customerEmail, selectedPackageId)}
-                    pendingPaymentInfo={{ packageId: selectedPackageId, email: customerEmail }}
+                    pendingPaymentInfo={{ packageId: selectedPackageId, email: customerEmail, recordId: recordId.current || undefined }}
                 />
             )}
         </div>

@@ -14,6 +14,8 @@ interface UpgradeModalProps {
     pendingPaymentInfo?: {
         packageId: string;
         email: string;
+        /** 지속 저장된 기록 id — OAuth 복귀를 이 기록의 상세 페이지로 보내 인메모리 상태 유실을 방지 */
+        recordId?: string;
     };
 }
 
@@ -30,13 +32,20 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pen
         });
     }, [supabase]);
 
+    // OAuth 복귀 지점: 인메모리 상태가 유실되는 /analysis 대신, 지속 저장된 기록의
+    // 상세 페이지(/history/{recordId})로 돌아가 안전하게 결제를 재개한다.
+    const returnPath = pendingPaymentInfo?.recordId
+        ? `/history/${pendingPaymentInfo.recordId}`
+        : (typeof window !== 'undefined' ? window.location.pathname : '/');
+
     /** OAuth 로그인 전에 결제 컨텍스트를 localStorage에 저장 */
     const savePendingPaymentContext = () => {
         if (pendingPaymentInfo) {
             localStorage.setItem('pendingOAuthPayment', JSON.stringify({
                 packageId: pendingPaymentInfo.packageId,
                 email: pendingPaymentInfo.email,
-                returnPath: window.location.pathname,
+                recordId: pendingPaymentInfo.recordId,
+                returnPath,
                 timestamp: Date.now(),
             }));
         }
@@ -49,7 +58,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pen
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'kakao',
             options: {
-                redirectTo: `${window.location.origin}/api/auth/callback?next=${window.location.pathname}`,
+                redirectTo: `${window.location.origin}/api/auth/callback?next=${returnPath}`,
                 scopes: 'profile_nickname account_email'
             }
         });
@@ -66,7 +75,7 @@ export default function UpgradeModal({ onClose, onStartGuest, onStartMember, pen
         const { error } = await supabase.auth.signInWithOAuth({
             provider: 'google',
             options: {
-                redirectTo: `${window.location.origin}/api/auth/callback?next=${window.location.pathname}`
+                redirectTo: `${window.location.origin}/api/auth/callback?next=${returnPath}`
             }
         });
         if (error) {

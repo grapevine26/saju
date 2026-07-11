@@ -100,7 +100,7 @@ function Hero({ onStart }: { onStart: () => void }) {
         <div key={i} style={{ position:'absolute', left:x, top:y, width:1.5+i%2, height:1.5+i%2, borderRadius:'50%', background:C.accentBright, opacity:0.3+i%3*0.15 }} />
       ))}
       <div style={{ ...px, paddingTop:20, display:'flex', justifyContent:'space-between', alignItems:'center', position:'relative' }}>
-        <span style={{ fontFamily:C.serif, fontSize:16, fontWeight:700, color:C.ink }}>다시, 우리</span>
+        <Link href="/" style={{ fontFamily:C.serif, fontSize:16, fontWeight:700, color:C.ink, textDecoration:'none' }} aria-label="묘연 홈으로">다시, 우리</Link>
         <Link href="/menu" style={{ textDecoration:'none', display:'flex', alignItems:'center', justifyContent:'center', width:40, height:40 }}>
           <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
             <rect y="0" width="18" height="2" rx="1" fill={C.sub} />
@@ -516,7 +516,7 @@ function Faq() {
   const faqs = [
     { q: "Lite와 Premium의 차이가 무엇인가요?", a: "Lite는 무료로 제공되며 관계의 본질과 재회 가능성 점수, 핵심 요약을 즉시 확인하실 수 있습니다. Premium은 1만 자 이상의 압도적인 분량을 자랑하며, 8가지 심층 분석 섹션, 상대방 공략 매뉴얼, 6개월 골든 윈도우 캘린더, 월별 에너지 흐름, 3단계 장기 전략 로드맵이 모두 포함된 풀 패키지 리포트입니다." },
     { q: "분석 리포트는 얼마나 상세한가요?", a: "프리미엄 리포트 기준 공백 포함 1만 자가 넘는 방대한 데이터를 제공합니다. 이는 A4 용지 기준 약 10페이지에 달하는 분량으로, 단순한 운세 풀이를 넘어 심리학과 명리학을 결합한 전문적인 재회 전략을 제시합니다." },
-    { q: "Premium 분석은 얼마나 걸리나요?", a: "Lite는 즉시 결과가 나오지만, Premium은 고도화된 분석 엔진이 수만 건의 명리학 데이터를 다각도로 교차 검증하여 심층 리포트를 생성하므로 약 3~5분 정도의 시간이 소요됩니다. 분석 중 창을 닫으셔도 되며, 분석이 완료되면 입력하신 번호로 카카오톡 또는 문자 알림을 보내드립니다." },
+    { q: "Premium 분석은 얼마나 걸리나요?", a: "Lite는 즉시 결과가 나오지만, Premium은 고도화된 분석 엔진이 수만 건의 명리학 데이터를 다각도로 교차 검증하여 심층 리포트를 생성하므로 약 3~5분 정도의 시간이 소요됩니다. 분석 중 창을 닫으셔도 되며, 분석이 완료되면 입력하신 이메일로 결과 링크를 보내드립니다." },
     { q: "상대방 태어난 시간을 몰라도 되나요?", a: "네! 상대방은 생년월일만 알면 충분합니다. 시간을 모를 경우 시주 없이 분석하며, 일간/일지 기반의 핵심 궁합과 에너지 흐름은 매우 정확하게 도출됩니다." },
   ];
   return (

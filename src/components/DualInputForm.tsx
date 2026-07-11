@@ -68,7 +68,7 @@ export default function DualInputForm() {
 
   const { metDate, setMetDate, breakupDate, setBreakupDate, breakupReason, setBreakupReason } = useSajuStore();
 
-  const maxYear = 2025;
+  const maxYear = new Date().getFullYear();
 
   // 실시간 표시용 — 필드가 완전히 채워진 경우에만 검사
   const getLiveDateError = (y: string, m: string, d: string): string | null => {
@@ -308,7 +308,7 @@ export default function DualInputForm() {
         display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 12,
       }}>
         {step === 1
-          ? <Link href="/" style={{ display: 'flex', padding: 4, color: C.sub, textDecoration: 'none' }}><ArrowLeft size={22} /></Link>
+          ? <Link href="/saju" style={{ display: 'flex', padding: 4, color: C.sub, textDecoration: 'none' }}><ArrowLeft size={22} /></Link>
           : <button onClick={() => setStep((step - 1) as 1 | 2 | 3)} style={{ display: 'flex', padding: 4, background: 'none', border: 'none', color: C.sub, cursor: 'pointer' }}><ArrowLeft size={22} /></button>
         }
         <span style={{ fontWeight: 700, fontSize: 16, color: C.ink }}>정보 입력</span>
@@ -402,7 +402,7 @@ export default function DualInputForm() {
                 {/* 안내 */}
                 <div style={{ background: C.card, border: `1px solid ${C.lineSoft}`, borderRadius: C.r, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start' }}>
                   <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
-                  <p style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.7, margin: 0 }}>입력하신 내용은 분석에만 사용되며 서버에 저장되지 않습니다. 건너뛰어도 사주 데이터만으로 기본 분석이 가능해요.</p>
+                  <p style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.7, margin: 0 }}>입력하신 내용은 리포트 생성에만 사용됩니다. 건너뛰어도 사주 데이터만으로 기본 분석이 가능해요. 자세한 처리 방침은 개인정보처리방침을 참고해 주세요.</p>
                 </div>
               </div>
             </motion.div>

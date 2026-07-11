@@ -18,26 +18,24 @@ function PaymentSuccessContent() {
     const { setPremiumJobId } = useSajuStore();
     const hasStarted = useRef(false);
 
-    // Zustand persist hydration이 완료될 때까지 대기하는 헬퍼
-    const waitForHydration = (): Promise<void> => {
+    // Zustand persist hydration(IndexedDB 비동기 복원)이 특정 레코드를 담을 때까지 대기.
+    // 저장소가 IndexedDB이므로 localStorage를 확인하면 안 된다. 최대 5초까지 폴링 후 포기.
+    const waitForRecord = (recordId: string): Promise<void> => {
         return new Promise((resolve) => {
-            // persist의 onRehydrateStorage가 완료되었는지 확인
-            const checkHydration = () => {
+            const start = Date.now();
+            const check = () => {
                 const state = useSajuStore.getState();
-                if (state.reunionHistory && state.reunionHistory.length > 0) {
+                if (state.reunionHistory?.some((r) => r.id === recordId)) {
                     resolve();
                     return;
                 }
-                // localStorage에서 직접 확인하여 hydration 대기
-                const raw = localStorage.getItem('saju-storage');
-                if (raw) {
-                    // 데이터가 있으면 약간의 딜레이 후 재확인 (hydration 완료 대기)
-                    setTimeout(checkHydration, 100);
-                } else {
-                    resolve(); // 데이터 자체가 없는 경우
+                if (Date.now() - start > 5000) {
+                    resolve(); // 타임아웃 — 이후 로직에서 미발견 처리
+                    return;
                 }
+                setTimeout(check, 150);
             };
-            checkHydration();
+            check();
         });
     };
 
@@ -56,7 +54,8 @@ function PaymentSuccessContent() {
                 // 1. LocalStorage에서 임시 결제 정보 불러오기
                 const pendingDataStr = localStorage.getItem('pendingTossPayment');
                 if (!pendingDataStr) {
-                    throw new Error("결제 정보(세션)를 찾을 수 없습니다.");
+                    // 분석 시작 후 새로고침 등으로 세션이 정리된 경우 — 결제/분석은 이미 정상 진행 중일 수 있음
+                    throw new Error("결제는 정상 처리되었습니다. 분석이 완료되면 이메일로 결과 링크를 보내드리며, 보관함에서도 확인하실 수 있어요.");
                 }
                 const pendingData = JSON.parse(pendingDataStr);
 
@@ -64,8 +63,8 @@ function PaymentSuccessContent() {
                     throw new Error("주문 번호가 일치하지 않습니다.");
                 }
 
-                // 2. Zustand hydration 완료 대기 후 최신 상태에서 원본 데이터 복원 (payload 구성용)
-                await waitForHydration();
+                // 2. Zustand hydration(IndexedDB) 완료 대기 후 최신 상태에서 원본 데이터 복원 (payload 구성용)
+                await waitForRecord(pendingData.recordId);
                 const { reunionHistory } = useSajuStore.getState();
                 const targetRecord = reunionHistory.find(r => r.id === pendingData.recordId);
                 if (!targetRecord) {
@@ -104,12 +103,8 @@ function PaymentSuccessContent() {
 
                 const confirmData = await confirmRes.json();
                 if (!confirmRes.ok || !confirmData.success) {
-                    if (confirmData.code === 'ALREADY_PROCESSED_PAYMENT') {
-                        console.log("React Strict Mode: ALREADY_PROCESSED_PAYMENT ignored");
-                        return;
-                    } else {
-                        throw new Error(confirmData.message || "결제 승인에 실패했습니다.");
-                    }
+                    // confirm 라우트가 ALREADY_PROCESSED를 자체 복구(잡 반환)하므로 여기까지 오면 진짜 실패다.
+                    throw new Error(confirmData.message || "결제 승인에 실패했습니다. 결제가 완료되었다면 곧 이메일로 결과 링크를 보내드립니다.");
                 }
 
                 const jobId = confirmData.jobId;
@@ -138,7 +133,16 @@ function PaymentSuccessContent() {
     }, [paymentKey, orderId, amountStr, setPremiumJobId]);
 
     const pollJobStatus = (jobId: string, recordId: string) => {
+        const startedAt = Date.now();
+        const TIMEOUT_MS = 5 * 60 * 1000; // 5분 상한
         const interval = setInterval(async () => {
+            // 타임아웃 — 잡이 pending에 고착된 경우 무한 스피너 대신 안내로 전환
+            if (Date.now() - startedAt > TIMEOUT_MS) {
+                clearInterval(interval);
+                setErrorMessage("분석이 예상보다 오래 걸리고 있어요. 완료되면 이메일로 결과 링크를 보내드립니다. 문제가 지속되면 카카오톡 채널로 문의해 주세요.");
+                setStatus("error");
+                return;
+            }
             try {
                 const res = await fetch(`/api/job-status?jobId=${jobId}`);
                 const data = await res.json();

@@ -81,7 +81,13 @@ export default function TarotResultClient({ job }: Props) {
         );
     }
 
-    if (currentJob.status === 'failed' || !currentJob.ai_result) {
+    // 핵심 필드(round2/round3)가 비어 있으면 렌더링 중 크래시 대신 오류 화면으로 안전 처리
+    const ai = currentJob.ai_result;
+    const aiMalformed = !ai
+        || !Array.isArray(ai.round2?.cards) || ai.round2!.cards.length === 0
+        || !Array.isArray(ai.round3?.cards) || ai.round3!.cards.length === 0;
+
+    if (currentJob.status === 'failed' || aiMalformed) {
         return (
             <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 16, padding: 24, textAlign: 'center' }}>
                 <p style={{ fontSize: 40 }}>⚠️</p>
@@ -95,7 +101,7 @@ export default function TarotResultClient({ job }: Props) {
     }
 
     const { input, rounds, freeResult } = currentJob.raw_data;
-    const { round2, round3, finalMessage, directAnswer, special } = currentJob.ai_result;
+    const { round2, round3, finalMessage, directAnswer, special } = ai;
 
     return (
         <div style={{ minHeight: '100vh', paddingBottom: 60 }}>

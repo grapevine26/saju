@@ -76,6 +76,13 @@ export default function MenuPage() {
             color: "text-violet-400",
         },
         {
+            icon: <Sparkles className="w-5 h-5" />,
+            label: "작명 · 감명",
+            subtitle: "정통 성명학으로 이름을 짓고 풀이",
+            href: "/yunmyeong",
+            color: "text-amber-400",
+        },
+        {
             icon: <HelpCircle className="w-5 h-5" />,
             label: "고객센터",
             subtitle: "실시간 상담하기",

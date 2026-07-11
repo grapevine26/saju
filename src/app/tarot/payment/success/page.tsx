@@ -4,7 +4,7 @@ import { Suspense, useEffect, useRef, useState } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { motion, AnimatePresence } from "framer-motion";
 import CardBack from "@/components/tarot/CardBack";
-import { TAROT_PENDING_KEY, TAROT_JOB_ID_KEY, TAROT_HISTORY_KEY } from "@/features/tarot/constants";
+import { TAROT_PENDING_KEY, TAROT_JOB_ID_KEY, TAROT_HISTORY_KEY, TAROT_INPUT_KEY, TAROT_ROUNDS_KEY, TAROT_FREE_KEY } from "@/features/tarot/constants";
 import { createClient } from "@/utils/supabase/client";
 
 /* 타이머로 순환하는 리딩 단계 문구 — 마지막 문구에서 멈춤 */
@@ -109,6 +109,10 @@ function TarotPaymentSuccessContent() {
 
                 try {
                     sessionStorage.removeItem(TAROT_PENDING_KEY);
+                    // 결제 완료된 리딩의 세션 키를 정리 — 뒤로가기로 /tarot/result 재진입 시 재결제되는 것을 방지
+                    sessionStorage.removeItem(TAROT_INPUT_KEY);
+                    sessionStorage.removeItem(TAROT_ROUNDS_KEY);
+                    sessionStorage.removeItem(TAROT_FREE_KEY);
                     // 탭을 닫아도 결과에 다시 접근할 수 있도록 localStorage에 보관
                     localStorage.setItem(TAROT_JOB_ID_KEY, startData.jobId);
 
@@ -126,7 +130,15 @@ function TarotPaymentSuccessContent() {
                 } catch {}
 
                 // 완료될 때까지 같은 화면에서 대기 — 결과 페이지에는 완료된 후에만 이동
+                const startedAt = Date.now();
+                const TIMEOUT_MS = 5 * 60 * 1000; // 5분 상한 (무한 로딩 방지)
                 pollRef.current = setInterval(async () => {
+                    if (Date.now() - startedAt > TIMEOUT_MS) {
+                        clearInterval(pollRef.current!);
+                        setErrorMsg('해석이 예상보다 오래 걸리고 있어요. 완료되면 이메일로 결과 링크를 보내드립니다. 지난 리딩 기록에서도 다시 확인하실 수 있어요.');
+                        setStatus('error');
+                        return;
+                    }
                     try {
                         const res = await fetch(`/api/tarot/status?jobId=${startData.jobId}`);
                         const data = await res.json();

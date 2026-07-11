@@ -271,10 +271,10 @@ export default function NamingLandingPage() {
                 <div className="md-screen">
                     {/* 탑바 */}
                     <header style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '22px 24px 0' }}>
-                        <div style={{ display: 'flex', alignItems: 'baseline', gap: 8 }}>
+                        <Link href="/" style={{ display: 'flex', alignItems: 'baseline', gap: 8, textDecoration: 'none', color: 'inherit' }} aria-label="묘연 홈으로">
                             <span className="md-serif" style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em' }}>윤명</span>
                             <span className="md-serif" style={{ fontSize: 13, color: 'var(--md-accent)' }}>潤名</span>
-                        </div>
+                        </Link>
                         <span style={{ fontSize: 11.5, letterSpacing: '0.14em', color: 'var(--md-text-3)' }}>EST. 2026</span>
                     </header>
 

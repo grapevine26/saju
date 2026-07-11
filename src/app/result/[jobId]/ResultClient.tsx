@@ -31,6 +31,26 @@ export default function ResultClient({ job }: { job: any }) {
         return () => window.removeEventListener('scroll', handleScroll);
     }, []);
 
+    // 이메일 링크로 생성 도중(pending/processing) 진입했을 때 완료되면 자동 새로고침.
+    // 서버 컴포넌트라 job은 최초 1회만 조회되므로, 클라이언트에서 상태를 폴링해 갱신한다.
+    useEffect(() => {
+        if (!job?.id || (job.status !== 'pending' && job.status !== 'processing')) return;
+        let tries = 0;
+        const timer = setInterval(async () => {
+            tries += 1;
+            if (tries > 100) { clearInterval(timer); return; } // 약 5분 상한
+            try {
+                const res = await fetch(`/api/job-status?jobId=${job.id}`);
+                const data = await res.json();
+                if (data.success && (data.status === 'completed' || data.status === 'failed')) {
+                    clearInterval(timer);
+                    window.location.reload();
+                }
+            } catch { /* 네트워크 일시 오류는 무시하고 다음 틱에 재시도 */ }
+        }, 3000);
+        return () => clearInterval(timer);
+    }, [job?.id, job?.status]);
+
     if (!job) {
         return (
             <div className="min-h-screen flex flex-col items-center justify-center p-6 text-center">

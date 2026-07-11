@@ -75,6 +75,18 @@ function NamingPaymentSuccessContent() {
                 sessionStorage.removeItem(NAMING_PENDING_KEY);
                 const jobId = confirmJson.jobId;
 
+                // 결제 승인 직후 히스토리에 즉시 저장 — 생성 대기 중 탭을 닫거나 새로고침해도
+                // jobId 접근 경로를 잃지 않도록 보장 (완료 폴링까지 기다리지 않음)
+                if (pending?.namingInput) {
+                    saveNamingHistory({
+                        jobId,
+                        serviceType: pending.namingInput.serviceType,
+                        surname: pending.namingInput.surname,
+                        currentName: pending.namingInput.currentName,
+                        createdAt: Date.now(),
+                    });
+                }
+
                 // 2. 리포트 생성 폴링 (3초 간격, 최대 5분)
                 let messageIdx = 0;
                 const messageTimer = setInterval(() => {

@@ -157,18 +157,21 @@ export const processPremiumAnalysis = inngest.createFunction(
       });
 
       // --- 2-4. 병렬 AI 호출 (prompt2 + prompt3 + 조건부 prompt4) ---
+      // 핵심 유료 콘텐츠(prompt2/prompt3)는 실패 시 throw하여 스텝을 실패시킨다.
+      // → Inngest 재시도 후에도 실패하면 onFailure가 자동 환불을 태운다.
+      // (예전엔 .catch(()=>{})로 빈 리포트를 completed 저장 + 완료메일까지 보내 자동환불을 우회했음)
       let parsedData2: any = { details: [] };
       let parsedData3: any = { monthlyEnergies: [], roadmapStages: [], goldenWindowMonths: [] };
       let compatibilityReport: any = null;
 
-      await Promise.all([
-        // 1) 재회 심층 분석 + 공략 매뉴얼
-        callGemini(model2, prompt2).then(data => { parsedData2 = data; }).catch(() => {}),
+      const [data2, data3] = await Promise.all([
+        // 1) 재회 심층 분석 + 공략 매뉴얼 (핵심 상품)
+        callGemini(model2, prompt2),
 
-        // 2) 골든 윈도우 + 로드맵
-        callGemini(model3, prompt3).then(data => { parsedData3 = data; }).catch(() => {}),
+        // 2) 골든 윈도우 + 로드맵 (핵심 상품)
+        callGemini(model3, prompt3),
 
-        // 3) 궁합 리포트 (premium 패키지만)
+        // 3) 궁합 리포트 (signature 패키지만) — 결제한 상품이므로 실패 시에도 throw
         (async () => {
           if (raw_data.packageId === 'signature') {
             const model4 = genAI.getGenerativeModel({
@@ -177,12 +180,17 @@ export const processPremiumAnalysis = inngest.createFunction(
               generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
             });
             const prompt4 = buildPrompt4(promptCtx);
-            try {
-              compatibilityReport = await callGemini(model4, prompt4);
-            } catch { /* 궁합 실패 시 null 유지 */ }
+            compatibilityReport = await callGemini(model4, prompt4);
           }
         })()
       ]);
+      parsedData2 = data2 || parsedData2;
+      parsedData3 = data3 || parsedData3;
+
+      // 핵심 콘텐츠가 비었으면 실패로 간주 (빈 리포트를 유료 완료로 저장하지 않음)
+      if (!parsedData2?.details?.length) {
+        throw new Error("프리미엄 심층 분석(details) 생성 실패 — 자동 환불 대상");
+      }
 
       // --- 2-5. 최종 병합 ---
       const liteDetails = liteResult.details || [];

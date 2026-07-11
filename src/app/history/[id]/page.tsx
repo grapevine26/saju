@@ -228,9 +228,9 @@ export default function HistoryDetailPage() {
                     setTimeout(() => {
                         router.push(`/result/${record.premiumJobId}`);
                     }, 500);
-                } else if (data.success && data.status === 'processing') {
+                } else if (data.success && (data.status === 'processing' || data.status === 'pending')) {
+                    // pending(Inngest 픽업 전)도 결제 완료 상태 — 결제 버튼 재노출/중복결제 방지
                     setIsPremiumPending(true);
-                    // 아직 처리 중이면 폴링 시작
                     setPollingJobId(record.premiumJobId!);
                 }
             } catch (err) {
@@ -676,7 +676,7 @@ export default function HistoryDetailPage() {
                         <motion.div animate={{ rotate: 360 }} transition={{ repeat: Infinity, duration: 2, ease: "linear" }}>
                             <RefreshCcw className="w-5 h-5 opacity-70" />
                         </motion.div>
-                        분석 중입니다. 문자를 기다려주세요!
+                        분석 중입니다. 완료되면 이메일로 알려드려요!
                     </button>
                 ) : (
                     <button

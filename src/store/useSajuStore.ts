@@ -44,6 +44,10 @@ export interface ReunionResult {
     };
     myRawInput?: any;
     partnerRawInput?: any;
+    // 이별 컨텍스트 — 히스토리에서 프리미엄 업그레이드/재분석 시 재사용 (예전엔 미저장되어 항상 유실됨)
+    metDate?: string;
+    breakupDate?: string;
+    breakupReason?: string;
     premiumJobId?: string; // Inngest 백그라운드 작업 ID (프리미엄 접수 시 저장)
     resultData: any; // API 응답 전체
 }
@@ -420,6 +424,9 @@ export const useSajuStore = create<SajuState>()(
                         birthTimezone: state.partnerBirthTimezone,
                         birthLongitude: state.partnerBirthLongitude,
                     },
+                    metDate: state.metDate || undefined,
+                    breakupDate: state.breakupDate || undefined,
+                    breakupReason: state.breakupReason || undefined,
                     resultData
                 };
 
