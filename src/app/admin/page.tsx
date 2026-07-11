@@ -1,19 +1,17 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
-import { BarChart3, RefreshCw, LogOut, Shield, Loader2 } from "lucide-react";
+import { LogOut, Shield, Loader2 } from "lucide-react";
 import toast, { Toaster } from "react-hot-toast";
-import { DashboardTab } from "./tabs/DashboardTab";
+import { OverviewTab } from "./tabs/OverviewTab";
+import { OrdersTab } from "./tabs/OrdersTab";
 import { InquiriesTab } from "./tabs/InquiriesTab";
-import { RevenueTab } from "./tabs/RevenueTab";
-import { SettingsTab } from "./tabs/SettingsTab";
 import { supabase } from "@/lib/supabase";
 
 const TABS = [
-  { id: "dashboard", label: "대시보드", icon: "📊" },
-  { id: "revenue", label: "매출 통계", icon: "💰" },
-  { id: "inquiries", label: "고객 문의", icon: "📩" },
-  { id: "settings", label: "사이트 설정", icon: "⚙️" },
+  { id: "overview", label: "개요", icon: "📊" },
+  { id: "orders", label: "주문", icon: "🧾" },
+  { id: "inquiries", label: "문의", icon: "📩" },
 ] as const;
 
 type TabId = typeof TABS[number]["id"];
@@ -24,18 +22,13 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [token, setToken] = useState("");
   const [isLoading, setIsLoading] = useState(false);
-  const [activeTab, setActiveTab] = useState<TabId>("dashboard");
+  const [activeTab, setActiveTab] = useState<TabId>("overview");
 
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) return;
     setIsLoading(true);
-    
     try {
-      const { data, error } = await supabase.auth.signInWithPassword({
-        email,
-        password,
-      });
-
+      const { data, error } = await supabase.auth.signInWithPassword({ email, password });
       if (error || !data.session) {
         toast.error(error?.message || "로그인 실패: 이메일이나 비밀번호를 확인해주세요.");
       } else {
@@ -60,9 +53,8 @@ export default function AdminPage() {
     sessionStorage.removeItem("admin_token");
   }, []);
 
-  // 세션 복원 및 리스너 등록
   useEffect(() => {
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: { subscription } } = supabase.auth.onAuthStateChange((_event, session) => {
       if (session) {
         setToken(session.access_token);
         setIsAuthed(true);
@@ -73,18 +65,19 @@ export default function AdminPage() {
         sessionStorage.removeItem("admin_token");
       }
     });
-
-    return () => {
-      subscription.unsubscribe();
-    };
+    return () => subscription.unsubscribe();
   }, []);
 
   const fetchWithAuth = useCallback(async (url: string, options: RequestInit = {}) => {
     const res = await fetch(url, {
       ...options,
-      headers: { ...options.headers as Record<string, string>, Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      headers: { ...(options.headers as Record<string, string>), Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
     });
-    if (res.status === 401) { handleLogout(); throw new Error("Unauthorized"); }
+    if (res.status === 401) {
+      handleLogout();
+      toast.error("접근 권한이 없습니다. (관리자 계정만 가능)");
+      throw new Error("Unauthorized");
+    }
     return res;
   }, [token, handleLogout]);
 
@@ -96,7 +89,8 @@ export default function AdminPage() {
         <div className="w-full max-w-sm">
           <div className="text-center mb-6">
             <Shield className="w-10 h-10 text-slate-600 mx-auto mb-3" />
-            <h1 className="text-lg font-bold text-slate-200">Admin</h1>
+            <h1 className="text-lg font-bold text-slate-200">묘연 Admin</h1>
+            <p className="text-[11px] text-slate-600 mt-1">관리자 계정으로 로그인</p>
           </div>
           <div className="space-y-3">
             <input
@@ -127,46 +121,33 @@ export default function AdminPage() {
   return (
     <div className="min-h-screen bg-[#0b0f19] text-slate-300">
       <Toaster position="top-center" />
-
-      {/* 헤더 */}
       <header className="h-12 border-b border-white/[0.06] flex items-center justify-between px-5 sticky top-0 z-50 bg-[#0b0f19]/95 backdrop-blur-sm">
         <div className="flex items-center gap-6">
           <div className="flex items-center gap-2">
-            <BarChart3 className="w-4 h-4 text-indigo-400" />
-            <span className="text-sm font-semibold text-white">다시, 우리</span>
-            <span className="text-[10px] text-slate-600 ml-1">Admin</span>
+            <span className="text-sm font-bold text-white">묘연</span>
+            <span className="text-[10px] text-slate-600">Admin</span>
           </div>
           <nav className="flex items-center gap-1">
             {TABS.map(tab => (
               <button key={tab.id} onClick={() => setActiveTab(tab.id)}
                 className={`px-3 py-1.5 rounded-md text-xs font-medium transition-colors ${
-                  activeTab === tab.id
-                    ? "bg-white/[0.08] text-white"
-                    : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]"
+                  activeTab === tab.id ? "bg-white/[0.08] text-white" : "text-slate-500 hover:text-slate-300 hover:bg-white/[0.03]"
                 }`}>
                 <span className="mr-1.5">{tab.icon}</span>{tab.label}
               </button>
             ))}
           </nav>
         </div>
-        <div className="flex items-center gap-1">
-          <button onClick={() => { if (activeTab === "dashboard") window.location.reload(); }}
-            className="p-1.5 rounded-md text-slate-600 hover:text-slate-300 hover:bg-white/[0.05] transition-colors">
-            <RefreshCw className="w-3.5 h-3.5" />
-          </button>
-          <button onClick={handleLogout}
-            className="p-1.5 rounded-md text-slate-600 hover:text-rose-400 hover:bg-white/[0.05] transition-colors">
-            <LogOut className="w-3.5 h-3.5" />
-          </button>
-        </div>
+        <button onClick={handleLogout}
+          className="p-1.5 rounded-md text-slate-600 hover:text-rose-400 hover:bg-white/[0.05] transition-colors" title="로그아웃">
+          <LogOut className="w-3.5 h-3.5" />
+        </button>
       </header>
 
-      {/* 컨텐츠 */}
-      <main className="px-5 lg:px-8 py-5">
-        {activeTab === "dashboard" && <DashboardTab fetchWithAuth={fetchWithAuth} />}
-        {activeTab === "revenue" && <RevenueTab fetchWithAuth={fetchWithAuth} />}
+      <main className="px-5 lg:px-8 py-6">
+        {activeTab === "overview" && <OverviewTab fetchWithAuth={fetchWithAuth} />}
+        {activeTab === "orders" && <OrdersTab fetchWithAuth={fetchWithAuth} />}
         {activeTab === "inquiries" && <InquiriesTab fetchWithAuth={fetchWithAuth} />}
-        {activeTab === "settings" && <SettingsTab fetchWithAuth={fetchWithAuth} />}
       </main>
     </div>
   );
