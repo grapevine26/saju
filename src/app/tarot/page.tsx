@@ -338,7 +338,7 @@ function ResultMockups() {
 const FAQS = [
     { q:"어떻게 해석이 이루어지나요?", a:"입력하신 두 분의 이름, 성별, 현재 상황과 선택한 카드 조합을 기반으로 실시간으로 맞춤 해석이 이루어집니다. 일반적인 카드 풀이가 아닌, 두 분만의 이야기로 리딩됩니다." },
     { q:"결제는 언제 하나요?", a:"1라운드(2장) 무료 해석을 먼저 확인하신 후, 마음에 드시면 전체 리딩 결제를 진행하시면 됩니다. 무료 체험 후 결정하세요." },
-    { q:"개인정보는 안전한가요?", a:"입력하신 이름과 상황 정보는 리딩에만 사용되며, 분석 완료 후 별도로 저장되지 않습니다." },
+    { q:"개인정보는 안전한가요?", a:"입력하신 이름과 상황 정보는 카드 해석 생성에 사용됩니다. 유료 리딩 결과는 다시 볼 수 있도록 관련 법령에 따라 일정 기간 안전하게 보관되며, 자세한 내용은 개인정보처리방침에서 확인하실 수 있습니다." },
 ];
 
 function FaqItem({ q, a }: { q:string; a:string }) {
@@ -824,6 +824,27 @@ export default function TarotLandingPage() {
                         </p>
                     </motion.div>
                 </section>
+
+                {/* ── 푸터: 전자상거래법 필수 표기 + 약관 링크 ── */}
+                <footer style={{ padding:"28px 24px 40px", borderTop:`1px solid ${P}0.12)`, textAlign:"center" }}>
+                    <div style={{ display:"flex", justifyContent:"center", gap:14, fontSize:12, marginBottom:18 }}>
+                        <Link href="/legal/terms" style={{ color:LAV, textDecoration:"none", opacity:0.85 }}>이용약관</Link>
+                        <span style={{ color:`${P}0.3)` }}>|</span>
+                        <Link href="/legal/privacy" style={{ color:LAV, textDecoration:"none", opacity:0.85 }}>개인정보처리방침</Link>
+                        <span style={{ color:`${P}0.3)` }}>|</span>
+                        <Link href="/legal/refund" style={{ color:LAV, textDecoration:"none", opacity:0.85 }}>환불정책</Link>
+                    </div>
+                    <div style={{ fontSize:11, color:`${P}0.4)`, lineHeight:1.8 }}>
+                        <p style={{ fontWeight:700, color:`${P}0.6)`, margin:"0 0 6px" }}>ODD TAROT · 묘연</p>
+                        <p style={{ margin:0 }}>상호명 : 인사이트랩 | 대표자 : 최혁준</p>
+                        <p style={{ margin:0 }}>사업자등록번호 : 207-30-92414</p>
+                        <p style={{ margin:0 }}>통신판매업신고번호 : 제 2026-서울관악-0869호</p>
+                        <p style={{ margin:0 }}>이메일 : support@dasisaju.com | 전화 : 070-8098-4109</p>
+                        <p style={{ margin:0 }}>주소 : 서울특별시 관악구 난곡로 284, 603호</p>
+                        <p style={{ margin:0 }}>호스팅 서비스 제공자 : Vercel Inc.</p>
+                        <p style={{ margin:"10px 0 0", opacity:0.7 }}>© 2026 인사이트랩. All rights reserved.</p>
+                    </div>
+                </footer>
 
             </div>
         </div>

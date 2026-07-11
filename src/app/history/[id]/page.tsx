@@ -91,7 +91,11 @@ export default function HistoryDetailPage() {
                 return;
             }
 
-            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || 'test_ck_D5GePWvyJnrK0W0k6q8gLzN97Eoq';
+            const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
+            if (!clientKey) {
+                toast.error("결제 설정 오류입니다. 잠시 후 다시 시도해 주세요.");
+                return;
+            }
             const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
             const tossPayments = await loadTossPayments(clientKey);
             const payment = tossPayments.payment({ customerKey: identifier.value || ANONYMOUS });

@@ -108,7 +108,7 @@ export const processTarotReading = inngest.createFunction(
 
             try {
                 await resend.emails.send({
-                    from: '다시,우리 <support@dasisaju.com>',
+                    from: 'ODD TAROT <support@dasisaju.com>',
                     to: customerEmail,
                     subject: '🔮 타로 카드 전체 해석이 도착했습니다!',
                     html: htmlMessage,

@@ -27,7 +27,9 @@ export async function GET(req: Request) {
     if (error) throw error;
     return NextResponse.json({ success: true, inquiries: data || [] });
   } catch (error) {
-    return NextResponse.json({ success: true, inquiries: [] });
+    // DB 오류를 빈 목록(success)으로 위장하지 않는다 — 관리자가 장애를 인지할 수 있도록 실패로 반환
+    console.error("[admin/inquiries] 조회 실패:", error);
+    return NextResponse.json({ success: false, error: "문의 목록을 불러오지 못했습니다.", inquiries: [] }, { status: 500 });
   }
 }
 
