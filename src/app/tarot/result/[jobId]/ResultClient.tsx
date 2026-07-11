@@ -282,6 +282,61 @@ export default function TarotResultClient({ job }: Props) {
                 {/* 최종 메시지 */}
                 <TarotFinalMessage message={finalMessage} delay={0.5} />
 
+                {/* ── 재회사주 브릿지 (헤어진 사이 한정) ──
+                    타로가 답한 건 "지금 마음". 남은 질문 "언제 다시 만나?"를 사주(골든윈도우)로 연결 */}
+                {input.situation === 'breakup' && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.65 }}
+                        style={{
+                            marginTop: 28,
+                            borderRadius: 18,
+                            padding: '24px 22px',
+                            background: 'linear-gradient(150deg, rgba(216,72,94,0.10) 0%, rgba(30,26,66,0.55) 55%)',
+                            border: '1px solid rgba(240,106,126,0.28)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute', top: -40, right: -30, width: 160, height: 150,
+                            background: 'radial-gradient(circle, rgba(216,72,94,0.16) 0%, transparent 70%)',
+                            pointerEvents: 'none',
+                        }} />
+                        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#F06A7E', marginBottom: 10 }}>
+                            NEXT · 다음이 궁금하다면
+                        </p>
+                        <p className="tarot-serif" style={{ fontSize: 18, fontWeight: 700, color: 'var(--tarot-text-1)', lineHeight: 1.5, marginBottom: 10 }}>
+                            마음은 확인했어요.<br />이제 &lsquo;언제&rsquo;가 남았습니다
+                        </p>
+                        <p style={{ fontSize: 13, color: 'var(--tarot-text-2)', lineHeight: 1.75, marginBottom: 16 }}>
+                            카드는 {input.partnerName}씨의 <strong style={{ color: 'var(--tarot-text-1)' }}>지금 마음</strong>을 보여드렸어요.
+                            그 마음이 언제 다시 열리는지 — 연락하기 가장 좋은 시기는 두 사람의 사주에 새겨져 있습니다.
+                        </p>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+                            {['재회 가능성 진단', '골든 윈도우 (연락 최적기)', '상대 공략 매뉴얼'].map((t) => (
+                                <span key={t} style={{
+                                    fontSize: 11, color: 'rgba(240,106,126,0.9)',
+                                    background: 'rgba(216,72,94,0.10)', border: '1px solid rgba(240,106,126,0.22)',
+                                    padding: '4px 10px', borderRadius: 999,
+                                }}>{t}</span>
+                            ))}
+                        </div>
+                        <Link href="/saju" style={{
+                            display: 'block', textAlign: 'center', padding: '15px 20px', borderRadius: 13,
+                            background: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)',
+                            color: '#FFF0F2', fontSize: 14.5, fontWeight: 700, textDecoration: 'none',
+                            boxShadow: '0 6px 24px rgba(216,72,94,0.28)',
+                        }}>
+                            재회 가능성과 타이밍 확인하기
+                        </Link>
+                        <p style={{ fontSize: 11, color: 'var(--tarot-text-3)', textAlign: 'center', marginTop: 9 }}>
+                            무료 기본 분석부터 · 가입 없이 바로
+                        </p>
+                    </motion.div>
+                )}
+
                 {/* 하단 CTA */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} style={{ textAlign: 'center', paddingTop: 8 }}>
                     <Link href="/tarot"

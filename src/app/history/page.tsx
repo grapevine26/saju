@@ -46,6 +46,21 @@ export default function HistoryPage() {
             </header>
 
             <main className="p-6">
+                {/* 타로 배너 — 리포트를 다시 열어보러 온 사람 = 골든윈도우를 기다리는 중 */}
+                {history.length > 0 && (
+                    <Link href="/tarot" className="flex items-center gap-3 rounded-xl px-4 py-3.5 mb-5 transition-transform active:scale-[0.99]"
+                        style={{
+                            background: 'linear-gradient(135deg, rgba(61,44,109,0.4) 0%, rgba(13,16,38,0.55) 70%)',
+                            border: '1px solid rgba(176,123,180,0.3)',
+                        }}>
+                        <span className="text-xl">🔮</span>
+                        <div className="flex-1 min-w-0">
+                            <p className="text-[13px] font-bold text-white">오늘 그 사람의 마음은?</p>
+                            <p className="text-[11px]" style={{ color: 'rgba(176,123,180,0.85)' }}>마음은 매일 움직여요 · 7장의 타로 · 첫 리딩 무료</p>
+                        </div>
+                        <ChevronRight className="w-4 h-4 shrink-0" style={{ color: 'rgba(176,123,180,0.7)' }} />
+                    </Link>
+                )}
                 {history.length === 0 ? (
                     <div className="flex flex-col items-center justify-center mt-20 text-center">
                         <Clock className="w-16 h-16 text-[var(--text-muted)] mb-4" />

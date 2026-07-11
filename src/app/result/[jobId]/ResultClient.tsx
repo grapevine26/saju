@@ -266,6 +266,43 @@ export default function ResultClient({ job }: { job: any }) {
                         </div>
                     )}
 
+                    {/* ── 타로 브릿지 — 골든윈도우까지 기다리는 동안의 "지금 마음" 수요를 타로로 연결 ── */}
+                    <motion.div
+                        initial={{ opacity: 0, y: 14 }}
+                        whileInView={{ opacity: 1, y: 0 }}
+                        viewport={{ once: true }}
+                        className="mt-10 rounded-2xl p-6 relative overflow-hidden"
+                        style={{
+                            background: 'linear-gradient(150deg, rgba(61,44,109,0.35) 0%, rgba(13,16,38,0.6) 60%)',
+                            border: '1px solid rgba(176,123,180,0.3)',
+                        }}
+                    >
+                        <div className="absolute pointer-events-none" style={{
+                            top: -40, right: -30, width: 170, height: 160,
+                            background: 'radial-gradient(circle, rgba(120,86,196,0.22) 0%, transparent 70%)',
+                        }} />
+                        <p className="text-[11px] font-bold tracking-widest mb-2.5" style={{ color: '#B07BB4' }}>
+                            ✦ 골든 윈도우까지 기다리는 동안
+                        </p>
+                        <p className="text-[17px] font-bold text-white leading-relaxed mb-2.5" style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                            운의 흐름은 정해졌지만,<br />마음은 매일 움직입니다
+                        </p>
+                        <p className="text-[13px] leading-relaxed mb-4" style={{ color: 'rgba(237,232,248,0.75)' }}>
+                            연락 최적기가 올 때까지 — 오늘 그 사람이 당신을 어떻게 생각하는지,
+                            7장의 카드가 지금 이 순간의 마음을 읽어드립니다.
+                        </p>
+                        <Link href="/tarot" className="block text-center py-3.5 rounded-xl text-[14px] font-bold"
+                            style={{
+                                background: 'linear-gradient(135deg, #8B5CF6 0%, #6B3FA8 100%)',
+                                color: '#F3EDFB', boxShadow: '0 6px 24px rgba(107,63,168,0.35)',
+                            }}>
+                            오늘 그 사람의 마음 보기
+                        </Link>
+                        <p className="text-[11px] text-center mt-2" style={{ color: 'rgba(176,123,180,0.7)' }}>
+                            첫 리딩 무료 · 전체 해석 3,900원
+                        </p>
+                    </motion.div>
+
                 </motion.div>
                 </div>
                 </div>

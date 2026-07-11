@@ -91,6 +91,16 @@ export const processTarotReading = inngest.createFunction(
                 || 'http://localhost:3000';
             const resultUrl = `${baseUrl}/tarot/result/${jobId}`;
 
+            // 헤어진 사이 리딩이면 재회사주 브릿지 P.S. 첨부 (타로=지금 마음 → 사주=재회 타이밍)
+            const sajuPs = input.situation === 'breakup' ? `
+                <hr style="border:none; border-top:1px solid #e5e7eb; margin:24px 0 16px;"/>
+                <p style="font-size:13px; color:#4b5563; line-height:1.7;">
+                    <strong>P.S.</strong> 카드가 보여준 건 ${input.partnerName}씨의 '지금'입니다.<br/>
+                    다시 만날 '때'가 궁금하다면 — 두 사람의 사주로 재회 가능성과 연락 최적기(골든 윈도우)를 확인해 보세요.
+                </p>
+                <a href="${baseUrl}/saju" style="font-size:13px; color:#D8485E; font-weight:bold;">→ 재회 가능성과 타이밍 확인하기 (무료 분석부터)</a>
+            ` : '';
+
             const htmlMessage = `
                 <h2>[ODD TAROT] 타로 리딩 완료 안내</h2>
                 <p>${input.myName}님, 일곱 장의 카드 전체 해석이 완성되었습니다.</p>
@@ -99,6 +109,7 @@ export const processTarotReading = inngest.createFunction(
                 <a href="${resultUrl}" style="display:inline-block; padding:12px 24px; background-color:#6B3FA8; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">🔮 전체 해석 확인하기</a>
                 <br/><br/>
                 <p style="font-size:12px; color:#6b7280;">본 링크는 개인 정보 보호를 위해 본인만 열람 가능합니다.</p>
+                ${sajuPs}
             `;
 
             if (process.env.NODE_ENV === 'development') {

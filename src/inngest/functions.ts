@@ -248,6 +248,12 @@ export const processPremiumAnalysis = inngest.createFunction(
         <a href="${resultUrl}" style="display:inline-block; padding:12px 24px; background-color:#f59e0b; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">👉 결과 확인하기</a>
         <br/><br/>
         <p style="font-size:12px; color:#6b7280;">본 링크는 개인 정보 보호를 위해 본인만 열람 가능합니다.</p>
+        <hr style="border:none; border-top:1px solid #e5e7eb; margin:24px 0 16px;"/>
+        <p style="font-size:13px; color:#4b5563; line-height:1.7;">
+          <strong>P.S.</strong> 골든 윈도우까지 기다리는 동안, 그 사람의 '지금 마음'이 궁금해질 때가 있을 거예요.<br/>
+          마음은 매일 움직입니다 — 7장의 타로 카드가 오늘의 마음을 읽어드립니다.
+        </p>
+        <a href="${baseUrl}/tarot" style="font-size:13px; color:#6B3FA8; font-weight:bold;">→ 오늘 그 사람의 마음 보기 (첫 리딩 무료)</a>
       `;
 
       if (process.env.NODE_ENV === "development") {
