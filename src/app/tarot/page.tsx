@@ -3,7 +3,7 @@
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ChevronDown, ChevronRight } from "lucide-react";
+import { ChevronDown, ChevronRight, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { TAROT_JOB_ID_KEY, TAROT_HISTORY_KEY } from "@/features/tarot/constants";
 
@@ -444,6 +444,21 @@ export default function TarotLandingPage() {
                         background:`linear-gradient(90deg, transparent, ${GOLD_D}0.4), transparent)`,
                     }} />
                 </Link>
+
+                {/* 메뉴 버튼 (보관함·고객센터) */}
+                <button
+                    onClick={() => router.push("/tarot/menu")}
+                    aria-label="메뉴 열기"
+                    style={{
+                        position:"absolute", right:16, top:"50%", transform:"translateY(-50%)",
+                        width:38, height:38, borderRadius:12,
+                        background:"rgba(27,31,74,0.45)", border:`1px solid ${P}0.22)`,
+                        display:"flex", alignItems:"center", justifyContent:"center",
+                        cursor:"pointer", color:LAV,
+                    }}
+                >
+                    <Menu size={18} />
+                </button>
             </header>
 
             {/* 본문 */}

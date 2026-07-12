@@ -4,11 +4,11 @@ import "./globals.css";
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dasisaju.com"),
-  title: "묘연 妙緣 | 재회 사주 · 연애 타로 · 작명",
-  description: "닿을 듯 닿지 않는 인연의 실마리를 읽습니다. 재회 사주 '다시, 우리', 연애 타로 'ODD TAROT', 작명소 '윤명' — 세 가지 길로 당신의 인연을 비춥니다.",
+  title: "묘연 妙緣 | 재회 사주 · 연애 타로",
+  description: "닿을 듯 닿지 않는 인연의 실마리를 읽습니다. 재회 사주 '다시, 우리'와 연애 타로 'ODD TAROT' — 두 가지 길로 당신의 인연을 비춥니다.",
   openGraph: {
-    title: "묘연 妙緣 | 재회 사주 · 연애 타로 · 작명",
-    description: "재회 사주 · 연애 타로 · 정통 성명학 작명. 세 가지 길로 당신의 인연을 비춥니다.",
+    title: "묘연 妙緣 | 재회 사주 · 연애 타로",
+    description: "재회 사주 · 연애 타로. 두 가지 길로 당신의 인연을 비춥니다.",
     url: "https://dasisaju.com",
     siteName: "묘연",
     images: [
@@ -24,8 +24,8 @@ export const metadata: Metadata = {
   },
   twitter: {
     card: "summary_large_image",
-    title: "묘연 妙緣 | 재회 사주 · 연애 타로 · 작명",
-    description: "재회 사주 · 연애 타로 · 정통 성명학 작명. 세 가지 길로 당신의 인연을 비춥니다.",
+    title: "묘연 妙緣 | 재회 사주 · 연애 타로",
+    description: "재회 사주 · 연애 타로. 두 가지 길로 당신의 인연을 비춥니다.",
     images: ["/og-image.png"],
   },
   icons: {

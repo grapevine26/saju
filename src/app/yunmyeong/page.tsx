@@ -3,6 +3,7 @@
 import { useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
 import { useRouter } from 'next/navigation';
+import { Menu as MenuIcon } from 'lucide-react';
 import { MD_MODES } from '@/features/naming/yunmyeong';
 import { loadNamingHistory } from '@/features/naming/history';
 import MdShell from '@/components/naming/yunmyeong/MdShell';
@@ -275,7 +276,22 @@ export default function NamingLandingPage() {
                             <span className="md-serif" style={{ fontSize: 21, fontWeight: 700, letterSpacing: '0.04em' }}>윤명</span>
                             <span className="md-serif" style={{ fontSize: 13, color: 'var(--md-accent)' }}>潤名</span>
                         </Link>
-                        <span style={{ fontSize: 11.5, letterSpacing: '0.14em', color: 'var(--md-text-3)' }}>EST. 2026</span>
+                        <div style={{ display: 'flex', alignItems: 'center', gap: 12 }}>
+                            <span style={{ fontSize: 11.5, letterSpacing: '0.14em', color: 'var(--md-text-3)' }}>EST. 2026</span>
+                            {/* 메뉴 버튼 (보관함·고객센터) */}
+                            <button
+                                onClick={() => router.push('/yunmyeong/menu')}
+                                aria-label="메뉴 열기"
+                                style={{
+                                    width: 34, height: 34, borderRadius: 10,
+                                    border: '1px solid var(--md-line-strong)', background: 'var(--md-accent-soft)',
+                                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                    cursor: 'pointer', color: 'var(--md-accent)',
+                                }}
+                            >
+                                <MenuIcon size={16} />
+                            </button>
+                        </div>
                     </header>
 
                     {/* 히어로 */}

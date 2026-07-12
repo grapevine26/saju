@@ -2,7 +2,8 @@
 
 /**
  * 묘연 妙緣 — 통합 허브 랜딩
- * 재회 사주(다시, 우리) · 연애 타로(ODD TAROT) · 작명소(윤명)
+ * 재회 사주(다시, 우리) · 연애 타로(ODD TAROT)
+ * 작명소(윤명)는 /yunmyeong 독립 랜딩으로만 운영 (재회 전문 브랜딩 유지)
  */
 import Link from 'next/link';
 import { useEffect } from 'react';
@@ -58,25 +59,10 @@ const SERVICES = [
         cardBg: 'linear-gradient(150deg, rgba(30,26,66,0.80) 0%, rgba(13,11,22,0.85) 60%)',
         visual: 'cards' as const,
     },
-    {
-        href: '/yunmyeong',
-        label: '작명 · 감명',
-        name: '윤명 潤名',
-        nameSub: '이름을 윤이 나게',
-        hook: '이름은 평생을 함께하는 사주의 옷.\n정통 성명학으로 짓고, 풀이합니다.',
-        chips: ['신생아 작명', '이름 감명', '개명'],
-        badge: null as string | null,
-        accent: '#D4A853',
-        accentSoft: 'rgba(212,168,83,0.10)',
-        border: 'rgba(212,168,83,0.26)',
-        glow: 'rgba(212,168,83,0.12)',
-        cardBg: 'linear-gradient(150deg, rgba(41,33,18,0.70) 0%, rgba(15,13,10,0.85) 60%)',
-        visual: 'seal' as const,
-    },
 ];
 
 /* ── 카드 미니 비주얼 ── */
-function CardVisual({ type, accent }: { type: 'heart' | 'cards' | 'seal'; accent: string }) {
+function CardVisual({ type, accent }: { type: 'heart' | 'cards'; accent: string }) {
     if (type === 'heart') {
         return (
             <div style={{
@@ -89,40 +75,23 @@ function CardVisual({ type, accent }: { type: 'heart' | 'cards' | 'seal'; accent
             </div>
         );
     }
-    if (type === 'cards') {
-        return (
-            <div style={{ position: 'relative', width: 74, height: 62 }}>
-                {[-18, 0, 18].map((deg, i) => (
-                    <div key={i} style={{
-                        position: 'absolute', left: '50%', bottom: 0,
-                        width: 32, height: 47, borderRadius: 6,
-                        transform: `translateX(calc(-50% + ${(i - 1) * 19}px)) rotate(${deg}deg) translateY(${i === 1 ? -5 : 2}px)`,
-                        transformOrigin: 'bottom center',
-                        background: 'linear-gradient(160deg, #241A4E 0%, #3D2C6D 100%)',
-                        border: '1px solid rgba(176,123,180,0.5)',
-                        display: 'flex', alignItems: 'center', justifyContent: 'center',
-                        boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
-                        zIndex: i === 1 ? 2 : 1,
-                    }}>
-                        <span style={{ fontSize: 11, color: accent, opacity: 0.9 }}>✦</span>
-                    </div>
-                ))}
-            </div>
-        );
-    }
     return (
-        <div style={{
-            width: 56, height: 56, borderRadius: 13,
-            border: '1.5px solid rgba(212,168,83,0.5)',
-            background: 'rgba(212,168,83,0.06)',
-            display: 'flex', alignItems: 'center', justifyContent: 'center',
-            position: 'relative',
-        }}>
-            <span style={{ fontFamily: C.serif, fontSize: 26, fontWeight: 900, color: accent, lineHeight: 1 }}>名</span>
-            <span style={{
-                position: 'absolute', top: 5, right: 5, width: 5, height: 5,
-                borderRadius: '50%', background: 'rgba(216,72,94,0.85)',
-            }} />
+        <div style={{ position: 'relative', width: 74, height: 62 }}>
+            {[-18, 0, 18].map((deg, i) => (
+                <div key={i} style={{
+                    position: 'absolute', left: '50%', bottom: 0,
+                    width: 32, height: 47, borderRadius: 6,
+                    transform: `translateX(calc(-50% + ${(i - 1) * 19}px)) rotate(${deg}deg) translateY(${i === 1 ? -5 : 2}px)`,
+                    transformOrigin: 'bottom center',
+                    background: 'linear-gradient(160deg, #241A4E 0%, #3D2C6D 100%)',
+                    border: '1px solid rgba(176,123,180,0.5)',
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    boxShadow: '0 3px 10px rgba(0,0,0,0.4)',
+                    zIndex: i === 1 ? 2 : 1,
+                }}>
+                    <span style={{ fontSize: 11, color: accent, opacity: 0.9 }}>✦</span>
+                </div>
+            ))}
         </div>
     );
 }
@@ -218,7 +187,7 @@ export default function HubPage() {
                     initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ duration: 0.8, delay: 0.38 }}
                     style={{ fontSize: 13, color: C.sub, marginTop: 12, lineHeight: 1.7 }}
                 >
-                    사주 · 타로 · 성명학, 세 가지 길 중<br />지금 당신에게 필요한 하나를 고르세요
+                    사주와 타로, 두 가지 길 중<br />지금 당신에게 필요한 하나를 고르세요
                 </motion.p>
             </header>
 
