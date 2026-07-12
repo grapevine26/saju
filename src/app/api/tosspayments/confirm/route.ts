@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from "@/lib/supabase";
 import { inngest } from "@/inngest/client";
 import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
+import { recordPaidEvent } from "@/lib/funnel";
 
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
 const SAJU_PRICES: Record<string, number> = { premium: 13900, signature: 19900 };
@@ -130,6 +131,7 @@ export async function POST(req: Request) {
                     if (valid) {
                         const jobId = await createJobAndDispatch(payload, paymentKey);
                         if (jobId) {
+                            await recordPaidEvent({ service: 'saju', jobId, amount: SAJU_PRICES[pkg], utm: payload.utm, visitorId: payload.visitorId });
                             return NextResponse.json({ success: true, data: pay, jobId });
                         }
                     }
@@ -145,6 +147,8 @@ export async function POST(req: Request) {
             if (!jobId) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
+            const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
+            await recordPaidEvent({ service: 'saju', jobId, amount: SAJU_PRICES[pkg], utm: payload.utm, visitorId: payload.visitorId });
             return NextResponse.json({ success: true, data, jobId });
         }
 

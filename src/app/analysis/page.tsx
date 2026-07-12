@@ -24,6 +24,7 @@ import UpgradeModal from "@/components/UpgradeModal";
 import PaymentModal from "@/components/PaymentModal";
 import { createClient } from '@/utils/supabase/client';
 import { checkFreePass, makeFreePassKey } from '@/utils/freePassClient';
+import { trackFunnelEvent } from '@/utils/utm';
 
 const C = {
   bg: '#0A090C',
@@ -310,6 +311,7 @@ export default function AnalysisPage() {
 
         const fetchAnalysis = async () => {
             try {
+                trackFunnelEvent('free', 'saju');
                 const res = await fetch("/api/reunion", {
                     method: "POST",
                     headers: { "Content-Type": "application/json" },

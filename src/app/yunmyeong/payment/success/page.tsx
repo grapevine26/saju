@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation';
 import { motion } from 'framer-motion';
 import { NAMING_PENDING_KEY } from '@/features/naming/constants';
 import { saveNamingHistory } from '@/features/naming/history';
+import { getUtm, getVisitorId } from '@/utils/utm';
 
 // ─────────────────────────────────────────────
 // 작명 결제 성공 → 승인 → 리포트 생성 대기 페이지
@@ -63,6 +64,8 @@ function NamingPaymentSuccessContent() {
                         payload: {
                             customerEmail: pending!.customerEmail,
                             namingInput: pending!.namingInput,
+                            // 유입 추적 (없으면 null — 결제 처리와 무관)
+                            utm: getUtm(), visitorId: getVisitorId(),
                         },
                     }),
                 });

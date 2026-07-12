@@ -150,6 +150,49 @@ export function OverviewTab({ fetchWithAuth }: Props) {
           </div>
         </div>
       </div>
+
+      {/* UTM 유입 퍼널 (최근 30일) */}
+      <div className="rounded-xl border border-white/[0.06] bg-[#12172480] p-4">
+        <div className="flex items-center gap-2 mb-1">
+          <TrendingUp className="w-4 h-4 text-violet-400" />
+          <h3 className="text-sm font-semibold text-white">유입 채널 퍼널 (최근 30일)</h3>
+        </div>
+        <p className="text-[11px] text-slate-600 mb-3">
+          UTM 링크 방문 → 무료 분석 → 결제. 무료/결제 행에는 UTM 없는 직접 유입도 포함됩니다.
+        </p>
+        {(!stats.utmFunnel || stats.utmFunnel.length === 0) ? (
+          <p className="text-xs text-slate-500 py-4 text-center">
+            아직 기록된 유입이 없습니다. 인스타 프로필 링크에 UTM을 붙이면 여기에 집계됩니다.
+          </p>
+        ) : (
+          <div className="overflow-x-auto">
+            <table className="w-full text-xs">
+              <thead>
+                <tr className="text-slate-500 border-b border-white/[0.06]">
+                  <th className="text-left py-2 pr-3 font-medium">소스</th>
+                  <th className="text-left py-2 pr-3 font-medium">캠페인</th>
+                  <th className="text-right py-2 pr-3 font-medium">방문</th>
+                  <th className="text-right py-2 pr-3 font-medium">무료 분석</th>
+                  <th className="text-right py-2 pr-3 font-medium">결제</th>
+                  <th className="text-right py-2 font-medium">매출(정가)</th>
+                </tr>
+              </thead>
+              <tbody>
+                {stats.utmFunnel.map((row: any) => (
+                  <tr key={`${row.source}|${row.campaign}`} className="border-b border-white/[0.04] text-slate-300">
+                    <td className="py-2 pr-3 font-medium text-white">{row.source}</td>
+                    <td className="py-2 pr-3 text-slate-400">{row.campaign}</td>
+                    <td className="py-2 pr-3 text-right">{row.visits.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right">{row.free.toLocaleString()}</td>
+                    <td className="py-2 pr-3 text-right text-emerald-400 font-semibold">{row.paid.toLocaleString()}</td>
+                    <td className="py-2 text-right">{won(row.revenue)}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
     </div>
   );
 }

@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from "framer-motion";
 import CardBack from "@/components/tarot/CardBack";
 import { TAROT_PENDING_KEY, TAROT_JOB_ID_KEY, TAROT_HISTORY_KEY, TAROT_INPUT_KEY, TAROT_ROUNDS_KEY, TAROT_FREE_KEY } from "@/features/tarot/constants";
 import { createClient } from "@/utils/supabase/client";
+import { getUtm, getVisitorId } from "@/utils/utm";
 
 /* 타이머로 순환하는 리딩 단계 문구 — 마지막 문구에서 멈춤 */
 const LOADING_STEPS = [
@@ -102,6 +103,8 @@ function TarotPaymentSuccessContent() {
                         paymentKey: isDev ? null : paymentKey,
                         customerEmail: pending.customerEmail,
                         userId: user?.id || null,
+                        // 유입 추적 (없으면 null — 결제 처리와 무관)
+                        utm: getUtm(), visitorId: getVisitorId(),
                     }),
                 });
                 const startData = await startRes.json();

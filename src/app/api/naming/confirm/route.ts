@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { inngest } from "@/inngest/client";
 import { NAMING_PRICE, NAMING_PRICE_EVALUATION } from "@/features/naming/constants";
 import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
+import { recordPaidEvent } from "@/lib/funnel";
 
 // ─────────────────────────────────────────────
 // 작명 프리미엄 결제 승인 API
@@ -121,7 +122,10 @@ export async function POST(req: Request) {
                     const valid = verifyRes.ok && pay.status === 'DONE' && pay.totalAmount === expectedPriceFor(payload);
                     if (valid) {
                         const jobId = await createJobAndDispatch(payload, paymentKey);
-                        if (jobId) return NextResponse.json({ success: true, data: pay, jobId });
+                        if (jobId) {
+                            await recordPaidEvent({ service: 'naming', jobId, amount: expectedPriceFor(payload), utm: payload.utm, visitorId: payload.visitorId });
+                            return NextResponse.json({ success: true, data: pay, jobId });
+                        }
                     }
                     console.error('[작명] ALREADY_PROCESSED 복구 실패:', pay?.code || pay?.status);
                 }
@@ -135,6 +139,7 @@ export async function POST(req: Request) {
             if (!jobId) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 작명을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
+            await recordPaidEvent({ service: 'naming', jobId, amount: expectedPriceFor(payload), utm: payload.utm, visitorId: payload.visitorId });
             return NextResponse.json({ success: true, data, jobId });
         }
 

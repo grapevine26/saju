@@ -30,6 +30,7 @@ import MdPaymentSheet from '@/components/naming/yunmyeong/MdPaymentSheet';
 import MdShell from '@/components/naming/yunmyeong/MdShell';
 import { MdToast, useMdToast } from '@/components/naming/yunmyeong/MdReport';
 import { checkFreePass, makeFreePassKey } from '@/utils/freePassClient';
+import { trackFunnelEvent } from '@/utils/utm';
 
 // ─────────────────────────────────────────────
 // 윤명 — 연산 로딩 연출 → 무료 진단 / 페이월 (The Hook · 클리프 레이아웃)
@@ -99,6 +100,7 @@ export default function NamingAnalysisPage() {
 
         const analyze = async () => {
             try {
+                trackFunnelEvent('free', 'naming');
                 const res = await fetch('/api/naming/analyze', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },

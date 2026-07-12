@@ -5,6 +5,7 @@ import { useRouter, useSearchParams } from "next/navigation";
 import { motion } from "framer-motion";
 import { useSajuStore } from "@/store/useSajuStore";
 import toast from "react-hot-toast"; import { Suspense } from "react";
+import { getUtm, getVisitorId } from "@/utils/utm";
 
 function PaymentSuccessContent() {
     const router = useRouter();
@@ -87,7 +88,11 @@ function PaymentSuccessContent() {
                     months: 6
                 };
 
-                const payload: any = { rawData, packageId: pendingData.packageId, customerEmail: pendingData.customerEmail };
+                const payload: any = {
+                    rawData, packageId: pendingData.packageId, customerEmail: pendingData.customerEmail,
+                    // 유입 추적 (없으면 null — 결제 처리와 무관)
+                    utm: getUtm(), visitorId: getVisitorId(),
+                };
                 if (pendingData.identifier.type === 'guest') {
                     payload.phoneNumber = pendingData.identifier.value;
                 } else {

@@ -100,6 +100,28 @@ export async function GET(req: Request) {
     const freeToday = freeTodayRes.count || 0;
     const tarotFreeSum = (tarotUsageRes.data || []).reduce((a: number, r: any) => a + (r.count || 0), 0);
 
+    // UTM 유입 퍼널 (최근 30일) — 소스·캠페인별 방문/무료/결제 집계
+    // 테이블이 아직 없으면(마이그레이션 전) 빈 배열로 무시
+    let utmFunnel: Array<{ source: string; campaign: string; visits: number; free: number; paid: number; revenue: number }> = [];
+    try {
+      const monthAgoIso = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+      const { data: events } = await supabaseAdmin
+        .from("funnel_events")
+        .select("event, utm_source, utm_campaign, amount")
+        .gte("created_at", monthAgoIso);
+      const byKey: Record<string, { source: string; campaign: string; visits: number; free: number; paid: number; revenue: number }> = {};
+      for (const ev of events || []) {
+        const source = ev.utm_source || "(직접 유입)";
+        const campaign = ev.utm_campaign || "-";
+        const key = `${source}|${campaign}`;
+        if (!byKey[key]) byKey[key] = { source, campaign, visits: 0, free: 0, paid: 0, revenue: 0 };
+        if (ev.event === "visit") byKey[key].visits++;
+        else if (ev.event === "free") byKey[key].free++;
+        else if (ev.event === "paid") { byKey[key].paid++; byKey[key].revenue += ev.amount || 0; }
+      }
+      utmFunnel = Object.values(byKey).sort((a, b) => b.paid - a.paid || b.free - a.free || b.visits - a.visits);
+    } catch { /* funnel_events 미생성 시 무시 */ }
+
     return NextResponse.json({
       success: true,
       stats: {
@@ -116,6 +138,7 @@ export async function GET(req: Request) {
           tarot: tarotFreeSum,
         },
         needsAttention: status.failed + status.pending + status.processing,
+        utmFunnel,
       },
     });
   } catch (error) {

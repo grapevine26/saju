@@ -26,6 +26,7 @@ import { buildPaidReadingPrompt } from '@/features/tarot/tarotPrompt';
 import { TarotInput, TarotFreeResult } from '@/features/tarot/types';
 import { TAROT_PRICE } from '@/features/tarot/constants';
 import { isFreePassKey, isFreePassSession } from '@/lib/freePass';
+import { recordPaidEvent } from '@/lib/funnel';
 
 export async function POST(req: Request) {
     try {
@@ -92,6 +93,8 @@ export async function POST(req: Request) {
             console.error('[tarot/start] DB insert 실패:', error);
             return NextResponse.json({ success: false, error: '작업 생성에 실패했습니다.' }, { status: 500 });
         }
+
+        await recordPaidEvent({ service: 'tarot', jobId: job.id, amount: TAROT_PRICE, utm: body.utm, visitorId: body.visitorId });
 
         if (isDev) {
             // 개발 모드: Inngest 없이 직접 처리

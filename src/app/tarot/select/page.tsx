@@ -7,6 +7,7 @@ import CardDeck from "@/components/tarot/CardDeck";
 import SelectedStrip from "@/components/tarot/SelectedStrip";
 import { TarotInput } from "@/features/tarot/types";
 import { getRandomCards, getCardById } from "@/features/tarot/cards";
+import { trackFunnelEvent } from "@/utils/utm";
 import {
     TAROT_INPUT_KEY,
     TAROT_ROUNDS_KEY,
@@ -94,6 +95,7 @@ export default function TarotSelectPage() {
 
     const callFreeReading = async (inp: TarotInput, finalRounds: [number[], number[], number[]]) => {
         try {
+            trackFunnelEvent('free', 'tarot');
             const res = await fetch('/api/tarot/free-reading', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
