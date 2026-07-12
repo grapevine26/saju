@@ -450,14 +450,14 @@ export default function TarotLandingPage() {
                     onClick={() => router.push("/tarot/menu")}
                     aria-label="메뉴 열기"
                     style={{
-                        position:"absolute", right:16, top:"50%", transform:"translateY(-50%)",
-                        width:38, height:38, borderRadius:12,
-                        background:"rgba(27,31,74,0.45)", border:`1px solid ${P}0.22)`,
+                        position:"absolute", right:12, top:"50%", transform:"translateY(-50%)",
+                        width:40, height:40,
+                        background:"none", border:"none",
                         display:"flex", alignItems:"center", justifyContent:"center",
                         cursor:"pointer", color:LAV,
                     }}
                 >
-                    <Menu size={18} />
+                    <Menu size={20} />
                 </button>
             </header>
 
