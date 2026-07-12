@@ -2,7 +2,7 @@
 
 import { useEffect } from "react";
 
-const TAROT_BG = "#0D1026";
+const TAROT_BG = "#060409";
 
 export default function TarotThemeWrapper({ children }: { children: React.ReactNode }) {
     useEffect(() => {

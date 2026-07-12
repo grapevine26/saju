@@ -7,19 +7,19 @@ import { ChevronDown, ChevronRight, Menu } from "lucide-react";
 import { useState, useEffect } from "react";
 import { TAROT_JOB_ID_KEY, TAROT_HISTORY_KEY } from "@/features/tarot/constants";
 
-/* ── 팔레트 상수 (#0D1026 → #1B1F4A → #3D2C6D → #B07BB4 → #F6D6E8) ── */
-const P    = "rgba(176,123,180,";   // lavender
-const DP   = "rgba(61,44,109,";     // dark purple
-const NP   = "rgba(168,85,247,";    // neon purple
-const LAV  = "#B07BB4";
-const BLUSH = "#F6D6E8";
-const GOLD  = "#D4A853";
-const GOLD_D = "rgba(212,168,83,";
+/* ── 팔레트 상수 (#060409 → #0D0820 → #1F1240 → #9D7BFF → #EFE9FF) ── */
+const P    = "rgba(157,123,255,";   // lavender
+const DP   = "rgba(59,29,122,";     // dark purple
+const NP   = "rgba(124,77,255,";    // neon purple
+const LAV  = "#9D7BFF";
+const BLUSH = "#EFE9FF";
+const GOLD  = "#B79DFF";
+const GOLD_D = "rgba(183,157,255,";
 
 /* ── 글래스카드 스타일 헬퍼 ── */
 function glass(extra?: React.CSSProperties): React.CSSProperties {
     return {
-        background: "rgba(27,31,74,0.45)",
+        background: "rgba(13,8,32,0.45)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
         border: `1px solid ${P}0.22)`,
@@ -60,10 +60,10 @@ function MoonHero() {
                     <defs>
                         {/* 달 본체 — 밝은 중심에서 보라로 은은하게 퍼짐 */}
                         <radialGradient id="mg2" cx="32%" cy="32%" r="75%">
-                            <stop offset="0%"  stopColor="#F6D6E8" />
-                            <stop offset="32%" stopColor="#D9B8EE" />
-                            <stop offset="65%" stopColor="#9B6FCC" />
-                            <stop offset="100%" stopColor="#5A3490" />
+                            <stop offset="0%"  stopColor="#EFE9FF" />
+                            <stop offset="32%" stopColor="#C9B8FF" />
+                            <stop offset="65%" stopColor="#7C4DFF" />
+                            <stop offset="100%" stopColor="#3B1D7A" />
                         </radialGradient>
                         {/* 배경으로 퍼지는 은은한 헤일로 */}
                         <radialGradient id="moon-halo" cx="50%" cy="50%" r="50%">
@@ -94,9 +94,9 @@ function MoonHero() {
                         filter="url(#moon-glow)" />
 
                     {/* 은은한 크레이터 텍스처 */}
-                    <circle cx="58" cy="42" r="2.2" fill="#5A3490" opacity="0.28" mask="url(#moon-mask)" />
-                    <circle cx="64" cy="58" r="1.4" fill="#5A3490" opacity="0.24" mask="url(#moon-mask)" />
-                    <circle cx="52" cy="55" r="1.6" fill="#5A3490" opacity="0.2" mask="url(#moon-mask)" />
+                    <circle cx="58" cy="42" r="2.2" fill="#3B1D7A" opacity="0.28" mask="url(#moon-mask)" />
+                    <circle cx="64" cy="58" r="1.4" fill="#3B1D7A" opacity="0.24" mask="url(#moon-mask)" />
+                    <circle cx="52" cy="55" r="1.6" fill="#3B1D7A" opacity="0.2" mask="url(#moon-mask)" />
 
                     {/* 별 — 가로로 넓게 흩뿌림 */}
                     <circle cx="134" cy="14" r="1.8" fill={GOLD} opacity="0.9" />
@@ -170,7 +170,7 @@ function TarotCardMain() {
         <div style={{
             width:86, height:134,
             borderRadius:13,
-            background:"linear-gradient(155deg, #3D2C6D 0%, #1B1F4A 100%)",
+            background:"linear-gradient(155deg, #1F1240 0%, #0D0820 100%)",
             border:`1.5px solid ${P}0.65)`,
             display:"flex", flexDirection:"column", alignItems:"center", justifyContent:"center", gap:6,
             boxShadow:`0 12px 48px ${DP}0.6), 0 0 28px ${NP}0.25), inset 0 1px 0 ${P}0.2)`,
@@ -195,7 +195,7 @@ function TarotCardMini() {
         <div style={{
             width:60, height:96,
             borderRadius:11,
-            background:"linear-gradient(155deg, #2A1F54 0%, #1B1F4A 100%)",
+            background:"linear-gradient(155deg, #170D33 0%, #0D0820 100%)",
             border:`1px solid ${P}0.38)`,
             display:"flex", alignItems:"center", justifyContent:"center",
             boxShadow:`0 6px 24px ${DP}0.4), 0 0 12px ${NP}0.1)`,
@@ -209,7 +209,7 @@ function MockLine({ w, strong }: { w: string | number; strong?: boolean }) {
     return (
         <div style={{
             height: 6, borderRadius: 3, width: w, marginBottom: 6,
-            background: strong ? "rgba(237,232,248,0.45)" : "rgba(237,232,248,0.22)",
+            background: strong ? "rgba(239,233,255,0.45)" : "rgba(239,233,255,0.22)",
         }} />
     );
 }
@@ -219,7 +219,7 @@ function ResultMockups() {
         width: 172, flexShrink: 0,
         borderRadius: 14,
         border: `1px solid ${P}0.24)`,
-        background: "rgba(27,31,74,0.5)",
+        background: "rgba(13,8,32,0.5)",
         padding: "14px 13px",
         overflow: "hidden",
         position: "relative",
@@ -246,7 +246,7 @@ function ResultMockups() {
                             <div style={{ display: "flex", gap: 8, alignItems: "center", marginBottom: 10 }}>
                                 <div style={{
                                     width: 26, height: 38, borderRadius: 5, flexShrink: 0,
-                                    background: "linear-gradient(155deg, #3D2C6D, #1B1F4A)",
+                                    background: "linear-gradient(155deg, #1F1240, #0D0820)",
                                     border: `1px solid ${P}0.5)`,
                                     display: "flex", alignItems: "center", justifyContent: "center",
                                     fontSize: 9, color: `${GOLD_D}0.7)`,
@@ -255,7 +255,7 @@ function ResultMockups() {
                                     <MockLine w="70%" strong />
                                     <div style={{
                                         display: "inline-block", padding: "2px 7px", borderRadius: 5,
-                                        background: "rgba(139,92,246,0.2)", border: `1px solid ${P}0.3)`,
+                                        background: "rgba(109,40,217,0.2)", border: `1px solid ${P}0.3)`,
                                         fontSize: 7.5, color: LAV, fontWeight: 600,
                                     }}>숨겨진 속마음</div>
                                 </div>
@@ -277,10 +277,10 @@ function ResultMockups() {
                                 8_°
                             </p>
                             <div style={{
-                                height: 5, borderRadius: 3, background: "rgba(176,123,180,0.15)",
+                                height: 5, borderRadius: 3, background: "rgba(157,123,255,0.15)",
                                 overflow: "hidden", margin: "0 8px 12px",
                             }}>
-                                <div style={{ height: "100%", width: "82%", borderRadius: 3, background: `linear-gradient(90deg, #6B3FA8, ${LAV}, ${GOLD})` }} />
+                                <div style={{ height: "100%", width: "82%", borderRadius: 3, background: `linear-gradient(90deg, #4C1D95, ${LAV}, ${GOLD})` }} />
                             </div>
                             <div style={{ display: "flex", flexDirection: "column", alignItems: "center" }}>
                                 <MockLine w="84%" strong />
@@ -350,7 +350,7 @@ function FaqItem({ q, a }: { q:string; a:string }) {
                 display:"flex", alignItems:"center", justifyContent:"space-between",
                 background:"none", border:"none", cursor:"pointer", textAlign:"left", fontFamily:"inherit",
             }}>
-                <span style={{ fontSize:14, fontWeight:600, color:"#EDE8F8", lineHeight:1.4, wordBreak:"keep-all", flex:1, paddingRight:12 }}>{q}</span>
+                <span style={{ fontSize:14, fontWeight:600, color:"#EFE9FF", lineHeight:1.4, wordBreak:"keep-all", flex:1, paddingRight:12 }}>{q}</span>
                 <motion.div animate={{ rotate: open ? 180 : 0 }} transition={{ duration:0.2 }}>
                     <ChevronDown size={16} color={`${P}0.6)`} />
                 </motion.div>
@@ -432,7 +432,7 @@ export default function TarotLandingPage() {
                         <span style={{ fontSize:10, color:`${GOLD_D}0.55)`, letterSpacing:"0.1em" }}>✦</span>
                         <span style={{
                             fontSize:13, fontWeight:800, letterSpacing:"0.38em",
-                            background:`linear-gradient(90deg, ${GOLD} 0%, #EDE8F8 45%, ${LAV} 100%)`,
+                            background:`linear-gradient(90deg, ${GOLD} 0%, #EFE9FF 45%, ${LAV} 100%)`,
                             WebkitBackgroundClip:"text", backgroundClip:"text",
                             WebkitTextFillColor:"transparent", color:"transparent",
                             display:"inline-block",
@@ -484,9 +484,9 @@ export default function TarotLandingPage() {
                         </div>
 
                         <h1 className="tarot-serif" style={{ fontSize:28, fontWeight:700, lineHeight:1.42, marginBottom:14, letterSpacing:"-0.01em", wordBreak:"keep-all" }}>
-                            <span style={{ color:"#EDE8F8" }}>그 사람의 마음속,</span><br />
+                            <span style={{ color:"#EFE9FF" }}>그 사람의 마음속,</span><br />
                             <span style={{
-                                background:"linear-gradient(90deg, #F0DDFF 0%, #C49FF5 45%, #A06DE0 100%)",
+                                background:"linear-gradient(90deg, #EFE9FF 0%, #C9B8FF 45%, #9D7BFF 100%)",
                                 WebkitBackgroundClip:"text",
                                 backgroundClip:"text",
                                 WebkitTextFillColor:"transparent",
@@ -502,7 +502,7 @@ export default function TarotLandingPage() {
 
                         <button onClick={go} style={{
                             width:"100%", padding:"17px 20px", borderRadius:16, border:`1px solid ${P}0.3)`,
-                            background:"var(--tarot-btn-bg)", color:"#EDE8F8", fontSize:16, fontWeight:700,
+                            background:"var(--tarot-btn-bg)", color:"#EFE9FF", fontSize:16, fontWeight:700,
                             cursor:"pointer", boxShadow:"var(--tarot-btn-shadow)",
                             letterSpacing:"-0.01em", fontFamily:"inherit",
                             display:"flex", alignItems:"center", justifyContent:"center", gap:6,
@@ -542,7 +542,7 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <SectionLabel>혹시 지금,</SectionLabel>
-                        <h2 className="tarot-serif" style={{ fontSize:21, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:24, lineHeight:1.48, wordBreak:"keep-all" }}>
+                        <h2 className="tarot-serif" style={{ fontSize:21, fontWeight:700, color:"#EFE9FF", textAlign:"center", marginBottom:24, lineHeight:1.48, wordBreak:"keep-all" }}>
                             이런 생각<br />하고 계신가요?
                         </h2>
                     </motion.div>
@@ -569,7 +569,7 @@ export default function TarotLandingPage() {
                                     background: i%2===0 ? LAV : GOLD,
                                     boxShadow:`0 0 10px ${i%2===0 ? P+"0.7)" : GOLD_D+"0.6)"}`,
                                 }} />
-                                <p style={{ fontSize:14, color:"#EDE8F8", margin:0, lineHeight:1.5, fontWeight:500, wordBreak:"keep-all" }}>{q}</p>
+                                <p style={{ fontSize:14, color:"#EFE9FF", margin:0, lineHeight:1.5, fontWeight:500, wordBreak:"keep-all" }}>{q}</p>
                             </motion.div>
                         ))}
                     </div>
@@ -590,7 +590,7 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <SectionLabel>PREVIEW</SectionLabel>
-                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>
+                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EFE9FF", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>
                             실제 결과 화면 미리보기
                         </h2>
                         <p style={{ fontSize:13, color:`${P}0.7)`, textAlign:"center", marginBottom:20, lineHeight:1.6 }}>
@@ -604,7 +604,7 @@ export default function TarotLandingPage() {
                         <button onClick={go} style={{
                             width:"100%", marginTop:14, padding:"14px",
                             borderRadius:13, border:`1px solid ${P}0.35)`,
-                            background:`rgba(61,44,109,0.25)`,
+                            background:`rgba(59,29,122,0.25)`,
                             backdropFilter:"blur(8px)", WebkitBackdropFilter:"blur(8px)",
                             color:LAV, fontSize:14, fontWeight:700, cursor:"pointer", fontFamily:"inherit",
                         }}>
@@ -620,7 +620,7 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <SectionLabel>CONTENTS</SectionLabel>
-                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>
+                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EFE9FF", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>
                             리딩 상세 목차
                         </h2>
                         <p style={{ fontSize:13, color:`${P}0.7)`, textAlign:"center", marginBottom:22, lineHeight:1.6 }}>
@@ -671,7 +671,7 @@ export default function TarotLandingPage() {
                                         </span>
                                         <span style={{ fontSize:10, fontWeight:700, color:ch.tc, background:ch.tbg, padding:"2px 7px", borderRadius:999, border:`1px solid ${ch.tbd}` }}>{ch.tag}</span>
                                     </div>
-                                    <p className="tarot-serif" style={{ fontSize:16, fontWeight:700, color:"#EDE8F8", margin:0, wordBreak:"keep-all" }}>
+                                    <p className="tarot-serif" style={{ fontSize:16, fontWeight:700, color:"#EFE9FF", margin:0, wordBreak:"keep-all" }}>
                                         {ch.title}
                                     </p>
                                 </div>
@@ -686,7 +686,7 @@ export default function TarotLandingPage() {
                                         <span style={{ fontSize:11, fontWeight:800, color:`${P}0.6)`, flexShrink:0, letterSpacing:"0.04em" }}>
                                             풀이 {j+1}
                                         </span>
-                                        <span style={{ fontSize:13, color:"rgba(237,232,248,0.85)", lineHeight:1.6, wordBreak:"keep-all" }}>
+                                        <span style={{ fontSize:13, color:"rgba(239,233,255,0.85)", lineHeight:1.6, wordBreak:"keep-all" }}>
                                             {item}
                                         </span>
                                     </div>
@@ -703,7 +703,7 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <SectionLabel>REVIEWS</SectionLabel>
-                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>이런 리딩을 만나요</h2>
+                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EFE9FF", textAlign:"center", marginBottom:6, lineHeight:1.45 }}>이런 리딩을 만나요</h2>
                         <p style={{ fontSize:11.5, color:`${P}0.5)`, textAlign:"center", marginBottom:22 }}>서비스 이해를 돕기 위한 예시 후기입니다</p>
                     </motion.div>
 
@@ -728,7 +728,7 @@ export default function TarotLandingPage() {
                                         maxWidth:"88%",
                                     }),
                                 }}>
-                                    <p style={{ fontSize:13.5, color:"rgba(237,232,248,0.9)", lineHeight:1.75, margin:0, wordBreak:"keep-all" }}>
+                                    <p style={{ fontSize:13.5, color:"rgba(239,233,255,0.9)", lineHeight:1.75, margin:0, wordBreak:"keep-all" }}>
                                         {r.text}
                                     </p>
                                 </div>
@@ -747,7 +747,7 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <SectionLabel>PRICING</SectionLabel>
-                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:22, lineHeight:1.45 }}>
+                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EFE9FF", textAlign:"center", marginBottom:22, lineHeight:1.45 }}>
                             먼저 경험하고,<br />마음에 들면 결제
                         </h2>
                     </motion.div>
@@ -761,15 +761,15 @@ export default function TarotLandingPage() {
                         }}>
                             <div>
                                 <p style={{ fontSize:12, fontWeight:700, color:GOLD, margin:"0 0 4px" }}>1라운드</p>
-                                <p style={{ fontSize:15, fontWeight:700, color:"#EDE8F8", margin:0 }}>과거와 연결 고리</p>
-                                <p style={{ fontSize:11.5, color:"rgba(237,232,248,0.45)", margin:"3px 0 0" }}>카드 2장 · 타로 해석</p>
+                                <p style={{ fontSize:15, fontWeight:700, color:"#EFE9FF", margin:0 }}>과거와 연결 고리</p>
+                                <p style={{ fontSize:11.5, color:"rgba(239,233,255,0.45)", margin:"3px 0 0" }}>카드 2장 · 타로 해석</p>
                             </div>
                             <p style={{ fontSize:22, fontWeight:800, color:GOLD, margin:0 }}>무료</p>
                         </div>
 
                         {/* 유료 */}
                         <div style={{
-                            background:`linear-gradient(135deg, ${DP}0.22) 0%, rgba(27,31,74,0.3) 100%)`,
+                            background:`linear-gradient(135deg, ${DP}0.22) 0%, rgba(13,8,32,0.3) 100%)`,
                             border:`1.5px solid ${P}0.32)`,
                             borderRadius:16, padding:"18px 20px",
                             boxShadow:`0 0 24px ${NP}0.08)`,
@@ -777,17 +777,17 @@ export default function TarotLandingPage() {
                             <div style={{ display:"flex", alignItems:"flex-start", justifyContent:"space-between", marginBottom:14 }}>
                                 <div>
                                     <p style={{ fontSize:12, fontWeight:700, color:LAV, margin:"0 0 4px" }}>심층 리딩 (전체)</p>
-                                    <p style={{ fontSize:15, fontWeight:700, color:"#EDE8F8", margin:0 }}>그 사람의 마음과 앞날의 흐름</p>
-                                    <p style={{ fontSize:11.5, color:"rgba(237,232,248,0.45)", margin:"3px 0 0" }}>카드 5장 심층 풀이 + 스페셜 풀이 4가지 + 최종 메시지</p>
+                                    <p style={{ fontSize:15, fontWeight:700, color:"#EFE9FF", margin:0 }}>그 사람의 마음과 앞날의 흐름</p>
+                                    <p style={{ fontSize:11.5, color:"rgba(239,233,255,0.45)", margin:"3px 0 0" }}>카드 5장 심층 풀이 + 스페셜 풀이 4가지 + 최종 메시지</p>
                                 </div>
                                 <div style={{ flexShrink:0, marginLeft:12 }}>
-                                    <p style={{ fontSize:20, fontWeight:800, color:"#EDE8F8", margin:0 }}>3,900원</p>
+                                    <p style={{ fontSize:20, fontWeight:800, color:"#EFE9FF", margin:0 }}>3,900원</p>
                                 </div>
                             </div>
                             <div style={{ display:"grid", gridTemplateColumns:"1fr 1fr 1fr", gap:8 }}>
                                 {[["★","정밀\n해석"],["◈","완전\n개인화"],["◎","즉시\n결과 확인"]].map(([icon,label],i)=>(
                                     <div key={i} style={{
-                                        background:`rgba(61,44,109,0.3)`,
+                                        background:`rgba(59,29,122,0.3)`,
                                         border:`1px solid ${P}0.2)`,
                                         borderRadius:11, padding:"11px 6px", textAlign:"center",
                                     }}>
@@ -806,7 +806,7 @@ export default function TarotLandingPage() {
                 {/* ── 7. FAQ ── */}
                 <section style={{ padding:"36px 24px 0" }}>
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
-                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:20 }}>자주 묻는 질문</h2>
+                        <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EFE9FF", textAlign:"center", marginBottom:20 }}>자주 묻는 질문</h2>
                     </motion.div>
                     <div style={{ display:"flex", flexDirection:"column", gap:8 }}>
                         {FAQS.map((f,i)=><FaqItem key={i} {...f} />)}
@@ -820,7 +820,7 @@ export default function TarotLandingPage() {
                 <section style={{ padding:"36px 24px 64px", textAlign:"center" }}>
                     <motion.div initial={{ opacity:0, y:14 }} whileInView={{ opacity:1, y:0 }} viewport={{ once:true }}>
                         <p style={{ fontSize:14, color:`${P}0.55)`, marginBottom:8, letterSpacing:"0.1em" }}>★ ★ ★</p>
-                        <h2 className="tarot-serif" style={{ fontSize:22, fontWeight:700, color:"#EDE8F8", marginBottom:10, lineHeight:1.5, wordBreak:"keep-all" }}>
+                        <h2 className="tarot-serif" style={{ fontSize:22, fontWeight:700, color:"#EFE9FF", marginBottom:10, lineHeight:1.5, wordBreak:"keep-all" }}>
                             오늘,<br />그 사람의 마음을 확인하세요
                         </h2>
                         <p style={{ fontSize:13.5, color:LAV, marginBottom:28, lineHeight:1.7, wordBreak:"keep-all", opacity:0.85 }}>
@@ -829,7 +829,7 @@ export default function TarotLandingPage() {
                         <button onClick={go} style={{
                             width:"100%", padding:"18px 20px", borderRadius:16,
                             border:`1px solid ${P}0.3)`,
-                            background:"var(--tarot-btn-bg)", color:"#EDE8F8", fontSize:17, fontWeight:700,
+                            background:"var(--tarot-btn-bg)", color:"#EFE9FF", fontSize:17, fontWeight:700,
                             cursor:"pointer", boxShadow:"var(--tarot-btn-shadow)",
                             letterSpacing:"-0.01em", fontFamily:"inherit",
                         }}>

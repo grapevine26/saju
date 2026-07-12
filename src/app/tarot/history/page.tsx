@@ -153,7 +153,7 @@ export default function TarotHistoryPage() {
                                     <div style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                                         padding: '11px', borderRadius: 12,
-                                        background: 'rgba(61,44,109,0.3)',
+                                        background: 'rgba(59,29,122,0.3)',
                                         border: '1px solid var(--tarot-border)',
                                         fontSize: 13, fontWeight: 600, color: 'var(--tarot-accent-light)',
                                     }}>

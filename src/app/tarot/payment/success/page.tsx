@@ -186,15 +186,15 @@ function TarotPaymentSuccessContent() {
                         style={{
                             position: 'absolute', left: `${x}%`, top: `${y}%`,
                             width: r, height: r, borderRadius: '50%',
-                            background: isGold ? '#D4A853' : '#B07BB4',
-                            boxShadow: i % 3 === 0 ? `0 0 ${r * 4}px ${isGold ? 'rgba(212,168,83,0.5)' : 'rgba(176,123,180,0.4)'}` : 'none',
+                            background: isGold ? '#B79DFF' : '#9D7BFF',
+                            boxShadow: i % 3 === 0 ? `0 0 ${r * 4}px ${isGold ? 'rgba(183,157,255,0.5)' : 'rgba(157,123,255,0.4)'}` : 'none',
                         }}
                     />
                 ))}
                 <div style={{
                     position: 'absolute', top: '18%', left: '50%', transform: 'translate(-50%, -50%)',
                     width: 480, height: 480, borderRadius: '50%',
-                    background: 'radial-gradient(circle, rgba(61,44,109,0.34) 0%, rgba(61,44,109,0.1) 55%, transparent 75%)',
+                    background: 'radial-gradient(circle, rgba(59,29,122,0.34) 0%, rgba(59,29,122,0.1) 55%, transparent 75%)',
                     filter: 'blur(20px)',
                 }} />
             </div>
@@ -239,7 +239,7 @@ function TarotPaymentSuccessContent() {
                                             transition={{ duration: 2.8, repeat: Infinity, ease: 'easeInOut', delay: i * 0.4 }}
                                             style={{
                                                 position: 'absolute', inset: -9, borderRadius: 12,
-                                                background: 'radial-gradient(circle, rgba(176,123,180,0.55) 0%, transparent 70%)',
+                                                background: 'radial-gradient(circle, rgba(157,123,255,0.55) 0%, transparent 70%)',
                                                 pointerEvents: 'none',
                                             }}
                                         />
