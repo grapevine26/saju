@@ -25,6 +25,7 @@ import { genAI, callGemini } from '@/utils/geminiCall';
 import { buildPaidReadingPrompt } from '@/features/tarot/tarotPrompt';
 import { TarotInput, TarotFreeResult } from '@/features/tarot/types';
 import { TAROT_PRICE } from '@/features/tarot/constants';
+import { isFreePassKey, isFreePassSession } from '@/lib/freePass';
 
 export async function POST(req: Request) {
     try {
@@ -37,8 +38,14 @@ export async function POST(req: Request) {
 
         const isDev = process.env.NODE_ENV === 'development';
 
+        // 관리자 프리패스 — free_pass_ 키는 세션 이메일이 허용 목록일 때만 결제 검증 우회
+        const freePass = isFreePassKey(paymentKey) && (await isFreePassSession());
+        if (isFreePassKey(paymentKey) && !freePass) {
+            return NextResponse.json({ success: false, error: '결제 정보를 확인할 수 없습니다.' }, { status: 403 });
+        }
+
         // 결제 검증 — paymentKey 없이 직접 호출해 유료 리딩을 생성하는 우회 차단
-        if (!isDev) {
+        if (!isDev && !freePass) {
             if (!paymentKey || !process.env.TOSS_SECRET_KEY) {
                 return NextResponse.json({ success: false, error: '결제 정보가 없습니다.' }, { status: 403 });
             }

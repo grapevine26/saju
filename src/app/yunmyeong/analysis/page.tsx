@@ -29,6 +29,7 @@ import {
 import MdPaymentSheet from '@/components/naming/yunmyeong/MdPaymentSheet';
 import MdShell from '@/components/naming/yunmyeong/MdShell';
 import { MdToast, useMdToast } from '@/components/naming/yunmyeong/MdReport';
+import { checkFreePass, makeFreePassKey } from '@/utils/freePassClient';
 
 // ─────────────────────────────────────────────
 // 윤명 — 연산 로딩 연출 → 무료 진단 / 페이월 (The Hook · 클리프 레이아웃)
@@ -168,6 +169,12 @@ export default function NamingAnalysisPage() {
             if (isDev) {
                 const dummyPaymentKey = `dev_payment_key_${Date.now()}`;
                 window.location.href = `/yunmyeong/payment/success?paymentKey=${dummyPaymentKey}&orderId=${orderId}&amount=${pricing.price}`;
+                return;
+            }
+
+            // 관리자 프리패스 — 결제창 없이 바로 성공 플로우 (서버가 세션으로 재검증)
+            if (await checkFreePass()) {
+                window.location.href = `/yunmyeong/payment/success?paymentKey=${makeFreePassKey()}&orderId=${orderId}&amount=${pricing.price}`;
                 return;
             }
 

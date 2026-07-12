@@ -21,6 +21,7 @@ import PremiumRadarChart from "@/components/PremiumRadarChart";
 import VsCard from "@/components/VsCard";
 import PartnerManual from "@/components/PartnerManual";
 import { createClient } from '@/utils/supabase/client';
+import { checkFreePass, makeFreePassKey } from '@/utils/freePassClient';
 
 
 export default function HistoryDetailPage() {
@@ -88,6 +89,12 @@ export default function HistoryDetailPage() {
             if (isDev) {
                 const dummyPaymentKey = `dev_payment_key_${Date.now()}`;
                 window.location.href = `/payment/success?paymentKey=${dummyPaymentKey}&orderId=${orderId}&amount=${amount}`;
+                return;
+            }
+
+            // 관리자 프리패스 — 결제창 없이 바로 성공 플로우 (서버가 세션으로 재검증)
+            if (await checkFreePass()) {
+                window.location.href = `/payment/success?paymentKey=${makeFreePassKey()}&orderId=${orderId}&amount=${amount}`;
                 return;
             }
 

@@ -2,6 +2,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from "@/lib/supabase";
 import { inngest } from "@/inngest/client";
 import { NAMING_PRICE, NAMING_PRICE_EVALUATION } from "@/features/naming/constants";
+import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
 
 // ─────────────────────────────────────────────
 // 작명 프리미엄 결제 승인 API
@@ -71,8 +72,15 @@ export async function POST(req: Request) {
 
         const isDev = process.env.NODE_ENV === 'development';
 
+        // 관리자 프리패스 — free_pass_ 키는 세션 이메일이 허용 목록일 때만 승인 우회
+        const freePass = isFreePassKey(paymentKey);
+        if (freePass && !(await isFreePassSession())) {
+            return NextResponse.json({ success: false, message: '결제 정보가 올바르지 않습니다.' }, { status: 403 });
+        }
+        const bypassToss = isDev || freePass;
+
         // 2) 멱등 — 동일 결제로 이미 만든 잡이 있으면 반환
-        if (payload && paymentKey && !isDev) {
+        if (payload && paymentKey && !bypassToss) {
             const existingId = await findExistingJob(paymentKey);
             if (existingId) {
                 return NextResponse.json({ success: true, data: { status: 'DONE' }, jobId: existingId });
@@ -81,8 +89,8 @@ export async function POST(req: Request) {
 
         let data: any = { method: "CARD", status: "DONE" };
 
-        if (isDev) {
-            console.log("[DEV MODE] [작명] Toss 승인 우회:", orderId, amount);
+        if (bypassToss) {
+            console.log(`[${isDev ? 'DEV MODE' : 'FREE PASS'}] [작명] Toss 승인 우회:`, orderId, amount);
         } else {
             const secretKey = process.env.TOSS_SECRET_KEY;
             if (!secretKey) {

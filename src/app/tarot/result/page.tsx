@@ -16,6 +16,7 @@ import {
     TAROT_PENDING_KEY,
     TAROT_PRICE,
 } from "@/features/tarot/constants";
+import { checkFreePass, makeFreePassKey } from "@/utils/freePassClient";
 
 export default function TarotResultPage() {
     const router = useRouter();
@@ -55,6 +56,12 @@ export default function TarotResultPage() {
             const isDev = process.env.NODE_ENV === 'development';
             if (isDev) {
                 window.location.href = `/tarot/payment/success?paymentKey=dev_key_${Date.now()}&orderId=${orderId}&amount=${TAROT_PRICE}`;
+                return;
+            }
+
+            // 관리자 프리패스 — 결제창 없이 바로 성공 플로우 (서버가 세션으로 재검증)
+            if (await checkFreePass()) {
+                window.location.href = `/tarot/payment/success?paymentKey=${makeFreePassKey()}&orderId=${orderId}&amount=${TAROT_PRICE}`;
                 return;
             }
 

@@ -1,6 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from "@/lib/supabase";
 import { inngest } from "@/inngest/client";
+import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
 
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
 const SAJU_PRICES: Record<string, number> = { premium: 13900, signature: 19900 };
@@ -59,6 +60,14 @@ export async function POST(req: Request) {
 
         const isDev = process.env.NODE_ENV === 'development';
 
+        // 관리자 프리패스 — free_pass_ 키는 세션 이메일이 허용 목록일 때만 승인 우회.
+        // 목록 외 사용자가 키만 위조해 보내면 즉시 차단.
+        const freePass = isFreePassKey(paymentKey);
+        if (freePass && !(await isFreePassSession())) {
+            return NextResponse.json({ success: false, message: '결제 정보가 올바르지 않습니다.' }, { status: 403 });
+        }
+        const bypassToss = isDev || freePass;
+
         // 1) 서버 가격 검증 — 상품 결제 건(payload 존재)은 금액이 상품 가격과 정확히 일치해야 한다.
         //    타 서비스(3,900원 타로 등) 결제로 프리미엄 잡을 만드는 교차 우회를 원천 차단.
         if (payload) {
@@ -74,7 +83,7 @@ export async function POST(req: Request) {
         }
 
         // 2) 멱등 — 동일 결제로 이미 만든 잡이 있으면 그대로 반환 (새로고침/중복요청/StrictMode)
-        if (payload && paymentKey && !isDev) {
+        if (payload && paymentKey && !bypassToss) {
             const existingId = await findExistingJob(paymentKey);
             if (existingId) {
                 return NextResponse.json({ success: true, data: { status: 'DONE' }, jobId: existingId });
@@ -83,8 +92,8 @@ export async function POST(req: Request) {
 
         let data: any = { method: "CARD", status: "DONE" };
 
-        if (isDev) {
-            console.log("[DEV MODE] Toss Payments 승인 우회:", orderId, amount);
+        if (bypassToss) {
+            console.log(`[${isDev ? 'DEV MODE' : 'FREE PASS'}] Toss Payments 승인 우회:`, orderId, amount);
         } else {
             const secretKey = process.env.TOSS_SECRET_KEY;
             if (!secretKey) {
