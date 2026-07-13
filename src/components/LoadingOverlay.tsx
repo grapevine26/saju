@@ -20,7 +20,7 @@ interface LoadingOverlayProps {
 
 export default function LoadingOverlay({ isVisible: visible }: LoadingOverlayProps) {
   const steps = [
-    { text: '두 사람의 명식 데이터를 교차 분석 중입니다...', sub: '사주 원국 140종 대조' },
+    { text: '두 사람의 명식 데이터를 교차 분석 중입니다...', sub: '사주 원국 정밀 대조' },
     { text: '과거의 흐름과 현재의 운기를 대조하는 중...', sub: '대운 · 세운 · 월운 분석' },
     { text: '숨겨진 속마음과 무의식을 들여다보고 있어요.', sub: '심리 기제 & 미련 지수 산출' },
     { text: '맞춤형 재회 행동 가이드라인을 작성 중입니다...', sub: '골든 윈도우 캘린더 생성' },

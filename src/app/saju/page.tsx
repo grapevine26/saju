@@ -235,7 +235,7 @@ function Stats() {
   return (
     <div style={{ ...px, paddingTop:38, paddingBottom:38 }}>
       <div style={{ display:'flex', gap:9 }}>
-        {[['87%','타이밍 적중률'],['명식 140종','교차 검증'],['10,000자+','리포트 분량']].map((s,i) => (
+        {[['10,000자+','리포트 분량'],['6개월','골든 윈도우 캘린더'],['3단계','재회 전략 로드맵']].map((s,i) => (
           <motion.div
             key={i}
             initial={{ opacity: 0, y: 16 }}
@@ -264,7 +264,7 @@ function SystemFeatures() {
   return (
     <div style={{ ...px, paddingTop:38, paddingBottom:38 }}>
       <h2 style={{ fontFamily:C.serif, fontSize:21, fontWeight:700, textAlign:'center', margin:'0 0 6px', color:C.ink }}>골든 윈도우 분석 시스템</h2>
-      <p style={{ fontSize:12.5, color:C.muted, textAlign:'center', margin:'0 0 20px' }}>사주 명식 140종을 교차 검증하는 독자적 분석 로직</p>
+      <p style={{ fontSize:12.5, color:C.muted, textAlign:'center', margin:'0 0 20px' }}>두 사람의 사주 데이터를 교차 분석하는 독자적 분석 로직</p>
       <div style={{ display:'flex', flexDirection:'column', gap:10 }}>
         {items.map((item,i) => (
           <motion.div
@@ -292,8 +292,8 @@ function SystemFeatures() {
 /* ── 7. 프리미엄 미리보기 ── */
 function RadarPreview() {
   const data = [
-    { label:'연락 성공률', v:0.72 }, { label:'방어 기제', v:0.64 },
-    { label:'성격 궁합', v:0.58 }, { label:'미련 지수', v:0.70 }, { label:'재회 가능성', v:0.66 },
+    { label:'소통', v:0.72 }, { label:'애정 표현', v:0.64 },
+    { label:'친밀감', v:0.58 }, { label:'미래', v:0.70 }, { label:'갈등 대처', v:0.66 },
   ];
   const cx = 140, cy = 128, R = 82;
   const pt = (i: number, r: number): [number,number] => {
@@ -304,7 +304,8 @@ function RadarPreview() {
   const poly = data.map((d,i) => pt(i, R*d.v).join(',')).join(' ');
   return (
     <div style={{ background:'rgba(16,12,16,0.85)', border:`1px solid rgba(255,255,255,0.1)`, borderRadius:C.r, padding:'22px 14px 18px', marginBottom:14 }}>
-      <p style={{ fontFamily:C.serif, fontSize:15, fontWeight:700, color:C.ink, textAlign:'center', margin:'0 0 2px' }}>다면적 관계 정밀 분석</p>
+      <p style={{ fontFamily:C.serif, fontSize:15, fontWeight:700, color:C.ink, textAlign:'center', margin:'0 0 4px' }}>궁합 정밀 분석 레이더</p>
+      <p style={{ fontSize:10.5, fontWeight:700, color:C.accentBright, textAlign:'center', margin:0, letterSpacing:'0.06em' }}>💫 Signature 전용</p>
       <svg width="100%" height="240" viewBox="0 0 280 240">
         <circle cx={cx} cy={cy} r={R*0.55} fill="rgba(216,72,94,0.04)" />
         {grid.map((g,i) => <polygon key={i} points={g} fill="none" stroke={`rgba(216,72,94,${0.07+i*0.06})`} strokeWidth="1" />)}
@@ -343,8 +344,8 @@ function LockCard({ title, titleIcon, rows, isAccent }: { title: string; titleIc
 function PremiumPreview() {
   const stats: { icon: React.ElementType; bg: string; border: string; label: string; value: string; vc: string }[] = [
     { icon: FileText, bg:'rgba(216,72,94,0.13)', border:'rgba(216,72,94,0.28)', label:'텍스트 분량', value:'10,000자 이상', vc:C.accentBright },
-    { icon: Database, bg:'rgba(90,70,160,0.15)', border:'rgba(120,100,200,0.30)', label:'분석 챕터', value:'9가지 심층 리포트', vc:'#a48bdf' },
-    { icon: Compass, bg:'rgba(180,80,20,0.15)', border:'rgba(220,110,30,0.32)', label:'명식 교차검증', value:'140종 데이터', vc:'#e8934a' },
+    { icon: Database, bg:'rgba(90,70,160,0.15)', border:'rgba(120,100,200,0.30)', label:'분석 챕터', value:'8가지 심층 리포트', vc:'#a48bdf' },
+    { icon: Compass, bg:'rgba(180,80,20,0.15)', border:'rgba(220,110,30,0.32)', label:'연락 타이밍', value:'6개월 캘린더', vc:'#e8934a' },
     { icon: Route, bg:'rgba(16,130,100,0.13)', border:'rgba(16,170,120,0.28)', label:'행동 지침', value:'재회 골인 3단계', vc:'#34d399' },
   ];
   return (
@@ -465,6 +466,8 @@ function Plans({ onStart }: { onStart: () => void }) {
         <p style={{ fontSize:11, color:C.muted, textAlign:'center', margin:'4px 4px 0', lineHeight:1.6 }}>
           💡 타로·사주 재회상담 1회 비용은 보통 3~5만 원 — 리포트는 한 번 결제로 계속 다시 볼 수 있어요
         </p>
+        <BtnPrimary onClick={onStart} style={{ marginTop: 8 }}>무료 분석으로 시작하기</BtnPrimary>
+        <p style={{ fontSize:11, color:C.muted, textAlign:'center', margin:'2px 0 0' }}>결제는 무료 분석 결과를 확인한 뒤 선택할 수 있어요</p>
       </div>
     </div>
   );
@@ -487,7 +490,7 @@ function Reviews() {
   return (
     <div style={{ paddingTop:38, paddingBottom:38 }}>
       <div style={{ ...px, textAlign:'center', marginBottom:22 }}>
-        <h2 style={{ fontFamily:C.serif, fontSize:21, fontWeight:700, margin:0, lineHeight:1.5, color:C.ink }}>지금까지 많은 분들이<br />타이밍을 찾아냈어요</h2>
+        <h2 style={{ fontFamily:C.serif, fontSize:21, fontWeight:700, margin:0, lineHeight:1.5, color:C.ink }}>이런 순간을 위해<br />만들었어요</h2>
         <p style={{ fontSize:11.5, color:C.muted, marginTop:8 }}>서비스 이해를 돕기 위한 예시 후기입니다</p>
       </div>
       <div style={{ overflow:'hidden', paddingBottom:6 }}>
@@ -520,7 +523,7 @@ function Faq() {
   const faqs = [
     { q: "Lite와 Premium의 차이가 무엇인가요?", a: "Lite는 무료로 제공되며 관계의 본질과 재회 가능성 점수, 핵심 요약을 즉시 확인하실 수 있습니다. Premium은 1만 자 이상의 압도적인 분량을 자랑하며, 8가지 심층 분석 섹션, 상대방 공략 매뉴얼, 6개월 골든 윈도우 캘린더, 월별 에너지 흐름, 3단계 장기 전략 로드맵이 모두 포함된 풀 패키지 리포트입니다." },
     { q: "분석 리포트는 얼마나 상세한가요?", a: "프리미엄 리포트 기준 공백 포함 1만 자가 넘는 방대한 데이터를 제공합니다. 이는 A4 용지 기준 약 10페이지에 달하는 분량으로, 단순한 운세 풀이를 넘어 심리학과 명리학을 결합한 전문적인 재회 전략을 제시합니다." },
-    { q: "Premium 분석은 얼마나 걸리나요?", a: "Lite는 즉시 결과가 나오지만, Premium은 고도화된 분석 엔진이 수만 건의 명리학 데이터를 다각도로 교차 검증하여 심층 리포트를 생성하므로 약 3~5분 정도의 시간이 소요됩니다. 분석 중 창을 닫으셔도 되며, 분석이 완료되면 입력하신 이메일로 결과 링크를 보내드립니다." },
+    { q: "Premium 분석은 얼마나 걸리나요?", a: "Lite는 즉시 결과가 나오지만, Premium은 고도화된 분석 엔진이 두 사람의 사주 데이터를 다각도로 교차 검증하여 심층 리포트를 생성하므로 약 3~5분 정도의 시간이 소요됩니다. 분석 중 창을 닫으셔도 되며, 분석이 완료되면 입력하신 이메일로 결과 링크를 보내드립니다." },
     { q: "상대방 태어난 시간을 몰라도 되나요?", a: "네! 상대방은 생년월일만 알면 충분합니다. 시간을 모를 경우 시주 없이 분석하며, 일간/일지 기반의 핵심 궁합과 에너지 흐름은 매우 정확하게 도출됩니다." },
   ];
   return (
