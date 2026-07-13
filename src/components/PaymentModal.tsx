@@ -15,9 +15,7 @@ const PACKAGES = [
         id: "premium",
         title: "프리미엄 리포트",
         subtitle: "재회사주",
-        originalPrice: 29900,
         price: 19900,
-        discountRate: 33,
         recommended: false,
         icon: "🔮"
     },
@@ -25,9 +23,7 @@ const PACKAGES = [
         id: "signature",
         title: "시그니처 컨설팅",
         subtitle: "재회사주 + 궁합",
-        originalPrice: 59900,
         price: 34900,
-        discountRate: 42,
         recommended: true,
         icon: "💫"
     }
@@ -39,7 +35,6 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
     const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'refund' | null>(null);
 
     const currentPackage = PACKAGES.find(p => p.id === selectedPkg)!;
-    const totalDiscount = currentPackage.originalPrice ? currentPackage.originalPrice - currentPackage.price : 0;
 
     const handlePaymentClick = (method: 'kakao' | 'naver' | 'general') => {
         if (!email || !email.includes('@')) return;
@@ -69,16 +64,14 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                 {/* 스크롤 가능한 본문 */}
                 <div className="overflow-y-auto flex-1 p-5 space-y-6 scrollbar-hide relative z-10">
 
-                    {/* 상단 할인 배지 */}
-                    {totalDiscount > 0 && (
-                        <motion.div
-                            initial={{ scale: 0.9, opacity: 0 }}
-                            animate={{ scale: 1, opacity: 1 }}
-                            className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-sm font-bold px-4 py-2.5 rounded-xl inline-block w-full text-center"
-                        >
-                            🎉 총 <span className="text-rose-500">{totalDiscount.toLocaleString()}원</span> 할인받았어요!
-                        </motion.div>
-                    )}
+                    {/* 시장 가격 비교 안내 */}
+                    <motion.div
+                        initial={{ scale: 0.9, opacity: 0 }}
+                        animate={{ scale: 1, opacity: 1 }}
+                        className="bg-rose-500/10 border border-rose-500/20 text-rose-400 text-[13px] font-bold px-4 py-2.5 rounded-xl inline-block w-full text-center leading-relaxed"
+                    >
+                        💡 타로·사주 재회상담 1회 비용은 보통 3~5만 원 —<br className="sm:hidden" /> 리포트는 한 번 결제로 계속 다시 볼 수 있어요
+                    </motion.div>
 
                     {/* 이메일 입력 */}
                     <div className="space-y-2">
@@ -135,12 +128,6 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                                                 </div>
                                             </div>
                                             <div className="text-right shrink-0">
-                                                {pkg.originalPrice && (
-                                                    <div className="flex items-center justify-end gap-1.5 mb-0.5">
-                                                        <span className="text-[12px] font-bold text-rose-400">{pkg.discountRate}%</span>
-                                                        <span className="text-[12px] text-slate-500 line-through">{pkg.originalPrice.toLocaleString()}원</span>
-                                                    </div>
-                                                )}
                                                 <div className={`text-[16px] font-bold ${isSelected ? 'text-[var(--accent-gold)]' : 'text-[var(--text-primary)]'}`}>
                                                     {pkg.price.toLocaleString()}원
                                                 </div>
@@ -156,14 +143,8 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                     <div className="bg-[var(--bg-glass)] p-5 rounded-2xl border border-[var(--border-glass)] space-y-3">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-[var(--text-secondary)] font-medium">상품 판매가</span>
-                            <span className="text-[var(--text-primary)]">{(currentPackage.originalPrice || currentPackage.price).toLocaleString()}원</span>
+                            <span className="text-[var(--text-primary)]">{currentPackage.price.toLocaleString()}원</span>
                         </div>
-                        {totalDiscount > 0 && (
-                            <div className="flex justify-between items-center text-sm">
-                                <span className="text-rose-400 font-bold">지금 결제 시 할인</span>
-                                <span className="text-rose-400 font-bold">-{totalDiscount.toLocaleString()}원</span>
-                            </div>
-                        )}
                         <div className="flex justify-between items-center pt-3 border-t border-[var(--line-soft)]">
                             <span className="text-[var(--text-primary)] font-bold text-[15px]">최종 결제 금액</span>
                             <span className="text-[var(--accent-gold)] font-bold text-[20px]">{currentPackage.price.toLocaleString()}원</span>

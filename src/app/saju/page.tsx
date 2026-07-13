@@ -405,7 +405,7 @@ function PremiumPreview() {
 }
 
 /* ── 8. 플랜 ── */
-function Plans({ onStart, discountEndsAt }: { onStart: () => void; discountEndsAt: string }) {
+function Plans({ onStart }: { onStart: () => void }) {
   return (
     <div style={{ ...px, paddingTop:38, paddingBottom:38 }}>
       <h2 style={{ fontFamily:C.serif, fontSize:21, fontWeight:700, textAlign:'center', margin:'0 0 20px', color:C.ink }}>분석 플랜 선택</h2>
@@ -434,7 +434,7 @@ function Plans({ onStart, discountEndsAt }: { onStart: () => void; discountEndsA
             </div>
             <div style={{ textAlign:'right' }}>
               <div style={{ fontSize:10.5, fontWeight:700, color:C.accentBright, marginBottom:3, display:'flex', alignItems:'center', gap:3, justifyContent:'flex-end' }}>🔥 런칭 특가</div>
-              <div><span style={{ fontSize:12.5, color:C.muted, textDecoration:'line-through', marginRight:6 }}>29,900원</span><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>19,900원</span></div>
+              <div><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>19,900원</span></div>
             </div>
           </div>
           {['Lite 전체 포함','🎁 8가지 심층 재회 리포트 전체 해금','🎴 상대방 공략 매뉴얼 (금기어·마법 키워드·문자 예시)','📅 골든 윈도우 캘린더 (6개월)','📊 월별 에너지 흐름 분석','📖 3단계 장기 전략 로드맵'].map((f,i) => (
@@ -453,7 +453,7 @@ function Plans({ onStart, discountEndsAt }: { onStart: () => void; discountEndsA
             </div>
             <div style={{ textAlign:'right' }}>
               <div style={{ fontSize:10.5, fontWeight:700, color:C.accentBright, marginBottom:3, display:'flex', alignItems:'center', gap:3, justifyContent:'flex-end' }}>🔥 런칭 특가</div>
-              <div><span style={{ fontSize:12.5, color:C.muted, textDecoration:'line-through', marginRight:6 }}>59,900원</span><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>34,900원</span></div>
+              <div><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>34,900원</span></div>
             </div>
           </div>
           {['Premium 전체 포함','📊 5가지 궁합 레이더 차트 (소통·애정·친밀감·미래·갈등)','✂️ 나와 상대방의 성향 비교','💌 커플 유형 진단 및 궁합 심층 해석','🏅 종합 궁합 등급 및 관계 처방전'].map((f,i) => (
@@ -462,6 +462,9 @@ function Plans({ onStart, discountEndsAt }: { onStart: () => void; discountEndsA
             </div>
           ))}
         </div>
+        <p style={{ fontSize:11, color:C.muted, textAlign:'center', margin:'4px 4px 0', lineHeight:1.6 }}>
+          💡 타로·사주 재회상담 1회 비용은 보통 3~5만 원 — 리포트는 한 번 결제로 계속 다시 볼 수 있어요
+        </p>
       </div>
     </div>
   );
@@ -552,7 +555,6 @@ export default function LandingPage() {
   const supabase = createClient();
   const [user, setUser] = useState<any>(null);
   const [showSticky, setShowSticky] = useState(false);
-  const [discountEndsAt, setDiscountEndsAt] = useState('');
 
   useEffect(() => {
     supabase.auth.getUser().then(({ data }) => {
@@ -576,10 +578,6 @@ export default function LandingPage() {
       }
     }
 
-    const date = new Date();
-    date.setDate(date.getDate() + 7);
-    setDiscountEndsAt(`${date.getMonth() + 1}월 ${date.getDate()}일`);
-
     const handleScroll = () => setShowSticky(window.scrollY > 300);
     window.addEventListener('scroll', handleScroll);
     return () => window.removeEventListener('scroll', handleScroll);
@@ -596,7 +594,7 @@ export default function LandingPage() {
       <Divider />
       <PremiumPreview />
       <Divider />
-      <Plans onStart={goInput} discountEndsAt={discountEndsAt} />
+      <Plans onStart={goInput} />
       <Divider />
       <Reviews />
       <Divider />

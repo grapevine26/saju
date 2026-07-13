@@ -64,7 +64,6 @@ export default function AnalysisPage() {
     const [error, setError] = useState<string | null>(null);
     const [isPremium, setIsPremium] = useState(false);
     const [isUpgrading, setIsUpgrading] = useState(false);
-    const [discountEndsAt, setDiscountEndsAt] = useState<string>('');
     const hasFetched = useRef(false);
     const recordId = useRef<string | null>(null);
     const [showHeader, setShowHeader] = useState(true);
@@ -202,12 +201,6 @@ export default function AnalysisPage() {
 
         return () => clearInterval(interval);
     }, [pollingJobId, router, result, updateReunionResult]);
-
-    useEffect(() => {
-        const date = new Date();
-        date.setDate(date.getDate() + 7);
-        setDiscountEndsAt(`${date.getMonth() + 1}/${date.getDate()}`);
-    }, []);
 
     // OAuth 로그인 후 복귀 시, 저장된 결제 정보가 있으면 자동으로 결제창 호출
     const hasResumedPayment = useRef(false);
@@ -812,7 +805,7 @@ export default function AnalysisPage() {
                             <>
                                 <span className="text-[15px]">Premium 심층 리포트 즉시 열람하기</span>
                                 <span className="text-[12px] font-bold tracking-wider" style={{ opacity: 0.85 }}>
-                                    <span className="line-through opacity-70 mr-1">29,900원</span>19,900원 (~{discountEndsAt} 마감)
+                                    런칭 특가 19,900원
                                 </span>
                             </>
                         )}

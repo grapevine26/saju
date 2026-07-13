@@ -156,7 +156,6 @@ export default function HistoryDetailPage() {
 
         return () => clearInterval(interval);
     }, [pollingJobId, router, reunionHistory, id, updateReunionResult]);
-    const [discountEndsAt, setDiscountEndsAt] = useState<string>('');
     const [showHeader, setShowHeader] = useState(true);
     const lastScrollY = useRef(0);
 
@@ -168,12 +167,6 @@ export default function HistoryDetailPage() {
         };
         window.addEventListener('scroll', handleScroll, { passive: true });
         return () => window.removeEventListener('scroll', handleScroll);
-    }, []);
-
-    useEffect(() => {
-        const date = new Date();
-        date.setDate(date.getDate() + 7);
-        setDiscountEndsAt(`${date.getMonth() + 1}/${date.getDate()}`);
     }, []);
 
     // URL id를 바탕으로 기록 찾기
@@ -700,7 +693,7 @@ export default function HistoryDetailPage() {
                             <>
                                 <span className="text-[15px]">Premium 심층 리포트 열람하기</span>
                                 <span className="text-[12px] font-bold tracking-wider opacity-90">
-                                    <span className="line-through opacity-70 mr-1">29,900원</span>19,900원 (~{discountEndsAt} 마감)
+                                    런칭 특가 19,900원
                                 </span>
                             </>
                         )}
