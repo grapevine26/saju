@@ -16,8 +16,8 @@ const PACKAGES = [
         title: "프리미엄 리포트",
         subtitle: "재회사주",
         originalPrice: 29900,
-        price: 13900,
-        discountRate: 53,
+        price: 19900,
+        discountRate: 33,
         recommended: false,
         icon: "🔮"
     },
@@ -26,8 +26,8 @@ const PACKAGES = [
         title: "시그니처 컨설팅",
         subtitle: "재회사주 + 궁합",
         originalPrice: 59900,
-        price: 19900,
-        discountRate: 67,
+        price: 34900,
+        discountRate: 42,
         recommended: true,
         icon: "💫"
     }

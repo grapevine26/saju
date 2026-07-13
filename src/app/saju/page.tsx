@@ -434,7 +434,7 @@ function Plans({ onStart, discountEndsAt }: { onStart: () => void; discountEndsA
             </div>
             <div style={{ textAlign:'right' }}>
               <div style={{ fontSize:10.5, fontWeight:700, color:C.accentBright, marginBottom:3, display:'flex', alignItems:'center', gap:3, justifyContent:'flex-end' }}>🔥 런칭 특가</div>
-              <div><span style={{ fontSize:12.5, color:C.muted, textDecoration:'line-through', marginRight:6 }}>29,900원</span><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>13,900원</span></div>
+              <div><span style={{ fontSize:12.5, color:C.muted, textDecoration:'line-through', marginRight:6 }}>29,900원</span><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>19,900원</span></div>
             </div>
           </div>
           {['Lite 전체 포함','🎁 8가지 심층 재회 리포트 전체 해금','🎴 상대방 공략 매뉴얼 (금기어·마법 키워드·문자 예시)','📅 골든 윈도우 캘린더 (6개월)','📊 월별 에너지 흐름 분석','📖 3단계 장기 전략 로드맵'].map((f,i) => (
@@ -453,7 +453,7 @@ function Plans({ onStart, discountEndsAt }: { onStart: () => void; discountEndsA
             </div>
             <div style={{ textAlign:'right' }}>
               <div style={{ fontSize:10.5, fontWeight:700, color:C.accentBright, marginBottom:3, display:'flex', alignItems:'center', gap:3, justifyContent:'flex-end' }}>🔥 런칭 특가</div>
-              <div><span style={{ fontSize:12.5, color:C.muted, textDecoration:'line-through', marginRight:6 }}>59,900원</span><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>19,900원</span></div>
+              <div><span style={{ fontSize:12.5, color:C.muted, textDecoration:'line-through', marginRight:6 }}>59,900원</span><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>34,900원</span></div>
             </div>
           </div>
           {['Premium 전체 포함','📊 5가지 궁합 레이더 차트 (소통·애정·친밀감·미래·갈등)','✂️ 나와 상대방의 성향 비교','💌 커플 유형 진단 및 궁합 심층 해석','🏅 종합 궁합 등급 및 관계 처방전'].map((f,i) => (

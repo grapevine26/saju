@@ -9,8 +9,8 @@ import { NAMING_PRICE, NAMING_PRICE_EVALUATION } from "@/features/naming/constan
 import { TAROT_PRICE } from "@/features/tarot/constants";
 
 // 재회사주 가격 (별도 상수 없이 결제·confirm 라우트와 동일 값)
-export const REUNION_PREMIUM_PRICE = 13900;
-export const REUNION_SIGNATURE_PRICE = 19900;
+export const REUNION_PREMIUM_PRICE = 19900;
+export const REUNION_SIGNATURE_PRICE = 34900;
 
 export type ServiceKey = "reunion" | "tarot" | "naming";
 export type OrderStatus = "pending" | "processing" | "completed" | "failed";

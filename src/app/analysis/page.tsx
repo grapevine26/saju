@@ -107,7 +107,7 @@ export default function AnalysisPage() {
         setShowUpgradeModal(false);
 
         try {
-            const amount = targetPackageId === 'signature' ? 19900 : 1000; // [임시] 실결제 테스트용 (원가 13900)
+            const amount = targetPackageId === 'signature' ? 34900 : 1000; // [임시] premium 실결제 테스트용 (원가 19900)
             const orderName = targetPackageId === 'signature' ? '시그니처 컨설팅' : '프리미엄 리포트';
 
             const orderId = `${recordId.current}${Date.now()}`;
@@ -812,7 +812,7 @@ export default function AnalysisPage() {
                             <>
                                 <span className="text-[15px]">Premium 심층 리포트 즉시 열람하기</span>
                                 <span className="text-[12px] font-bold tracking-wider" style={{ opacity: 0.85 }}>
-                                    <span className="line-through opacity-70 mr-1">39,900원</span>13,900원 (~{discountEndsAt} 마감)
+                                    <span className="line-through opacity-70 mr-1">29,900원</span>19,900원 (~{discountEndsAt} 마감)
                                 </span>
                             </>
                         )}
