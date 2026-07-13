@@ -15,7 +15,7 @@ import toast from "react-hot-toast";
 import { createClient } from "@/utils/supabase/client";
 import { TAROT_HISTORY_KEY, TAROT_JOB_ID_KEY } from "@/features/tarot/constants";
 
-const P = "rgba(167,139,250,"; // lavender alpha helper
+const P = "rgba(157,123,255,"; // lavender alpha helper
 
 function countHistory(): number {
     try {
@@ -206,7 +206,7 @@ export default function TarotMenuPage() {
                 style={{ padding: "28px 16px 0" }}
             >
                 {loading ? (
-                    <div style={{ height: 56, borderRadius: 16, background: "rgba(240,234,252,0.05)" }} />
+                    <div style={{ height: 56, borderRadius: 16, background: "rgba(239,233,255,0.05)" }} />
                 ) : user ? (
                     <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
                         <div style={{
@@ -217,7 +217,7 @@ export default function TarotMenuPage() {
                         }}>
                             <div style={{
                                 width: 38, height: 38, borderRadius: "50%", flexShrink: 0,
-                                background: "linear-gradient(135deg, rgba(124,107,176,0.4), rgba(76,40,137,0.5))",
+                                background: "linear-gradient(135deg, rgba(111,91,168,0.4), rgba(59,29,122,0.5))",
                                 border: "1px solid var(--tarot-border)",
                                 display: "flex", alignItems: "center", justifyContent: "center",
                             }}>

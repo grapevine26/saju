@@ -163,7 +163,7 @@ export default function TarotResultClient({ job }: Props) {
                         initial={{ opacity: 0, y: 12 }}
                         animate={{ opacity: 1, y: 0 }}
                         style={{
-                            background: 'linear-gradient(135deg, rgba(124,58,237,0.12), rgba(124,58,237,0.08))',
+                            background: 'linear-gradient(135deg, rgba(109,40,217,0.12), rgba(109,40,217,0.08))',
                             border: '1px solid var(--tarot-border-strong)',
                             borderRadius: 16,
                             padding: '18px 20px',
@@ -205,8 +205,8 @@ export default function TarotResultClient({ job }: Props) {
                         <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16, padding: '0 4px' }}>
                             <div style={{
                                 width: 28, height: 28, borderRadius: '50%',
-                                background: 'rgba(196,181,253,0.12)',
-                                border: '1px solid rgba(196,181,253,0.4)',
+                                background: 'rgba(183,157,255,0.12)',
+                                border: '1px solid rgba(183,157,255,0.4)',
                                 display: 'flex', alignItems: 'center', justifyContent: 'center',
                                 flexShrink: 0,
                             }}>
@@ -236,7 +236,7 @@ export default function TarotResultClient({ job }: Props) {
                                 {special.chemistryScore}<span style={{ fontSize: 20 }}>°</span>
                             </p>
                             <div style={{
-                                height: 6, borderRadius: 3, background: 'rgba(167,139,250,0.12)',
+                                height: 6, borderRadius: 3, background: 'rgba(157,123,255,0.12)',
                                 overflow: 'hidden', maxWidth: 260, margin: '0 auto 12px',
                             }}>
                                 <motion.div
@@ -245,7 +245,7 @@ export default function TarotResultClient({ job }: Props) {
                                     transition={{ delay: 0.6, duration: 1, ease: 'easeOut' }}
                                     style={{
                                         height: '100%', borderRadius: 3,
-                                        background: 'linear-gradient(90deg, #5B21B6, #A78BFA, #C4B5FD)',
+                                        background: 'linear-gradient(90deg, #4C1D95, #9D7BFF, #B79DFF)',
                                     }}
                                 />
                             </div>
@@ -269,7 +269,7 @@ export default function TarotResultClient({ job }: Props) {
                                     ✦ {topic.title}
                                 </p>
                                 <p style={{
-                                    fontSize: 13, color: 'rgba(240,234,252,0.88)', lineHeight: 1.85,
+                                    fontSize: 13, color: 'rgba(239,233,255,0.88)', lineHeight: 1.85,
                                     whiteSpace: 'pre-wrap', margin: 0,
                                 }}>
                                     {topic.content}

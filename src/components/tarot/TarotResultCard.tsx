@@ -13,7 +13,7 @@ interface TarotRoundSectionProps {
 
 export function TarotRoundSection({ roundIndex, result, delay = 0 }: TarotRoundSectionProps) {
     const roundLabels = ["과거 — 두 사람의 연결 고리", "현재 — 지금 그 사람의 마음", "미래 — 앞으로의 흐름"];
-    const roundColors = ["rgba(124,58,237,0.8)", "rgba(167,139,250,0.9)", "rgba(196,181,253,1)"];
+    const roundColors = ["rgba(109,40,217,0.8)", "rgba(157,123,255,0.9)", "rgba(201,184,255,1)"];
 
     return (
         <motion.div
@@ -93,7 +93,7 @@ export function TarotRoundSection({ roundIndex, result, delay = 0 }: TarotRoundS
                 </p>
                 <p style={{
                     fontSize: 13.5,
-                    color: 'rgba(240,234,252,0.9)',
+                    color: 'rgba(239,233,255,0.9)',
                     lineHeight: 1.85,
                     fontWeight: 500,
                     whiteSpace: 'pre-wrap',
@@ -144,7 +144,7 @@ function TarotCardItem({ reading, delay = 0 }: TarotCardItemProps) {
                 </div>
                 <div style={{
                     display: 'inline-block',
-                    background: 'rgba(124,58,237,0.15)',
+                    background: 'rgba(109,40,217,0.15)',
                     border: '1px solid var(--tarot-border)',
                     borderRadius: 6,
                     padding: '3px 8px',
@@ -156,7 +156,7 @@ function TarotCardItem({ reading, delay = 0 }: TarotCardItemProps) {
                 </div>
                 <p style={{
                     fontSize: 13,
-                    color: 'rgba(240,234,252,0.88)',
+                    color: 'rgba(239,233,255,0.88)',
                     lineHeight: 1.85,
                     fontWeight: 450,
                     whiteSpace: 'pre-wrap',
@@ -180,7 +180,7 @@ export function TarotFinalMessage({ message, delay = 0 }: TarotFinalMessageProps
             animate={{ opacity: 1, y: 0 }}
             transition={{ delay, duration: 0.6 }}
             style={{
-                background: 'linear-gradient(135deg, rgba(124,58,237,0.12), rgba(124,58,237,0.08))',
+                background: 'linear-gradient(135deg, rgba(109,40,217,0.12), rgba(109,40,217,0.08))',
                 border: '1px solid var(--tarot-border-strong)',
                 borderRadius: 20,
                 padding: '24px 20px',
