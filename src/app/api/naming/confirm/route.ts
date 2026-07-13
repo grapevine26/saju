@@ -1,7 +1,7 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from "@/lib/supabase";
-import { inngest } from "@/inngest/client";
 import { NAMING_PRICE, NAMING_PRICE_EVALUATION } from "@/features/naming/constants";
+import { safeSend, markDispatchFailed } from "@/lib/jobDispatch";
 import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
 import { recordPaidEvent } from "@/lib/funnel";
 
@@ -46,10 +46,14 @@ async function createJobAndDispatch(payload: any, paymentKey: string) {
         return null;
     }
 
-    await inngest.send({
+    // 발송 실패해도 잡은 살아있으므로 jobId를 반환 — 상태 폴링이 자동 재발송한다.
+    const sent = await safeSend({
         name: "naming.premium.requested",
         data: { jobId: job.id, customerEmail: customerEmail || undefined, raw_data: rawData, paymentKey },
     });
+    if (!sent) {
+        await markDispatchFailed("premium_analysis_jobs", job.id, rawData);
+    }
 
     return job.id;
 }

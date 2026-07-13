@@ -2,6 +2,7 @@ import { NextResponse } from "next/server";
 import { supabaseAdmin } from "@/lib/supabase";
 import { inngest } from "@/inngest/client";
 import { verifyAdmin } from "@/lib/adminAuth";
+import { buildPremiumEventFromJob, buildTarotEventFromJob } from "@/lib/jobDispatch";
 
 export const dynamic = "force-dynamic";
 
@@ -24,17 +25,7 @@ export async function POST(req: Request) {
         .from("tarot_reading_jobs").select("*").eq("id", jobId).maybeSingle();
       if (tarot) {
         await supabaseAdmin.from("tarot_reading_jobs").update({ status: "pending" }).eq("id", jobId);
-        await inngest.send({
-          name: "tarot.reading.requested",
-          data: {
-            jobId: tarot.id,
-            input: tarot.raw_data?.input,
-            rounds: tarot.raw_data?.rounds,
-            freeResult: tarot.raw_data?.freeResult,
-            paymentKey: tarot.raw_data?.paymentKey || tarot.payment_key,
-            customerEmail: tarot.raw_data?.customerEmail,
-          },
-        });
+        await inngest.send(buildTarotEventFromJob(tarot));
         return NextResponse.json({ success: true, message: "타로 작업을 재실행했습니다." });
       }
       if (source === "tarot") {
@@ -50,21 +41,13 @@ export async function POST(req: Request) {
 
     await supabaseAdmin.from("premium_analysis_jobs").update({ status: "pending" }).eq("id", jobId);
 
-    const isNaming = job.raw_data?.service === "naming";
-    await inngest.send({
-      name: isNaming ? "naming.premium.requested" : "analysis.premium.requested",
-      data: {
-        jobId: job.id,
-        phone_number: job.phone_number || undefined,
-        user_id: job.user_id || undefined,
-        customerEmail: job.raw_data?.customerEmail || undefined,
-        raw_data: job.raw_data,
-      },
-    });
+    // 이벤트 페이로드는 결제 승인 시 원본 발송과 동일한 빌더를 사용 (paymentKey 포함 → 실패 시 자동 환불 유지)
+    const event = buildPremiumEventFromJob(job);
+    await inngest.send(event);
 
     return NextResponse.json({
       success: true,
-      message: `${isNaming ? "작명" : "재회"} 작업을 재실행했습니다.`,
+      message: `${event.name === "naming.premium.requested" ? "작명" : "재회"} 작업을 재실행했습니다.`,
     });
   } catch (error) {
     console.error("[admin/jobs/retry] 실패:", error);

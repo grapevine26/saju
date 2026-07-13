@@ -20,8 +20,8 @@
 
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
-import { inngest } from '@/inngest/client';
 import { genAI, callGemini } from '@/utils/geminiCall';
+import { safeSend, markDispatchFailed } from '@/lib/jobDispatch';
 import { buildPaidReadingPrompt } from '@/features/tarot/tarotPrompt';
 import { TarotInput, TarotFreeResult } from '@/features/tarot/types';
 import { TAROT_PRICE } from '@/features/tarot/constants';
@@ -123,10 +123,14 @@ export async function POST(req: Request) {
                 }
             })();
         } else {
-            await inngest.send({
+            // 발송 실패해도 잡은 살아있으므로 jobId를 반환 — 상태 폴링이 자동 재발송한다.
+            const sent = await safeSend({
                 name: 'tarot.reading.requested',
                 data: { jobId: job.id, input, rounds, freeResult, paymentKey, customerEmail },
             });
+            if (!sent) {
+                await markDispatchFailed('tarot_reading_jobs', job.id, rawData);
+            }
         }
 
         return NextResponse.json({ success: true, jobId: job.id });

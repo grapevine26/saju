@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { headers } from 'next/headers';
 import { supabaseAdmin } from "@/lib/supabase";
-import { inngest } from "@/inngest/client";
 import { NAMING_PAYMENT_ENABLED } from "@/features/naming/constants";
+import { safeSend, markDispatchFailed } from "@/lib/jobDispatch";
 import { resolveSurname } from "@/features/naming/data/surnames";
 import { NamingInput } from "@/features/naming/types";
 
@@ -101,7 +101,8 @@ export async function POST(req: Request) {
             );
         }
 
-        await inngest.send({
+        // 발송 실패해도 잡은 살아있으므로 jobId를 반환 — 상태 폴링이 자동 재발송한다.
+        const sent = await safeSend({
             name: "naming.premium.requested",
             data: {
                 jobId: job.id,
@@ -110,6 +111,9 @@ export async function POST(req: Request) {
                 // paymentKey 없음 → 실패 시 환불 로직은 동작하지 않음
             }
         });
+        if (!sent) {
+            await markDispatchFailed("premium_analysis_jobs", job.id, rawData);
+        }
 
         return NextResponse.json({ success: true, jobId: job.id });
 

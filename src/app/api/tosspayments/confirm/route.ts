@@ -1,8 +1,8 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from "@/lib/supabase";
-import { inngest } from "@/inngest/client";
 import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
 import { recordPaidEvent } from "@/lib/funnel";
+import { safeSend, markDispatchFailed } from "@/lib/jobDispatch";
 
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
 const SAJU_PRICES: Record<string, number> = { premium: 13900, signature: 19900 };
@@ -39,7 +39,9 @@ async function createJobAndDispatch(payload: any, paymentKey: string) {
         return null;
     }
 
-    await inngest.send({
+    // 발송 실패해도 잡은 살아있으므로 jobId를 반환한다 — 결제는 이미 승인된 상태.
+    // 실패 플래그를 남기면 결과 대기 화면의 상태 폴링이 자동 재발송한다.
+    const sent = await safeSend({
         name: "analysis.premium.requested",
         data: {
             jobId: job.id,
@@ -50,6 +52,9 @@ async function createJobAndDispatch(payload: any, paymentKey: string) {
             paymentKey,
         },
     });
+    if (!sent) {
+        await markDispatchFailed("premium_analysis_jobs", job.id, enhancedRawData);
+    }
 
     return job.id;
 }
