@@ -32,15 +32,15 @@ export default function SelectedStrip({ selectedIds, maxPicks }: SelectedStripPr
                             height: 80,
                             borderRadius: 8,
                             border: isFilled
-                                ? '1.5px solid rgba(109,40,217,0.6)'
-                                : '1.5px dashed rgba(109,40,217,0.3)',
+                                ? '1.5px solid rgba(139,92,246,0.6)'
+                                : '1.5px dashed rgba(139,92,246,0.3)',
                             display: 'flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            background: isFilled ? 'transparent' : 'rgba(109,40,217,0.04)',
+                            background: isFilled ? 'transparent' : 'rgba(139,92,246,0.04)',
                             position: 'relative',
                             overflow: 'hidden',
-                            boxShadow: isFilled ? '0 0 12px rgba(109,40,217,0.25)' : 'none',
+                            boxShadow: isFilled ? '0 0 12px rgba(139,92,246,0.25)' : 'none',
                             transition: 'all 0.3s ease',
                         }}>
                             <AnimatePresence mode="wait">
@@ -58,7 +58,7 @@ export default function SelectedStrip({ selectedIds, maxPicks }: SelectedStripPr
                                         key="empty"
                                         style={{
                                             fontSize: 18,
-                                            color: 'rgba(109,40,217,0.3)',
+                                            color: 'rgba(139,92,246,0.3)',
                                             fontWeight: 300,
                                         }}
                                     >

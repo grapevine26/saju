@@ -136,8 +136,8 @@ export default function TarotSelectPage() {
                 <motion.div initial={{ opacity: 0, scale: 0.8 }} animate={{ opacity: 1, scale: 1 }} style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 20 }}>
                     <div style={{
                         width: 72, height: 72, borderRadius: '50%',
-                        background: 'rgba(157,123,255,0.1)',
-                        border: '1.5px solid rgba(157,123,255,0.35)',
+                        background: 'rgba(176,123,180,0.1)',
+                        border: '1.5px solid rgba(176,123,180,0.35)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         fontSize: 32,
                     }}>☽</div>
@@ -153,9 +153,9 @@ export default function TarotSelectPage() {
                     </div>
 
                     <div style={{
-                        background: 'rgba(13,8,32,0.45)',
+                        background: 'rgba(27,31,74,0.45)',
                         backdropFilter: 'blur(12px)',
-                        border: '1px solid rgba(157,123,255,0.22)',
+                        border: '1px solid rgba(176,123,180,0.22)',
                         borderRadius: 16, padding: '16px 20px', width: '100%', maxWidth: 320,
                     }}>
                         <p style={{ fontSize: 12.5, color: 'var(--tarot-text-2)', lineHeight: 1.75, margin: 0 }}>
@@ -170,8 +170,8 @@ export default function TarotSelectPage() {
                             onClick={() => router.push('/tarot/history')}
                             style={{
                                 width: '100%', padding: '15px', borderRadius: 14,
-                                border: '1px solid rgba(157,123,255,0.3)',
-                                background: 'rgba(59,29,122,0.3)', color: 'var(--tarot-accent-light)',
+                                border: '1px solid rgba(176,123,180,0.3)',
+                                background: 'rgba(61,44,109,0.3)', color: 'var(--tarot-accent-light)',
                                 fontSize: 14, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit',
                             }}
                         >
@@ -181,7 +181,7 @@ export default function TarotSelectPage() {
                             onClick={() => router.push('/tarot')}
                             style={{
                                 width: '100%', padding: '13px', borderRadius: 12,
-                                border: '1px solid rgba(157,123,255,0.2)',
+                                border: '1px solid rgba(176,123,180,0.2)',
                                 background: 'transparent', color: 'var(--tarot-text-3)',
                                 fontSize: 13, cursor: 'pointer', fontFamily: 'inherit',
                             }}
@@ -196,9 +196,9 @@ export default function TarotSelectPage() {
 
     if (phase === 'loading') {
         const roundColors = [
-            { border: 'rgba(183,157,255,0.9)',  glow: 'rgba(183,157,255,0.4)',  label: '과거' },
-            { border: 'rgba(157,123,255,0.9)', glow: 'rgba(157,123,255,0.4)', label: '현재' },
-            { border: 'rgba(239,233,255,0.95)', glow: 'rgba(239,233,255,0.35)', label: '미래' },
+            { border: 'rgba(212,168,83,0.9)',  glow: 'rgba(212,168,83,0.4)',  label: '과거' },
+            { border: 'rgba(176,123,180,0.9)', glow: 'rgba(176,123,180,0.4)', label: '현재' },
+            { border: 'rgba(246,214,232,0.95)', glow: 'rgba(246,214,232,0.35)', label: '미래' },
         ];
 
         return (
@@ -210,13 +210,13 @@ export default function TarotSelectPage() {
                         transition={{ duration: 2.2, repeat: Infinity, ease: 'easeInOut' }}
                         style={{
                             position: 'absolute', inset: 0, borderRadius: '50%',
-                            background: 'radial-gradient(circle, rgba(157,123,255,0.4) 0%, transparent 72%)',
+                            background: 'radial-gradient(circle, rgba(176,123,180,0.4) 0%, transparent 72%)',
                             filter: 'blur(6px)',
                         }}
                     />
                     <div style={{
                         position: 'relative', width: 60, height: 60, borderRadius: '50%',
-                        background: 'linear-gradient(135deg, rgba(76,29,149,0.35), rgba(59,29,122,0.5))',
+                        background: 'linear-gradient(135deg, rgba(107,63,168,0.35), rgba(61,44,109,0.5))',
                         border: '1.5px solid var(--tarot-border-strong)',
                         display: 'flex', alignItems: 'center', justifyContent: 'center',
                         boxShadow: 'var(--tarot-glow)',
