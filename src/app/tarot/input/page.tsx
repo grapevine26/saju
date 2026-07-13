@@ -27,8 +27,8 @@ function inputStyle(): React.CSSProperties {
         width: "100%",
         padding: "12px 14px",
         borderRadius: 11,
-        border: "1px solid rgba(157,123,255,0.22)",
-        background: "rgba(6,4,9,0.55)",
+        border: "1px solid rgba(167,139,250,0.22)",
+        background: "rgba(10,6,20,0.55)",
         color: "var(--tarot-text-1)",
         fontSize: 15,
         outline: "none",
@@ -41,10 +41,10 @@ function inputStyle(): React.CSSProperties {
 /* 폼 섹션을 감싸는 글래스 카드 */
 function sectionStyle(): React.CSSProperties {
     return {
-        background: "rgba(13,8,32,0.4)",
+        background: "rgba(21,13,48,0.4)",
         backdropFilter: "blur(12px)",
         WebkitBackdropFilter: "blur(12px)",
-        border: "1px solid rgba(157,123,255,0.16)",
+        border: "1px solid rgba(167,139,250,0.16)",
         borderRadius: 16,
         padding: "14px 14px 15px",
     };
@@ -71,9 +71,9 @@ function GenderToggle({ value, onChange }: { value: TarotGender | null; onChange
     return (
         <div style={{
             display: "flex", flexShrink: 0,
-            border: "1px solid rgba(157,123,255,0.22)",
+            border: "1px solid rgba(167,139,250,0.22)",
             borderRadius: 11, overflow: "hidden",
-            background: "rgba(6,4,9,0.55)",
+            background: "rgba(10,6,20,0.55)",
         }}>
             {(["female", "male"] as TarotGender[]).map((g, i) => {
                 const active = value === g;
@@ -84,8 +84,8 @@ function GenderToggle({ value, onChange }: { value: TarotGender | null; onChange
                         style={{
                             width: 52, padding: "12px 0",
                             border: "none",
-                            borderLeft: i === 1 ? "1px solid rgba(157,123,255,0.18)" : "none",
-                            background: active ? "rgba(59,29,122,0.6)" : "transparent",
+                            borderLeft: i === 1 ? "1px solid rgba(167,139,250,0.18)" : "none",
+                            background: active ? "rgba(76,40,137,0.6)" : "transparent",
                             color: active ? "var(--tarot-accent-light)" : "var(--tarot-text-3)",
                             fontSize: 13.5, fontWeight: active ? 700 : 500,
                             cursor: "pointer", fontFamily: "inherit",
@@ -112,13 +112,13 @@ function MiniFan() {
                 <div key={i} style={{
                     width: c.w, height: c.h,
                     borderRadius: 7,
-                    background: "linear-gradient(155deg, #1F1240 0%, #0D0820 100%)",
-                    border: "1px solid rgba(157,123,255,0.5)",
-                    boxShadow: "0 6px 20px rgba(59,29,122,0.55), 0 0 12px rgba(124,77,255,0.18)",
+                    background: "linear-gradient(155deg, #311C63 0%, #150D30 100%)",
+                    border: "1px solid rgba(167,139,250,0.5)",
+                    boxShadow: "0 6px 20px rgba(76,40,137,0.55), 0 0 12px rgba(139,92,246,0.18)",
                     transform: `rotate(${c.deg}deg)`,
                     transformOrigin: "bottom center",
                     display: "flex", alignItems: "center", justifyContent: "center",
-                    fontSize: i === 1 ? 12 : 9, color: "rgba(183,157,255,0.7)",
+                    fontSize: i === 1 ? 12 : 9, color: "rgba(196,181,253,0.7)",
                     marginLeft: i === 0 ? 0 : -8,
                     marginBottom: i === 1 ? 0 : 4,
                     position: "relative", zIndex: c.z,
@@ -179,15 +179,15 @@ export default function TarotInputPage() {
                         style={{
                             position: "absolute", left: `${x}%`, top: `${y}%`,
                             width: r, height: r, borderRadius: "50%",
-                            background: isGold ? "#B79DFF" : "#9D7BFF",
-                            boxShadow: i % 3 === 0 ? `0 0 ${r * 4}px ${isGold ? "rgba(183,157,255,0.5)" : "rgba(157,123,255,0.4)"}` : "none",
+                            background: isGold ? "#C4B5FD" : "#A78BFA",
+                            boxShadow: i % 3 === 0 ? `0 0 ${r * 4}px ${isGold ? "rgba(196,181,253,0.5)" : "rgba(167,139,250,0.4)"}` : "none",
                         }}
                     />
                 ))}
                 <div style={{
                     position: "absolute", top: -120, left: "50%", transform: "translateX(-50%)",
                     width: 460, height: 460, borderRadius: "50%",
-                    background: "radial-gradient(circle, rgba(59,29,122,0.3) 0%, rgba(59,29,122,0.08) 55%, transparent 75%)",
+                    background: "radial-gradient(circle, rgba(76,40,137,0.3) 0%, rgba(76,40,137,0.08) 55%, transparent 75%)",
                 }} />
             </div>
 
@@ -264,13 +264,13 @@ export default function TarotInputPage() {
                                         style={{
                                             padding: "11px 2px",
                                             borderRadius: 10,
-                                            border: active ? "1.5px solid rgba(157,123,255,0.65)" : "1px solid rgba(157,123,255,0.18)",
-                                            background: active ? "rgba(59,29,122,0.45)" : "rgba(6,4,9,0.45)",
+                                            border: active ? "1.5px solid rgba(167,139,250,0.65)" : "1px solid rgba(167,139,250,0.18)",
+                                            background: active ? "rgba(76,40,137,0.45)" : "rgba(10,6,20,0.45)",
                                             color: active ? "var(--tarot-accent-light)" : "var(--tarot-text-2)",
                                             fontSize: 12, fontWeight: active ? 700 : 500,
                                             cursor: "pointer", fontFamily: "inherit",
                                             transition: "all 0.16s ease",
-                                            boxShadow: active ? "0 0 14px rgba(157,123,255,0.3)" : "none",
+                                            boxShadow: active ? "0 0 14px rgba(167,139,250,0.3)" : "none",
                                             whiteSpace: "nowrap",
                                         }}
                                     >
@@ -309,8 +309,8 @@ export default function TarotInputPage() {
                             padding: "16px",
                             borderRadius: 16,
                             border: "none",
-                            background: isValid ? "var(--tarot-btn-bg)" : "rgba(109,40,217,0.1)",
-                            color: isValid ? "#fff" : "rgba(157,123,255,0.4)",
+                            background: isValid ? "var(--tarot-btn-bg)" : "rgba(124,58,237,0.1)",
+                            color: isValid ? "#fff" : "rgba(167,139,250,0.4)",
                             fontSize: 16, fontWeight: 700,
                             cursor: isValid ? "pointer" : "default",
                             boxShadow: isValid ? "var(--tarot-btn-shadow)" : "none",
@@ -321,7 +321,7 @@ export default function TarotInputPage() {
                     >
                         카드 뽑으러 가기 →
                     </button>
-                    <p style={{ fontSize: 11.5, color: "rgba(157,123,255,0.45)", textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
+                    <p style={{ fontSize: 11.5, color: "rgba(167,139,250,0.45)", textAlign: "center", marginTop: 10, lineHeight: 1.5 }}>
                         3라운드 · 총 7장 · 1라운드 무료 해석 제공
                     </p>
                 </motion.div>

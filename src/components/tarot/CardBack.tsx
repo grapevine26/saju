@@ -20,23 +20,23 @@ export default function CardBack({ isSelected, isDisabled, cardName, size = 'md'
     const cy = h / 2;
 
     const borderColor = isSelected
-        ? 'rgba(157,123,255,0.95)'
+        ? 'rgba(167,139,250,0.95)'
         : isDisabled
-            ? 'rgba(157,123,255,0.15)'
-            : 'rgba(157,123,255,0.42)';
+            ? 'rgba(167,139,250,0.15)'
+            : 'rgba(167,139,250,0.42)';
 
     const bgGrad = isSelected
-        ? `#1F1240`
+        ? `#311C63`
         : isDisabled
-            ? `#060409`
-            : `#0D0820`;
+            ? `#0A0614`
+            : `#150D30`;
 
-    const accentColor      = isSelected ? '#9D7BFF' : '#6F5BA8';
-    const accentLightColor = isSelected ? '#EFE9FF' : '#9D7BFF';
+    const accentColor      = isSelected ? '#A78BFA' : '#7C6BB0';
+    const accentLightColor = isSelected ? '#F0EAFC' : '#A78BFA';
     const symbolOpacity    = isDisabled ? 0.18 : isSelected ? 1 : 0.6;
 
     const glow = isSelected
-        ? 'drop-shadow(0 0 6px rgba(157,123,255,0.65)) drop-shadow(0 0 12px rgba(124,77,255,0.3))'
+        ? 'drop-shadow(0 0 6px rgba(167,139,250,0.65)) drop-shadow(0 0 12px rgba(139,92,246,0.3))'
         : 'none';
 
     return (
@@ -48,8 +48,8 @@ export default function CardBack({ isSelected, isDisabled, cardName, size = 'md'
         >
             <defs>
                 <linearGradient id={`cg${size}${isSelected?'s':isDisabled?'d':'n'}`} x1="0%" y1="0%" x2="100%" y2="100%">
-                    <stop offset="0%" stopColor={isSelected ? '#1F1240' : '#0D0820'} />
-                    <stop offset="100%" stopColor={isSelected ? '#170D33' : '#060409'} />
+                    <stop offset="0%" stopColor={isSelected ? '#311C63' : '#150D30'} />
+                    <stop offset="100%" stopColor={isSelected ? '#241549' : '#0A0614'} />
                 </linearGradient>
             </defs>
 
@@ -61,7 +61,7 @@ export default function CardBack({ isSelected, isDisabled, cardName, size = 'md'
             {/* 안쪽 테두리 */}
             <rect x="4" y="4" width={w-8} height={h-8} rx="5" ry="5"
                 fill="none"
-                stroke={isSelected ? 'rgba(157,123,255,0.35)' : 'rgba(157,123,255,0.12)'}
+                stroke={isSelected ? 'rgba(167,139,250,0.35)' : 'rgba(167,139,250,0.12)'}
                 strokeWidth="0.5" />
 
             {/* 중앙 만다라 패턴 */}
@@ -83,7 +83,7 @@ export default function CardBack({ isSelected, isDisabled, cardName, size = 'md'
                     x={cx-r*0.22} y={cy-r*0.22}
                     width={r*0.44} height={r*0.44} rx="1"
                     transform={`rotate(45 ${cx} ${cy})`}
-                    fill={isSelected ? 'rgba(157,123,255,0.25)' : 'rgba(59,29,122,0.3)'}
+                    fill={isSelected ? 'rgba(167,139,250,0.25)' : 'rgba(76,40,137,0.3)'}
                     stroke={accentLightColor} strokeWidth="0.6"
                 />
 
@@ -95,16 +95,16 @@ export default function CardBack({ isSelected, isDisabled, cardName, size = 'md'
                 {/* 중앙 별 */}
                 <text x={cx} y={cy+4*scale} textAnchor="middle"
                     fontSize={(size==='sm' ? 8 : 10) * scale}
-                    fill="rgba(183,157,255,0.75)" fontFamily="serif">★</text>
+                    fill="rgba(196,181,253,0.75)" fontFamily="serif">★</text>
             </g>
 
             {/* 선택 시 선택 표시 하단 바 */}
             {isSelected && cardName && size === 'md' && (
                 <>
                     <rect x="4" y={h-22*scale} width={w-8} height={18*scale} rx="3"
-                        fill="rgba(157,123,255,0.2)" />
+                        fill="rgba(167,139,250,0.2)" />
                     <text x={cx} y={h-11*scale} textAnchor="middle"
-                        fontSize={7.5*scale} fontWeight="600" fill="#EFE9FF"
+                        fontSize={7.5*scale} fontWeight="600" fill="#F0EAFC"
                         fontFamily="system-ui, sans-serif">{cardName}</text>
                 </>
             )}
@@ -112,7 +112,7 @@ export default function CardBack({ isSelected, isDisabled, cardName, size = 'md'
             {/* 선택 글로우 오버레이 */}
             {isSelected && (
                 <rect x="1" y="1" width={w-2} height={h-2} rx="7" ry="7"
-                    fill="rgba(157,123,255,0.06)" />
+                    fill="rgba(167,139,250,0.06)" />
             )}
         </svg>
     );

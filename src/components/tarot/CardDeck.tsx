@@ -17,9 +17,9 @@ interface CardDeckProps {
 
 /* 라운드별 선택 링 색상 — 과거(골드) · 현재(라벤더) · 미래(블러시) */
 const ROUND_RING = [
-    { border: 'rgba(183,157,255,0.9)',  glow: '0 0 12px rgba(183,157,255,0.55), 0 0 22px rgba(183,157,255,0.22)',  idle: 'rgba(183,157,255,0.22)' },
-    { border: 'rgba(157,123,255,0.9)', glow: '0 0 12px rgba(157,123,255,0.55), 0 0 22px rgba(124,77,255,0.25)', idle: 'rgba(157,123,255,0.22)' },
-    { border: 'rgba(239,233,255,0.95)', glow: '0 0 12px rgba(239,233,255,0.55), 0 0 22px rgba(157,123,255,0.3)', idle: 'rgba(239,233,255,0.2)' },
+    { border: 'rgba(196,181,253,0.9)',  glow: '0 0 12px rgba(196,181,253,0.55), 0 0 22px rgba(196,181,253,0.22)',  idle: 'rgba(196,181,253,0.22)' },
+    { border: 'rgba(167,139,250,0.9)', glow: '0 0 12px rgba(167,139,250,0.55), 0 0 22px rgba(139,92,246,0.25)', idle: 'rgba(167,139,250,0.22)' },
+    { border: 'rgba(240,234,252,0.95)', glow: '0 0 12px rgba(240,234,252,0.55), 0 0 22px rgba(167,139,250,0.3)', idle: 'rgba(240,234,252,0.2)' },
 ];
 
 export default function CardDeck({ cardIds, selectedIds, onSelect, maxPicks, deckKey, round, scale = 1 }: CardDeckProps) {

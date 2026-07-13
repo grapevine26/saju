@@ -239,7 +239,7 @@ export default function TarotResultPage() {
                     <div style={{ display: 'flex', alignItems: 'center', gap: 10, marginBottom: 16 }}>
                         <div style={{
                             width: 36, height: 36, borderRadius: '50%',
-                            background: 'rgba(109,40,217,0.15)', border: '1px solid var(--tarot-border-strong)',
+                            background: 'rgba(124,58,237,0.15)', border: '1px solid var(--tarot-border-strong)',
                             display: 'flex', alignItems: 'center', justifyContent: 'center',
                         }}>
                             <Lock size={16} color="var(--tarot-accent)" />
@@ -317,7 +317,7 @@ export default function TarotResultPage() {
                                     style={{
                                         width: '100%', padding: '16px', borderRadius: 14, border: 'none',
                                         background: paying || !payingEmail.includes('@')
-                                            ? 'rgba(109,40,217,0.25)'
+                                            ? 'rgba(124,58,237,0.25)'
                                             : 'var(--tarot-btn-bg)',
                                         color: paying || !payingEmail.includes('@') ? 'var(--tarot-text-3)' : '#fff',
                                         fontSize: 15, fontWeight: 700,
