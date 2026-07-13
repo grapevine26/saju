@@ -47,8 +47,8 @@ const SERVICES = [
     {
         href: '/tarot',
         label: '연애 타로',
-        name: 'ODD TAROT',
-        nameSub: '오드 타로',
+        name: '오드 타로',
+        nameSub: 'ODD TAROT',
         hook: '말하지 않는 그 사람의 속마음,\n7장의 카드가 대신 답합니다.',
         chips: ['지금 그 사람의 마음', '앞날의 흐름', '궁합 온도'],
         badge: '첫 리딩 무료',
