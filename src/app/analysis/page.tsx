@@ -107,7 +107,7 @@ export default function AnalysisPage() {
         setShowUpgradeModal(false);
 
         try {
-            const amount = targetPackageId === 'signature' ? 19900 : 13900;
+            const amount = targetPackageId === 'signature' ? 19900 : 1000; // [임시] 실결제 테스트용 (원가 13900)
             const orderName = targetPackageId === 'signature' ? '시그니처 컨설팅' : '프리미엄 리포트';
 
             const orderId = `${recordId.current}${Date.now()}`;
