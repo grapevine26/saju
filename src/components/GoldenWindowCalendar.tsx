@@ -29,7 +29,10 @@ export default function GoldenWindowCalendar({ months }: Props) {
                 <CalendarHeart className="w-5 h-5 text-[var(--accent-gold)]" /> 연락 최적기 캘린더
             </h3>
 
-            {months.map((data, idx) => (
+            {months.map((data, idx) => {
+                // 최적기 날짜는 최대 3개까지만 — 너무 많으면 "최적"의 희소가치가 사라진다
+                const goodDates = (data.goodDates || []).slice(0, 3);
+                return (
                 <motion.div
                     key={idx}
                     initial={{ opacity: 0, y: 20 }}
@@ -55,7 +58,7 @@ export default function GoldenWindowCalendar({ months }: Props) {
 
                             {[...Array(daysInMonth)].map((_, i) => {
                                 const day = i + 1;
-                                const isGood = data.goodDates?.includes(day);
+                                const isGood = goodDates.includes(day);
 
                                 return (
                                     <div
@@ -88,7 +91,8 @@ export default function GoldenWindowCalendar({ months }: Props) {
                         </div>
                     </div>
                 </motion.div>
-            ))}
+                );
+            })}
         </div>
     );
 }

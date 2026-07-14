@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useSajuStore } from "@/store/useSajuStore";
 import toast from "react-hot-toast"; import { Suspense } from "react";
 import { getUtm, getVisitorId } from "@/utils/utm";
+import PremiumGaugePreview from "@/components/PremiumGaugePreview";
 
 function PaymentSuccessContent() {
     const router = useRouter();
@@ -16,6 +17,7 @@ function PaymentSuccessContent() {
 
     const [status, setStatus] = useState<"confirming" | "analyzing" | "success" | "error">("confirming");
     const [errorMessage, setErrorMessage] = useState("");
+    const [personalInfo, setPersonalInfo] = useState<{ myName: string; partnerName: string; previewScore?: number } | null>(null);
     const { setPremiumJobId } = useSajuStore();
     const hasStarted = useRef(false);
 
@@ -73,6 +75,11 @@ function PaymentSuccessContent() {
                 }
 
                 const liteResult = targetRecord.resultData;
+                setPersonalInfo({
+                    myName: targetRecord.myInfo?.name || '',
+                    partnerName: targetRecord.partnerInfo?.name || '',
+                    previewScore: liteResult?.reunionScore ?? liteResult?.compatibility?.reunionScore,
+                });
 
                 const rawData = {
                     myRawInput: targetRecord.myRawInput,
@@ -200,70 +207,28 @@ function PaymentSuccessContent() {
                     animate={{ opacity: 1, y: 0 }}
                     className="text-center max-w-sm mx-auto w-full"
                 >
-                    {/* 체크 아이콘 */}
                     <motion.div
-                        initial={{ scale: 0 }}
-                        animate={{ scale: 1 }}
-                        transition={{ type: "spring", stiffness: 200, damping: 15 }}
-                        className="w-20 h-20 bg-gradient-to-br from-emerald-500/20 to-emerald-500/5 border border-emerald-500/30 text-emerald-400 rounded-full mx-auto flex items-center justify-center text-3xl mb-6 shadow-[0_0_40px_rgba(16,185,129,0.1)]"
+                        initial={{ opacity: 0, y: 8 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.15 }}
+                        className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full mb-6"
+                        style={{ background: 'var(--accent-soft)', border: '1px solid var(--accent-border)' }}
                     >
-                        ✓
+                        <span className="w-[5px] h-[5px] rounded-full" style={{ background: 'var(--accent-amber)', boxShadow: '0 0 6px var(--accent-amber)' }} />
+                        <span className="text-[10.5px] font-bold" style={{ color: 'var(--accent-amber)' }}>결제 완료</span>
                     </motion.div>
 
-                    <motion.h2
-                        initial={{ opacity: 0 }}
-                        animate={{ opacity: 1 }}
-                        transition={{ delay: 0.2 }}
-                        className="text-2xl font-bold text-white mb-2"
-                    >
-                        결제가 완료되었습니다
-                    </motion.h2>
-                    <motion.p
+                    <motion.div
                         initial={{ opacity: 0 }}
                         animate={{ opacity: 1 }}
                         transition={{ delay: 0.3 }}
-                        className="text-slate-400 text-sm mb-8"
+                        className="mb-6"
                     >
-                        프리미엄 심층 분석을 준비하고 있어요
-                    </motion.p>
-
-                    {/* 분석 단계 체크리스트 */}
-                    <motion.div
-                        initial={{ opacity: 0, y: 10 }}
-                        animate={{ opacity: 1, y: 0 }}
-                        transition={{ delay: 0.5 }}
-                        className="bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-2xl p-5 mb-6 text-left space-y-3.5"
-                    >
-                        {[
-                            { text: "결제 승인 완료", done: true },
-                            { text: "사주 원국 정밀 재분석", done: true },
-                            { text: "15장 분량 심층 리포트 생성 중", done: false, active: true },
-                        ].map((step, i) => (
-                            <motion.div
-                                key={i}
-                                initial={{ opacity: 0, x: -10 }}
-                                animate={{ opacity: 1, x: 0 }}
-                                transition={{ delay: 0.6 + i * 0.15 }}
-                                className="flex items-center gap-3"
-                            >
-                                {step.done ? (
-                                    <div className="w-5 h-5 rounded-full bg-emerald-500/20 border border-emerald-500/40 flex items-center justify-center flex-shrink-0">
-                                        <span className="text-emerald-400 text-[10px]">✓</span>
-                                    </div>
-                                ) : (
-                                    <div className="w-5 h-5 rounded-full border border-[var(--accent-border)] flex items-center justify-center flex-shrink-0">
-                                        <motion.div
-                                            animate={{ opacity: [0.3, 1, 0.3] }}
-                                            transition={{ repeat: Infinity, duration: 1.5 }}
-                                            className="w-2 h-2 rounded-full bg-[var(--accent-gold)]"
-                                        />
-                                    </div>
-                                )}
-                                <span className={`text-[13px] font-medium ${step.done ? 'text-[var(--text-muted)]' : step.active ? 'text-[var(--text-primary)]' : 'text-[var(--text-muted)]'}`}>
-                                    {step.text}
-                                </span>
-                            </motion.div>
-                        ))}
+                        <PremiumGaugePreview
+                            myName={personalInfo?.myName}
+                            partnerName={personalInfo?.partnerName}
+                            previewScore={personalInfo?.previewScore}
+                        />
                     </motion.div>
 
                     {/* SMS 알림 안내 */}

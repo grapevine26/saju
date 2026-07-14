@@ -383,10 +383,10 @@ function PremiumPreview() {
         <div style={{ position:'relative' }}>
           <div style={{ display:'grid', gridTemplateColumns:'repeat(7,1fr)', gap:7 }}>
             {Array.from({ length:14 }, (_,i) => {
-              const hot=[5,12].includes(i), blue=[2,8].includes(i);
+              const hot=[2,10].includes(i); // 화요일(1주차) · 수요일(2주차) — 요일이 겹치지 않게 분산
               return (
-                <div key={i} style={{ aspectRatio:'1', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', background:hot?'rgba(216,72,94,0.22)':blue?'rgba(80,70,180,0.28)':'rgba(240,234,235,0.04)', border:hot?`1px solid ${C.accentBorder}`:blue?'1px solid rgba(100,90,220,0.45)':`1px solid ${C.lineSoft}`, boxShadow:hot?`0 0 12px 2px rgba(216,72,94,0.4)`:blue?'0 0 8px rgba(80,70,200,0.35)':'none' }}>
-                  {hot ? <span style={{ fontSize:17 }}>🔥</span> : blue ? <div style={{ width:22, height:22, borderRadius:'50%', background:'radial-gradient(circle at 38% 38%, rgba(180,170,255,0.6), rgba(60,50,180,0.8))', boxShadow:'0 0 6px rgba(100,90,220,0.5)' }} /> : <span style={{ fontSize:11, color:C.muted }}>{i+1}</span>}
+                <div key={i} style={{ aspectRatio:'1', borderRadius:9, display:'flex', alignItems:'center', justifyContent:'center', background:hot?'rgba(216,72,94,0.22)':'rgba(240,234,235,0.04)', border:hot?`1px solid ${C.accentBorder}`:`1px solid ${C.lineSoft}`, boxShadow:hot?`0 0 12px 2px rgba(216,72,94,0.4)`:'none' }}>
+                  {hot ? <span style={{ fontSize:17 }}>🔥</span> : <span style={{ fontSize:11, color:C.muted }}>{i+1}</span>}
                 </div>
               );
             })}

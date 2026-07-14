@@ -20,6 +20,7 @@ import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
 import { Route } from "lucide-react";
 import toast from "react-hot-toast";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import AnalysisLoading from "@/components/AnalysisLoading";
 import UpgradeModal from "@/components/UpgradeModal";
 import PaymentModal from "@/components/PaymentModal";
 import { createClient } from '@/utils/supabase/client';
@@ -288,9 +289,17 @@ export default function AnalysisPage() {
 
         hasFetched.current = true;
 
+        // 입력 폼에서 방금 제출한 새 분석 요청이면 캐시를 건너뛴다
+        // (같은 이름·생일로 재분석 시 이전 결제 리포트가 그대로 뜨는 문제 방지)
+        let isFreshRequest = false;
+        try {
+            isFreshRequest = sessionStorage.getItem('saju_fresh_analysis') === '1';
+            if (isFreshRequest) sessionStorage.removeItem('saju_fresh_analysis');
+        } catch {}
+
         // 2. 새로고침 시 무의미한 API 재호출 방지 (이름 + 생년월일이 모두 일치할 때만 캐시 로드)
         const recentHistory = reunionHistory && reunionHistory.length > 0 ? reunionHistory[0] : null;
-        if (recentHistory
+        if (!isFreshRequest && recentHistory
             && recentHistory.myInfo.name === name
             && recentHistory.partnerInfo.name === partnerName
             && recentHistory.myInfo.birthDate === `${birthYear}-${birthMonth}-${birthDay}`
@@ -379,36 +388,7 @@ export default function AnalysisPage() {
 
     // 로딩 화면
     if (!result) {
-        return (
-            <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }} className="flex flex-col items-center justify-center p-6">
-                <motion.div
-                    animate={{ rotate: 360 }}
-                    transition={{ repeat: Infinity, duration: 8, ease: "linear" }}
-                    className="relative w-32 h-32 mb-12 flex items-center justify-center"
-                >
-                    <div style={{ border: `1px dashed ${C.lineSoft}` }} className="absolute inset-0 w-full h-full rounded-full" />
-                    <div style={{ background: C.accentBright }} className="absolute top-0 w-3 h-3 rounded-full blur-[2px]" />
-                    <div className="absolute bottom-0 w-3 h-3 bg-indigo-500 rounded-full blur-[2px]" />
-                    <div className="absolute left-0 w-3 h-3 bg-rose-500 rounded-full blur-[2px]" />
-                    <div className="absolute right-0 w-3 h-3 bg-purple-500 rounded-full blur-[2px]" />
-                    <div className="w-12 h-12 rounded-full animate-pulse" style={{ background: C.btnBg, boxShadow: '0 0 30px rgba(216,72,94,0.4)' }} />
-                </motion.div>
-
-                <div className="space-y-3 text-center">
-                    <h2 className="text-2xl font-bold">
-                        <span style={{ background: `linear-gradient(135deg, ${C.accentBright}, ${C.accent})`, WebkitBackgroundClip: 'text', WebkitTextFillColor: 'transparent' }}>두 사람의 인연을 분석하는 중</span> 🔮
-                    </h2>
-                    <motion.p
-                        style={{ color: C.muted }}
-                        className="text-sm font-medium"
-                        animate={{ opacity: [0.3, 1, 0.3] }}
-                        transition={{ repeat: Infinity, duration: 2 }}
-                    >
-                        사주 데이터를 정밀 분석하고 있어요...
-                    </motion.p>
-                </div>
-            </div>
-        );
+        return <AnalysisLoading myName={name} partnerName={partnerName} />;
     }
 
     // 결과 화면

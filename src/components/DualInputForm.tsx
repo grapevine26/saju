@@ -122,7 +122,13 @@ export default function DualInputForm() {
     setStep(3);
   };
 
-  const handleSubmit = () => router.push("/analysis");
+  const handleSubmit = () => {
+    // 입력 폼을 거친 명시적 새 분석 요청 표시 — /analysis가 이 플래그를 보면
+    // 최근 기록 캐시(같은 이름·생일이면 이전 결제 리포트까지 그대로 로드)를 건너뛰고
+    // 새 무료 분석을 돌린다. 새로고침 시에는 플래그가 없으므로 캐시가 정상 동작.
+    try { sessionStorage.setItem('saju_fresh_analysis', '1'); } catch {}
+    router.push("/analysis");
+  };
 
   const Label = ({ children }: { children: React.ReactNode }) => (
     <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 10, letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{children}</p>
