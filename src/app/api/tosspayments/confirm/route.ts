@@ -5,8 +5,7 @@ import { recordPaidEvent } from "@/lib/funnel";
 import { safeSend, markDispatchFailed } from "@/lib/jobDispatch";
 
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
-// [임시] premium은 실결제 테스트용 인하 (원가 19900) — 테스트 후 원복 필수
-const SAJU_PRICES: Record<string, number> = { premium: 1000, signature: 34900 };
+const SAJU_PRICES: Record<string, number> = { premium: 19900, signature: 34900 };
 
 // 결제 건으로 이미 생성된 잡을 조회 (멱등 처리용). paymentKey는 raw_data에 저장됨.
 async function findExistingJob(paymentKey: string) {

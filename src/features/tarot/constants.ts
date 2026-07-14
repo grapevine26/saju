@@ -5,8 +5,7 @@ export const TAROT_PENDING_KEY = 'tarot_pending';
 export const TAROT_JOB_ID_KEY  = 'tarot_job_id';
 export const TAROT_HISTORY_KEY = 'tarot_history';
 
-// [임시] 실결제 테스트용 인하 (원가 3900) — 테스트 후 원복 필수
-export const TAROT_PRICE             = 1000;
+export const TAROT_PRICE             = 3900;
 export const TAROT_CARDS_PER_ROUND   = 12;
 export const PICKS_PER_ROUND         = [2, 3, 2] as const;
 export const TAROT_TOTAL_ROUNDS      = 3;
