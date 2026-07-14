@@ -9,7 +9,7 @@ import { TarotRoundSection, TarotFinalMessage } from "@/components/tarot/TarotRe
 import { getCardById } from "@/features/tarot/cards";
 import CardBack from "@/components/tarot/CardBack";
 import { TarotInput, TarotFreeResult, TarotFullResult } from "@/features/tarot/types";
-import { TAROT_FREE_KEY, TAROT_INPUT_KEY } from "@/features/tarot/constants";
+import { TAROT_FREE_KEY, TAROT_INPUT_KEY, TAROT_ROUNDS_KEY } from "@/features/tarot/constants";
 
 interface Props {
     job: {
@@ -102,6 +102,30 @@ export default function TarotResultClient({ job }: Props) {
 
     const { input, rounds, freeResult } = currentJob.raw_data;
     const { round2, round3, finalMessage, directAnswer, special } = ai;
+
+    // 썸·짝사랑 재구매 브릿지 — 상황에 맞는 "다음 질문"을 프리셋으로 새 리딩 시작
+    const startNewReading = (presetQuestion: string) => {
+        try {
+            sessionStorage.setItem(TAROT_INPUT_KEY, JSON.stringify({ ...input, question: presetQuestion }));
+            sessionStorage.removeItem(TAROT_ROUNDS_KEY);
+            sessionStorage.removeItem(TAROT_FREE_KEY);
+        } catch {}
+        router.push('/tarot/select');
+    };
+
+    const rereadBridge = input.situation === 'crush' ? {
+        title: <>기류는 확인했어요.<br />이제 &lsquo;진심&rsquo;이 남았습니다</>,
+        desc: <>카드는 두 사람 사이에 흐르는 <strong style={{ color: 'var(--tarot-text-1)' }}>지금의 기류</strong>를 보여드렸어요. {input.partnerName}씨가 이 관계를 어디까지 생각하는지 — 새 질문으로 7장이 다시 답합니다.</>,
+        chips: ['그 사람의 진심', '관계의 진도', '다가올 신호'],
+        question: `${input.partnerName}님은 저와의 관계를 어디까지 생각하고 있나요?`,
+        cta: '이 질문으로 새 카드 뽑기',
+    } : input.situation === 'unrequited' ? {
+        title: <>마음의 방향은 봤어요.<br />이제 &lsquo;고백&rsquo;이 남았습니다</>,
+        desc: <>카드는 {input.partnerName}씨를 향한 <strong style={{ color: 'var(--tarot-text-1)' }}>지금의 흐름</strong>을 보여드렸어요. 용기를 내면 어떤 장면이 펼쳐질지 — 새 질문으로 7장이 다시 답합니다.</>,
+        chips: ['고백의 결과', '최적의 타이밍', '조심할 신호'],
+        question: '지금 고백하면 어떻게 될까요?',
+        cta: '이 질문으로 새 카드 뽑기',
+    } : null;
 
     return (
         <div style={{ minHeight: '100vh', paddingBottom: 60 }}>
@@ -333,6 +357,72 @@ export default function TarotResultClient({ job }: Props) {
                         </Link>
                         <p style={{ fontSize: 11, color: 'var(--tarot-text-3)', textAlign: 'center', marginTop: 9 }}>
                             무료 기본 분석부터 · 가입 없이 바로
+                        </p>
+                    </motion.div>
+                )}
+
+                {/* ── 썸·짝사랑 재구매 브릿지 ──
+                    다음 상품이 없는 세그먼트는 "다음 질문"을 대신 정해줘 타로 재리딩으로 연결 */}
+                {rereadBridge && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.65 }}
+                        style={{
+                            marginTop: 28,
+                            borderRadius: 18,
+                            padding: '24px 22px',
+                            background: 'linear-gradient(150deg, rgba(176,123,180,0.10) 0%, rgba(27,31,74,0.50) 55%)',
+                            border: '1px solid rgba(176,123,180,0.30)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute', top: -40, right: -30, width: 160, height: 150,
+                            background: 'radial-gradient(circle, rgba(176,123,180,0.16) 0%, transparent 70%)',
+                            pointerEvents: 'none',
+                        }} />
+                        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: 'var(--tarot-accent-light)', marginBottom: 10 }}>
+                            NEXT · 다음이 궁금하다면
+                        </p>
+                        <p className="tarot-serif" style={{ fontSize: 18, fontWeight: 700, color: 'var(--tarot-text-1)', lineHeight: 1.5, marginBottom: 10 }}>
+                            {rereadBridge.title}
+                        </p>
+                        <p style={{ fontSize: 13, color: 'var(--tarot-text-2)', lineHeight: 1.75, marginBottom: 16 }}>
+                            {rereadBridge.desc}
+                        </p>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 14 }}>
+                            {rereadBridge.chips.map((t) => (
+                                <span key={t} style={{
+                                    fontSize: 11, color: 'var(--tarot-accent-light)',
+                                    background: 'rgba(176,123,180,0.10)', border: '1px solid rgba(176,123,180,0.24)',
+                                    padding: '4px 10px', borderRadius: 999,
+                                }}>{t}</span>
+                            ))}
+                        </div>
+                        {/* 대신 정해주는 다음 질문 — "뭘 또 물어보지?"를 고민하게 두면 이탈한다 */}
+                        <div style={{
+                            fontSize: 12.5, color: 'var(--tarot-text-1)', lineHeight: 1.6,
+                            background: 'rgba(27,31,74,0.45)', border: '1px solid rgba(176,123,180,0.20)',
+                            borderRadius: 11, padding: '11px 14px', marginBottom: 18,
+                        }}>
+                            <span style={{ color: 'var(--tarot-text-3)', marginRight: 6 }}>Q.</span>
+                            &ldquo;{rereadBridge.question}&rdquo;
+                        </div>
+                        <button
+                            onClick={() => startNewReading(rereadBridge.question)}
+                            style={{
+                                display: 'block', width: '100%', textAlign: 'center', padding: '15px 20px', borderRadius: 13,
+                                background: 'var(--tarot-btn-bg)', border: 'none', cursor: 'pointer',
+                                color: '#FFF', fontSize: 14.5, fontWeight: 700, fontFamily: 'inherit',
+                                boxShadow: 'var(--tarot-btn-shadow)',
+                            }}
+                        >
+                            {rereadBridge.cta}
+                        </button>
+                        <p style={{ fontSize: 11, color: 'var(--tarot-text-3)', textAlign: 'center', marginTop: 9 }}>
+                            1라운드 무료 · 카드는 매번 새로 섞여요
                         </p>
                     </motion.div>
                 )}
