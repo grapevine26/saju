@@ -108,6 +108,19 @@ export async function POST(request: Request) {
         // 3. 골든 윈도우 계산 (Lite에서 기본 데이터만 반환, AI 분석은 Inngest에서 처리)
         const goldenWindows = null;
 
+        // 3-1. 연락 최적 시기 사전 계산 — 티저(secretTeaser)가 임의의 시기("1개월 내" 등)를
+        // 지어내면 프리미엄의 골든 윈도우 캘린더와 모순되므로, 같은 결정론 계산 결과를
+        // 프롬프트에 주입해 무료 단계부터 시기를 일치시킨다.
+        const gwPreview = calculateGoldenWindows(
+            myBazi.manseryeok.day.gan, myBazi.manseryeok.day.zhi,
+            partnerBazi.manseryeok.day.gan, partnerBazi.manseryeok.day.zhi,
+            6,
+        );
+        const goldenMonths = gwPreview.windows.filter(w => w.isGolden).map(w => `${w.year}년 ${w.month}월`);
+        const gwSummaryForPrompt = gwPreview.bestMonth
+            ? `- 연락 최적기(향후 6개월 중 최고점): ${gwPreview.bestMonth.year}년 ${gwPreview.bestMonth.month}월 (에너지 ${gwPreview.bestMonth.score}점)${goldenMonths.length > 1 ? `\n- 그 외 좋은 달: ${goldenMonths.join(', ')}` : ''}`
+            : null;
+
         // ─────────────────────────────────────
         // 4. Gemini AI 재회 분석 호출
         // ─────────────────────────────────────
@@ -137,12 +150,15 @@ ${BASE_SYSTEM_INSTRUCTION}
                 reunionKeyword: { type: "string" as any },
                 reunionScore: { type: "integer" as any },
                 summary: { type: "string" as any },
+                // 프롬프트는 secretTeaser를 요구하는데 스키마에 없어 항상 누락되던 버그 —
+                // 이 필드가 빠지면 클라이언트가 하드코딩 폴백("1개월 내")을 노출해 캘린더와 모순됐다
+                secretTeaser: { type: "string" as any },
                 details: {
                     type: "array" as any,
                     items: detailItemSchema
                 }
             },
-            required: ["reunionKeyword", "reunionScore", "summary", "details"]
+            required: ["reunionKeyword", "reunionScore", "summary", "secretTeaser", "details"]
         };
 
         const model1 = genAI.getGenerativeModel({
@@ -170,11 +186,14 @@ ${partnerBazi.baziStr.trim()}
 [궁합 분석 데이터]
 ${compatibility.promptSummary}
 
+${gwSummaryForPrompt ? `[연락 최적 시기 — 시스템이 이미 계산한 확정 결과]\n${gwSummaryForPrompt}\n` : ''}
 ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중요]\n${metDate ? `- 만난 시점/연애 시작일: ${metDate}\n` : ''}${breakupDate ? `- 이별 시점: ${breakupDate}\n` : ''}${breakupReason ? `- 사용자가 직접 전한 이별 이유/고민:\n${breakupReason}` : ''}\n위 컨텍스트를 분석에 반드시 깊게 반영해.` : ''}
 
 (중요 지침 1: 위 사주팔자·오행·십성·대운 데이터는 분석의 '재료'일 뿐이다. 결과 텍스트에는 이 용어들을 절대 그대로 옮기지 말고, 방어기제·애착 유형·소통 패턴 같은 심리·관계 언어로만 번역해서 표현할 것)
 
-(중요 지침 2: 모든 content 항목에 대해 모바일 화면에서 읽기 쉽도록 한 문단을 2~3문장 짧게 끊고, 문단 사이에 반드시 줄바꿈 2번(\\n\\n)을 띄워서 가독성을 극대화할 것. 필요한 경우 소제목이나 불릿기호(-)를 활용할 것)`;
+(중요 지침 2: 모든 content 항목에 대해 모바일 화면에서 읽기 쉽도록 한 문단을 2~3문장 짧게 끊고, 문단 사이에 반드시 줄바꿈 2번(\\n\\n)을 띄워서 가독성을 극대화할 것. 필요한 경우 소제목이나 불릿기호(-)를 활용할 것)
+
+(중요 지침 3: 시기·타이밍을 언급하는 모든 텍스트는 반드시 위 [연락 최적 시기] 계산 결과의 달을 기준으로 서술할 것. "1개월 내", "곧", "다가오는 봄" 같은 임의의 시기를 절대 지어내지 마라. 이 계산 결과는 유료 리포트의 골든 윈도우 캘린더에 그대로 표시되므로, 다른 시기를 말하면 사용자에게 명백한 모순으로 보인다)`;
 
         // ── prompt1: Lite용 (항상 호출) ──
         // 관계 본질 + 소통 패턴 + 재회 점수/요약
@@ -183,7 +202,7 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중
   "reunionKeyword": "두 사람의 관계를 꿰뚫는 핵심 키워드 한 줄",
   "reunionScore": 재회 가능성 점수 (0~100),
   "summary": "두 사람의 재회 전반에 대한 핵심 요약 2~3줄",
-  "secretTeaser": "결제를 유도하는 200자 이상의 핵심 행동 지침. 사주 분석을 바탕으로 구체적인 시기(월)나 행동 지침을 적되, 가장 결정적인 단어나 시기를 반드시 [BLUR]...[/BLUR] 태그로 감싸서 숨길 것. 예: 다가오는 O월, 상대방의 방어기제가 무너집니다. 이때 [BLUR]이런 방식[/BLUR]으로 다가가면 재회 확률이 급증합니다.",
+  "secretTeaser": "결제를 유도하는 200자 이상의 핵심 행동 지침. 시기를 언급할 때는 반드시 위 [연락 최적 시기] 계산 결과의 달(예: 12월)을 사용하고 임의의 시기를 지어내지 말 것. 가장 결정적인 단어나 시기는 반드시 [BLUR]...[/BLUR] 태그로 감싸서 숨길 것. 예: [BLUR]O월[/BLUR], 상대방의 방어기제가 무너집니다. 이때 [BLUR]이런 방식[/BLUR]으로 다가가면 재회 확률이 급증합니다.",
   "details": [
     { "title": "✨ [본질] 두 사람이 끌릴 수밖에 없었던 운명적 이유", "subtitle": "...", "content": "두 사람이 처음 왜 끌렸고, 어떤 에너지로 연결되어 있는지 궁합 데이터를 근거로 심층 분석. 천간/지지·합/충 같은 용어는 절대 노출하지 말고, '자석처럼 끌리는 상호보완', '무의식적 안정감' 같은 심리·관계 역학의 언어로 풍성하게 설명 (최소 600자)" },
     { "title": "🧬 [성향] 사주로 읽는 우리의 연애 DNA와 소통 패턴", "subtitle": "...", "content": "각자의 사주 데이터로 읽는 성격 성향, 사랑 표현 방식, 소통 스타일의 차이와 충돌 지점. 오행/십성 용어 대신 애착 유형·표현 방식·갈등 대처 스타일 같은 심리학 언어로만 서술하고, '나'와 '상대방'을 각각 분석한 뒤 비교하여 서술 (최소 600자)" }

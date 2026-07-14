@@ -137,10 +137,18 @@ export const processPremiumAnalysis = inngest.createFunction(
       });
 
       // --- 2-3. 프롬프트 생성 ---
+      // 골든윈도우 계산 요약을 공통 컨텍스트에 주입 — 심층 분석(prompt2)의 시기 언급이
+      // 캘린더(prompt3 산출물)와 어긋나지 않도록 같은 결정론 결과에 고정한다.
+      const goldenList = result.windows.filter(w => w.isGolden).map(w => `${w.year}년 ${w.month}월`);
+      const goldenWindowSummary = result.bestMonth
+        ? `- 연락 최적기(향후 ${months}개월 중 최고점): ${result.bestMonth.year}년 ${result.bestMonth.month}월 (에너지 ${result.bestMonth.score}점)${goldenList.length > 1 ? `\n- 그 외 좋은 달: ${goldenList.join(', ')}` : ''}`
+        : undefined;
+
       const promptCtx = {
         myRawInput, partnerRawInput, myBazi, partnerBazi,
         compatibilityPromptSummary: compatibility.promptSummary,
-        metDate, breakupDate, breakupReason
+        metDate, breakupDate, breakupReason,
+        goldenWindowSummary,
       };
 
       const prompt2 = buildPrompt2(promptCtx, liteResult?.secretTeaser);

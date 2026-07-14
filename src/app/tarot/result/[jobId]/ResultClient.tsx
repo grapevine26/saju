@@ -125,6 +125,12 @@ export default function TarotResultClient({ job }: Props) {
         chips: ['고백의 결과', '최적의 타이밍', '조심할 신호'],
         question: '지금 고백하면 어떻게 될까요?',
         cta: '이 질문으로 새 카드 뽑기',
+    } : input.situation === 'dating' ? {
+        title: <>지금은 확인했어요.<br />이제 &lsquo;앞으로&rsquo;가 남았습니다</>,
+        desc: <>카드는 두 사람의 <strong style={{ color: 'var(--tarot-text-1)' }}>현재</strong>를 보여드렸어요. 이 관계가 어디로 흘러갈지, 언제 어떤 고비가 오는지 — 새 질문으로 7장이 다시 답합니다.</>,
+        chips: ['관계의 앞날', '다가올 고비', '더 깊어지는 법'],
+        question: `${input.partnerName}님과의 관계, 앞으로 어떻게 흘러갈까요?`,
+        cta: '이 질문으로 새 카드 뽑기',
     } : null;
 
     return (

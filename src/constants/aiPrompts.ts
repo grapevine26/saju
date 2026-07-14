@@ -60,11 +60,13 @@ interface PromptContext {
     metDate?: string;
     breakupDate?: string;
     breakupReason?: string;
+    /** 결정론 골든윈도우 계산 요약 — 모든 시기 언급을 이 결과에 고정해 캘린더와의 모순 방지 */
+    goldenWindowSummary?: string;
 }
 
 /** 공통 프롬프트 (사주 데이터 + 궁합 데이터 + 관계 컨텍스트) */
 export const buildCommonPrompt = (ctx: PromptContext): string => {
-    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, metDate, breakupDate, breakupReason } = ctx;
+    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, metDate, breakupDate, breakupReason, goldenWindowSummary } = ctx;
 
     return `[분석 대상]
 - 나: ${myRawInput.name || "익명"} (${myRawInput.gender === 'male' ? '남자' : '여자'}, 만 ${myBazi.age}세)
@@ -85,11 +87,14 @@ ${partnerBazi.baziStr.trim()}
 [궁합 분석 데이터]
 ${compatibilityPromptSummary}
 
+${goldenWindowSummary ? `[연락 최적 시기 — 시스템이 이미 계산한 확정 결과]\n${goldenWindowSummary}\n` : ''}
 ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트 — 매우 중요]\n${metDate ? `- 만난 시점/연애 시작일: ${metDate}\n` : ''}${breakupDate ? `- 이별 시점: ${breakupDate}\n` : ''}${breakupReason ? `- 사용자가 직접 전한 이별 이유/고민:\n${breakupReason}` : ''}\n위 컨텍스트를 분석에 반드시 깊게 반영해.` : ''}
 
 (중요 지침 1: 위 사주팔자·오행·십성·대운 데이터는 분석의 '재료'일 뿐이다. 결과 텍스트에는 이 용어들을 절대 그대로 옮기지 말고, 방어기제·애착 유형·소통 패턴 같은 심리·관계 언어로만 번역해서 표현할 것)
 
-(중요 지침 2: 모든 content 항목에 대해 모바일 화면에서 읽기 쉽도록 한 문단을 2~3문장 짧게 끊고, 문단 사이에 반드시 줄바꿈 2번(\\n\\n)을 띄워서 가독성을 극대화할 것. 필요한 경우 소제목이나 불릿기호(-)를 활용할 것)`;
+(중요 지침 2: 모든 content 항목에 대해 모바일 화면에서 읽기 쉽도록 한 문단을 2~3문장 짧게 끊고, 문단 사이에 반드시 줄바꿈 2번(\\n\\n)을 띄워서 가독성을 극대화할 것. 필요한 경우 소제목이나 불릿기호(-)를 활용할 것)
+
+${goldenWindowSummary ? `(중요 지침 3: 시기·타이밍을 언급하는 모든 텍스트(길일, 전략, 행동 지침, 티저 상술 포함)는 반드시 위 [연락 최적 시기] 계산 결과의 달을 기준으로 서술할 것. "1개월 내", "곧" 같은 임의의 시기를 절대 지어내지 마라. 이 계산 결과는 골든 윈도우 캘린더로 사용자에게 그대로 표시되므로, 다른 시기를 말하면 명백한 모순으로 보인다)` : ''}`;
 };
 
 /** prompt2: 프리미엄 심층 분석 8개 + 상대방 공략 매뉴얼 */
@@ -107,7 +112,7 @@ export const buildPrompt2 = (ctx: PromptContext, secretTeaser?: string): string 
     { "title": "☠️ [결론] 끝내 이별로 이끈 '진짜 사유' 분석", "subtitle": "...", "content": "단순한 표면적 이유가 아닌, 두 사람의 기질 데이터가 가리키는 궁극적 이별 원인. 종합 진단과 함께 냉정한 팩트 전달 (최소 600자)" },
     { "title": "🫀 [속마음] 그 사람, 아직 나에게 미련이 있을까?", "subtitle": "...", "content": "상대방 사주 성향과 현재 시점 운으로 추론한 속마음. 구체적인 근거를 대며 몇 가지 시나리오를 제시 (최소 600자)" },
     { "title": "🚨 [경고] 제발 이것만은! 재회를 망치는 치명적 실수", "subtitle": "...", "content": "절대로 하면 안 되는 행동 3가지 이상과 각각의 구체적 이유. 실수 시 어떤 결과가 오는지까지 서술 (최소 600자)" },
-    { "title": "🥲 [타이밍] 다시 연락이 닿을 길일과 먼저 연락 올 확률", "subtitle": "...", "content": "사주상 다시 연락하기 좋은 구체적 시기(길일)와 최적의 연락 태도. 먼저 갈지 기다릴지 전략적 판단 근거도 함께 (최소 600자)" },
+    { "title": "🥲 [타이밍] 다시 연락이 닿을 길일과 먼저 연락 올 확률", "subtitle": "...", "content": "다시 연락하기 좋은 구체적 시기와 최적의 연락 태도. 시기는 반드시 [연락 최적 시기] 계산 결과의 달을 그대로 사용할 것 (골든 윈도우 캘린더와 함께 표시되므로 일치 필수). 먼저 갈지 기다릴지 전략적 판단 근거도 함께 (최소 600자)" },
     { "title": "😈 [전략] 재회 확률 200% 극대화 시크릿 비법", "subtitle": "...", "content": "상대방이 무의식적으로 끌리는 스타일링(컬러·무드) 추천, 만남 장소, 대화법, 유혹 포인트 등 구체적인 행동 가이드 (최소 600자)" },
     { "title": "🌸 [선택] 재회 성공 후 미래 vs 더 좋은 새로운 인연", "subtitle": "...", "content": "다시 만났을 때 잘 지낼 수 있을지 데이터 기반으로 진단하고, 만약 포기한다면 언제 어떤 새 인연이 올지 예측 (최소 600자)" }
   ],
@@ -176,9 +181,11 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
     ... (총 3단계)
   ],
   "goldenWindowMonths": [
-    { "month": "12월", "goodDates": [3, 7, 15] }
+    { "month": "12월", "goodDates": [3, 7] }
   ]
-}`;
+}
+
+(시기 정합 필수: roadmapStages의 각 단계 시기와 행동 지침, monthlyEnergies의 조언에서 "언제"를 말할 때는 반드시 위 [향후 6개월간 골든 윈도우 흐름 데이터]의 달을 기준으로 서술해. "1개월 내", "곧" 같은 임의의 기간을 지어내지 마 — 이 데이터로 그려진 캘린더가 사용자에게 함께 표시되므로 다른 시기를 말하면 명백한 모순으로 보인다. 로드맵 단계 구분도 골든 윈도우가 오기 전(정비) → 골든 윈도우(실행) → 이후(안정화) 흐름에 맞춰라)`;
 };
 
 /** prompt4: 궁합 집중 분석 리포트 */

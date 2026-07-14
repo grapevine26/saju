@@ -521,7 +521,7 @@ export default function AnalysisPage() {
                         {!isPremium && <div className="absolute top-0 right-0 w-24 h-24 bg-rose-500/10 rounded-full blur-2xl pointer-events-none" />}
                         {isPremium && <div style={{ background: C.accentSoft }} className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl pointer-events-none" />}
                         <div style={{ color: C.ink }} className="text-[14px] leading-[1.8] font-medium whitespace-pre-wrap break-keep relative z-10">
-                            {(result.secretTeaser || `분석 결과, 두 사람의 재회 타이밍은 앞으로 [BLUR]1개월 내[/BLUR]에 찾아옵니다. 이때 상대방의 감정 변화는 [BLUR]그리움과 미련[/BLUR] 상태로 접어들며, 먼저 연락을 [BLUR]기다리는[/BLUR] 것이 핵심 전략입니다.`).split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part: string, i: number) => {
+                            {(result.secretTeaser || `분석 결과, 두 사람의 재회 흐름이 다시 열리는 결정적 시기는 [BLUR]OO월[/BLUR]입니다. 이때 상대방의 감정은 [BLUR]그리움과 미련[/BLUR] 상태로 접어들며, [BLUR]이 방식[/BLUR]으로 다가가는 것이 핵심 전략입니다.`).split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part: string, i: number) => {
                                 if (part.startsWith('[BLUR]') && part.endsWith('[/BLUR]')) {
                                     const blurredText = part.replace('[BLUR]', '').replace('[/BLUR]', '');
                                     return isPremium ? (
