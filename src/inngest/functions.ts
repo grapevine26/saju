@@ -1,6 +1,6 @@
 import { inngest } from "./client";
 import { supabaseAdmin } from "@/lib/supabase";
-import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
+import { calculateGoldenWindows, calculateGoldenDates } from "@/utils/goldenWindowCalc";
 import { calculateBazi } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
 import { genAI, callGemini } from "@/utils/geminiCall";
@@ -202,7 +202,27 @@ export const processPremiumAnalysis = inngest.createFunction(
         throw new Error("프리미엄 심층 분석(details) 생성 실패 — 자동 환불 대상");
       }
 
-      // --- 2-5. 최종 병합 ---
+      // --- 2-5. 캘린더 확정: 달 = 계산 최고점, 날짜 = 일진 기반 길일 ---
+      // 예전엔 AI가 달·날짜를 생성했으나, 이제 둘 다 결정론 계산으로 확정한다.
+      // (월간 합충 점수로 달을 고르고, 같은 로직을 그 달의 일진에 적용해 날짜를 고른다)
+      let goldenWindowMonths = parsedData3.goldenWindowMonths || [];
+      if (result.bestMonth) {
+        const goldenDates = calculateGoldenDates(
+          result.bestMonth.year, result.bestMonth.month,
+          myDayGan, myDayZhi, partnerDayGan, partnerDayZhi,
+        );
+        if (goldenDates.length > 0) {
+          goldenWindowMonths = [{
+            month: `${result.bestMonth.year}년 ${result.bestMonth.month}월`,
+            goodDates: goldenDates.map(d => d.day),
+            badDates: [],
+            // 일진 근거 보존 (추후 UI에서 "이 날이 좋은 이유" 노출 가능)
+            dateDetails: goldenDates.map(d => ({ day: d.day, ganzhi: `${d.dayGan}${d.dayZhi}`, reasons: d.reasons })),
+          }];
+        }
+      }
+
+      // --- 2-6. 최종 병합 ---
       const liteDetails = liteResult.details || [];
       const premiumDetails = parsedData2.details || [];
 
@@ -216,7 +236,7 @@ export const processPremiumAnalysis = inngest.createFunction(
           worstMonth: result.worstMonth,
           monthlyEnergies: parsedData3.monthlyEnergies,
           roadmapStages: parsedData3.roadmapStages,
-          goldenWindowMonths: parsedData3.goldenWindowMonths || []
+          goldenWindowMonths
         },
         compatibilityReport
       };

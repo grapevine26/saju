@@ -179,3 +179,75 @@ const calculateMonthScore = (
 
     return { score, reasons };
 };
+
+// ========================================================================
+// 일진(日辰) 기반 길일 계산
+// ========================================================================
+
+/** 특정 달 안의 길일 정보 */
+export interface GoldenDate {
+    day: number;         // 일 (1~31)
+    dayGan: string;      // 그 날의 일간 (한글)
+    dayZhi: string;      // 그 날의 일지 (한글)
+    score: number;       // 합 강도 (월 점수와 동일 로직)
+    reasons: string[];
+}
+
+/**
+ * 골든 달 안에서 두 사람의 일주와 합이 강한 날짜를 일진 기반으로 선정.
+ * 월 점수와 동일한 합충 로직(calculateMonthScore)을 그 날의 간지에 적용한다.
+ * — 예전엔 이 날짜를 AI가 임의로 생성했으나, 이제 캘린더의 🔥 날짜에도
+ *   월 선정과 같은 명리적 근거 체인이 이어진다.
+ *
+ * @returns 점수순 상위 2~3일 (날짜 오름차순 정렬, 가능하면 5일 이상 간격으로 분산)
+ */
+export const calculateGoldenDates = (
+    year: number,
+    month: number,
+    myDayGan: string,
+    myDayZhi: string,
+    partnerDayGan: string,
+    partnerDayZhi: string,
+    maxDates: number = 3,
+): GoldenDate[] => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const today = new Date();
+    // 대상 달이 현재 달이면 오늘 이후 날짜만 후보로 (과거 길일 추천 방지)
+    const startDay = (year === today.getFullYear() && month === today.getMonth() + 1)
+        ? today.getDate() + 1
+        : 1;
+
+    const candidates: GoldenDate[] = [];
+    for (let day = startDay; day <= daysInMonth; day++) {
+        try {
+            const lunar = Solar.fromYmd(year, month, day).getLunar();
+            const dayGan = HANJA_TO_HANGUL[lunar.getDayGan()] || lunar.getDayGan();
+            const dayZhi = HANJA_TO_HANGUL[lunar.getDayZhi()] || lunar.getDayZhi();
+            const { score, reasons } = calculateMonthScore(
+                dayGan, dayZhi, myDayGan, myDayZhi, partnerDayGan, partnerDayZhi,
+            );
+            // 월 점수 로직 재사용으로 근거 문구가 "월간/월지"로 나오므로 일 단위 표기로 치환
+            const dayReasons = reasons.map(r => r.replace(/^월간 /, '일간 ').replace(/^월지 /, '일지 '));
+            candidates.push({ day, dayGan, dayZhi, score, reasons: dayReasons });
+        } catch {
+            // 개별 날짜 계산 실패는 건너뜀
+        }
+    }
+
+    // 점수 내림차순 (동점이면 빠른 날짜 우선)
+    const sorted = [...candidates].sort((a, b) => b.score - a.score || a.day - b.day);
+
+    // 상위 후보에서 가능하면 5일 이상 간격으로 분산 선택 (한 주에 몰리는 것 방지)
+    const picked: GoldenDate[] = [];
+    for (const c of sorted) {
+        if (picked.length >= maxDates) break;
+        if (picked.every(p => Math.abs(p.day - c.day) >= 5)) picked.push(c);
+    }
+    // 간격 조건으로 못 채웠으면 점수순으로 마저 채움
+    for (const c of sorted) {
+        if (picked.length >= maxDates) break;
+        if (!picked.includes(c)) picked.push(c);
+    }
+
+    return picked.sort((a, b) => a.day - b.day);
+};
