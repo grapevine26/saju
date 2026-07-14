@@ -124,16 +124,18 @@ export const processPremiumAnalysis = inngest.createFunction(
       const compatibility = calculateCompatibility(myBazi, partnerBazi);
 
       // --- 2-2. AI 모델 준비 ---
+      // maxOutputTokens 명시 — 한국어 리포트(섹션 9개 + 매뉴얼)가 기본 한도(8192)에
+      // 걸려 뒷 섹션이 문장 중간에 잘리는 사례가 있어 여유 있게 상향
       const model2 = genAI.getGenerativeModel({
         model: "gemini-3.5-flash",
         systemInstruction: BASE_SYSTEM_INSTRUCTION,
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema2 }
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema2, maxOutputTokens: 16384 }
       });
 
       const model3 = genAI.getGenerativeModel({
         model: "gemini-3.5-flash",
         systemInstruction: SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema3 }
+        generationConfig: { responseMimeType: "application/json", responseSchema: schema3, maxOutputTokens: 16384 }
       });
 
       // --- 2-3. 프롬프트 생성 ---
@@ -185,7 +187,7 @@ export const processPremiumAnalysis = inngest.createFunction(
             const model4 = genAI.getGenerativeModel({
               model: "gemini-3.5-flash",
               systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY,
-              generationConfig: { responseMimeType: "application/json", responseSchema: schema4 }
+              generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 16384 }
             });
             const prompt4 = buildPrompt4(promptCtx);
             compatibilityReport = await callGemini(model4, prompt4);
@@ -262,6 +264,11 @@ export const processPremiumAnalysis = inngest.createFunction(
           마음은 매일 움직입니다 — 7장의 타로 카드가 오늘의 마음을 읽어드립니다.
         </p>
         <a href="${baseUrl}/tarot" style="font-size:13px; color:#6B3FA8; font-weight:bold;">→ 오늘 그 사람의 마음 보기 (첫 리딩 무료)</a>
+        <hr style="border:none; border-top:1px solid #e5e7eb; margin:24px 0 16px;"/>
+        <p style="font-size:13px; color:#4b5563; line-height:1.7;">
+          리포트가 도움이 되셨다면, 결과 페이지 맨 아래에서 별점 하나만 남겨주세요.<br/>
+          감사의 마음으로 <strong>다음 이용 시 쓸 수 있는 20% 할인 코드</strong>를 바로 드립니다 🙏
+        </p>
       `;
 
       if (process.env.NODE_ENV === "development") {

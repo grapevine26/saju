@@ -82,6 +82,11 @@ export const callGemini = async (
       const finishReason = res.response.candidates?.[0]?.finishReason;
       if (finishReason && finishReason !== "STOP") {
         console.warn(`[Gemini] 비정상 종료 사유: ${finishReason} (응답 길이 ${text.length}자)`);
+        // MAX_TOKENS = 출력이 중간에 잘린 상태 — JSON이 파싱돼도 유료 리포트 섹션이
+        // 문장 중간에 끊겨 있으므로 정상 응답으로 통과시키면 안 된다. 재시도 유도.
+        if (finishReason === "MAX_TOKENS") {
+          throw new Error(`Gemini 출력이 토큰 한도에서 잘림 (${text.length}자)`);
+        }
       }
       return parseJsonResponse(text);
     } catch (e) {
