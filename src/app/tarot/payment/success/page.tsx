@@ -103,6 +103,8 @@ function TarotPaymentSuccessContent() {
                         paymentKey: isDev ? null : paymentKey,
                         customerEmail: pending.customerEmail,
                         userId: user?.id || null,
+                        // 후기 보상 할인 코드 — 서버가 코드 검증 후 할인가로 결제 금액을 대조한다
+                        discountCode: pending.discountCode || null,
                         // 유입 추적 (없으면 null — 결제 처리와 무관)
                         utm: getUtm(), visitorId: getVisitorId(),
                     }),

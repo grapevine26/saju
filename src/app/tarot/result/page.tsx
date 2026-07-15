@@ -28,6 +28,34 @@ export default function TarotResultPage() {
     const [paying, setPaying] = useState(false);
     const hasInit = useRef(false);
 
+    // 후기 보상 할인 코드
+    const [codeInput, setCodeInput] = useState('');
+    const [codeChecking, setCodeChecking] = useState(false);
+    const [codeError, setCodeError] = useState('');
+    const [discount, setDiscount] = useState<{ code: string; percent: number } | null>(null);
+    const payPrice = discount ? Math.round(TAROT_PRICE * (100 - discount.percent) / 100) : TAROT_PRICE;
+
+    const handleApplyCode = async () => {
+        const code = codeInput.trim().toUpperCase();
+        if (!code || codeChecking) return;
+        setCodeChecking(true);
+        setCodeError('');
+        try {
+            const res = await fetch('/api/discount/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+            });
+            const data = await res.json();
+            if (data.valid) setDiscount({ code, percent: data.percent });
+            else { setDiscount(null); setCodeError(data.error || '유효하지 않은 코드입니다.'); }
+        } catch {
+            setCodeError('코드 확인에 실패했어요. 잠시 후 다시 시도해 주세요.');
+        } finally {
+            setCodeChecking(false);
+        }
+    };
+
     useEffect(() => {
         if (hasInit.current) return;
         hasInit.current = true;
@@ -50,18 +78,18 @@ export default function TarotResultPage() {
         try {
             const orderId = `tarot_${Date.now()}_${Math.random().toString(36).slice(2, 9)}`;
 
-            const pendingData = { input, rounds, freeResult, orderId, customerEmail: payingEmail };
+            const pendingData = { input, rounds, freeResult, orderId, customerEmail: payingEmail, discountCode: discount?.code || null };
             try { sessionStorage.setItem(TAROT_PENDING_KEY, JSON.stringify(pendingData)); } catch {}
 
             const isDev = process.env.NODE_ENV === 'development';
             if (isDev) {
-                window.location.href = `/tarot/payment/success?paymentKey=dev_key_${Date.now()}&orderId=${orderId}&amount=${TAROT_PRICE}`;
+                window.location.href = `/tarot/payment/success?paymentKey=dev_key_${Date.now()}&orderId=${orderId}&amount=${payPrice}`;
                 return;
             }
 
             // 관리자 프리패스 — 결제창 없이 바로 성공 플로우 (서버가 세션으로 재검증)
             if (await checkFreePass()) {
-                window.location.href = `/tarot/payment/success?paymentKey=${makeFreePassKey()}&orderId=${orderId}&amount=${TAROT_PRICE}`;
+                window.location.href = `/tarot/payment/success?paymentKey=${makeFreePassKey()}&orderId=${orderId}&amount=${payPrice}`;
                 return;
             }
 
@@ -70,7 +98,7 @@ export default function TarotResultPage() {
             const payment = toss.payment({ customerKey: ANONYMOUS });
             await payment.requestPayment({
                 method: 'CARD',
-                amount: { currency: 'KRW', value: TAROT_PRICE },
+                amount: { currency: 'KRW', value: payPrice },
                 orderId,
                 orderName: `타로 전체 해석 — ${input.partnerName}씨에 대한 7장`,
                 successUrl: `${window.location.origin}/tarot/payment/success`,
@@ -311,6 +339,45 @@ export default function TarotResultPage() {
                                 <p style={{ fontSize: 11, color: 'var(--tarot-text-3)', margin: '-4px 2px 0', lineHeight: 1.5 }}>
                                     결과를 언제든 다시 볼 수 있는 링크를 이메일로 보내드려요.
                                 </p>
+
+                                {/* 할인 코드 (선택) */}
+                                <div style={{ display: 'flex', gap: 8 }}>
+                                    <input
+                                        type="text"
+                                        value={codeInput}
+                                        onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(''); if (discount) setDiscount(null); }}
+                                        placeholder="할인 코드 (선택)"
+                                        disabled={!!discount}
+                                        style={{
+                                            flex: 1, padding: '12px 14px', borderRadius: 12,
+                                            border: '1px solid var(--tarot-border)',
+                                            background: 'var(--tarot-bg-card)', color: 'var(--tarot-text-1)',
+                                            fontSize: 13, letterSpacing: '0.05em', outline: 'none',
+                                            fontFamily: 'monospace', boxSizing: 'border-box',
+                                            opacity: discount ? 0.6 : 1,
+                                        }}
+                                    />
+                                    <button
+                                        onClick={discount ? () => { setDiscount(null); setCodeInput(''); } : handleApplyCode}
+                                        disabled={!discount && (!codeInput.trim() || codeChecking)}
+                                        style={{
+                                            padding: '12px 16px', borderRadius: 12, border: '1px solid var(--tarot-border-strong)',
+                                            background: 'var(--tarot-bg-card)', color: 'var(--tarot-text-2)',
+                                            fontSize: 12, fontWeight: 700, fontFamily: 'inherit',
+                                            cursor: (discount || (codeInput.trim() && !codeChecking)) ? 'pointer' : 'default',
+                                            opacity: (!discount && (!codeInput.trim() || codeChecking)) ? 0.5 : 1,
+                                        }}
+                                    >
+                                        {discount ? '해제' : codeChecking ? '확인 중' : '적용'}
+                                    </button>
+                                </div>
+                                {codeError && <p style={{ fontSize: 11, color: '#F06A7E', margin: '-2px 2px 0' }}>{codeError}</p>}
+                                {discount && (
+                                    <p style={{ fontSize: 11, color: '#7EE0A8', margin: '-2px 2px 0' }}>
+                                        ✓ {discount.percent}% 할인 적용 — {(TAROT_PRICE - payPrice).toLocaleString()}원 할인
+                                    </p>
+                                )}
+
                                 <button
                                     onClick={handlePay}
                                     disabled={paying || !payingEmail.includes('@')}
@@ -325,7 +392,7 @@ export default function TarotResultPage() {
                                         boxShadow: 'var(--tarot-btn-shadow)', fontFamily: 'inherit',
                                     }}
                                 >
-                                    {paying ? '결제 진행 중...' : `카드로 결제 · ${TAROT_PRICE.toLocaleString()}원`}
+                                    {paying ? '결제 진행 중...' : `카드로 결제 · ${payPrice.toLocaleString()}원`}
                                 </button>
                                 <p style={{ fontSize: 10.5, color: 'var(--tarot-text-3)', textAlign: 'center', lineHeight: 1.6 }}>
                                     결제 즉시 전체 해석이 공개됩니다 · 오류 시 자동 환불

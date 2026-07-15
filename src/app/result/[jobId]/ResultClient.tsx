@@ -15,6 +15,7 @@ import GoldenWindowCalendar from "@/components/GoldenWindowCalendar";
 import PremiumRadarChart from "@/components/PremiumRadarChart";
 import VsCard from "@/components/VsCard";
 import PartnerManual from "@/components/PartnerManual";
+import ReviewForm from "@/components/ReviewForm";
 
 export default function ResultClient({ job }: { job: any }) {
     const [showHeader, setShowHeader] = useState(true);
@@ -482,6 +483,9 @@ export default function ResultClient({ job }: { job: any }) {
                         <div className="absolute bottom-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-gold)]/20 to-transparent" />
                     </div>
                 </motion.div>
+
+                {/* ── 후기 + 20% 할인 코드 발급 ── */}
+                <ReviewForm jobId={job.id} service="saju" />
             </main>
         </div>
     );

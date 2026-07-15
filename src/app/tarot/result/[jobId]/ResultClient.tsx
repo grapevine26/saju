@@ -8,6 +8,7 @@ import Link from "next/link";
 import { TarotRoundSection, TarotFinalMessage } from "@/components/tarot/TarotResultCard";
 import { getCardById } from "@/features/tarot/cards";
 import CardBack from "@/components/tarot/CardBack";
+import ReviewForm from "@/components/ReviewForm";
 import { TarotInput, TarotFreeResult, TarotFullResult } from "@/features/tarot/types";
 import { TAROT_FREE_KEY, TAROT_INPUT_KEY, TAROT_ROUNDS_KEY } from "@/features/tarot/constants";
 
@@ -432,6 +433,9 @@ export default function TarotResultClient({ job }: Props) {
                         </p>
                     </motion.div>
                 )}
+
+                {/* ── 후기 + 20% 할인 코드 발급 ── */}
+                <ReviewForm jobId={currentJob.id} service="tarot" />
 
                 {/* 하단 CTA */}
                 <motion.div initial={{ opacity: 0 }} animate={{ opacity: 1 }} transition={{ delay: 0.8 }} style={{ textAlign: 'center', paddingTop: 8 }}>

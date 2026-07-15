@@ -27,6 +27,7 @@ import { TarotInput, TarotFreeResult } from '@/features/tarot/types';
 import { TAROT_PRICE } from '@/features/tarot/constants';
 import { isFreePassKey, isFreePassSession } from '@/lib/freePass';
 import { recordPaidEvent } from '@/lib/funnel';
+import { findValidCode, consumeCode, applyDiscount } from '@/lib/discount';
 
 export async function POST(req: Request) {
     try {
@@ -45,7 +46,20 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: '결제 정보를 확인할 수 없습니다.' }, { status: 403 });
         }
 
+        // 후기 보상 할인 코드 — 서버가 직접 검증해 할인가를 기대 금액으로 삼는다
+        const discountCode: string | null = typeof body.discountCode === 'string' && body.discountCode.trim()
+            ? body.discountCode.trim().toUpperCase() : null;
+        let expectedAmount = TAROT_PRICE;
+        if (discountCode) {
+            const validCode = await findValidCode(discountCode);
+            if (!validCode) {
+                return NextResponse.json({ success: false, error: '할인 코드가 만료되었거나 이미 사용되었습니다.' }, { status: 400 });
+            }
+            expectedAmount = applyDiscount(TAROT_PRICE, validCode.percent);
+        }
+
         // 결제 검증 — paymentKey 없이 직접 호출해 유료 리딩을 생성하는 우회 차단
+        let paidOrderId: string | null = null;
         if (!isDev && !freePass) {
             if (!paymentKey || !process.env.TOSS_SECRET_KEY) {
                 return NextResponse.json({ success: false, error: '결제 정보가 없습니다.' }, { status: 403 });
@@ -68,12 +82,13 @@ export async function POST(req: Request) {
             const pay = await payRes.json();
             const isValid = payRes.ok
                 && pay.status === 'DONE'
-                && pay.totalAmount === TAROT_PRICE
+                && pay.totalAmount === expectedAmount
                 && String(pay.orderId || '').startsWith('tarot_');
             if (!isValid) {
                 console.error('[tarot/start] 결제 검증 실패:', pay?.code || pay?.status, pay?.totalAmount);
                 return NextResponse.json({ success: false, error: '결제 정보를 확인할 수 없습니다.' }, { status: 403 });
             }
+            paidOrderId = pay.orderId || null;
         }
 
         const rawData = { input, rounds, freeResult, paymentKey, customerEmail };
@@ -94,7 +109,12 @@ export async function POST(req: Request) {
             return NextResponse.json({ success: false, error: '작업 생성에 실패했습니다.' }, { status: 500 });
         }
 
-        await recordPaidEvent({ service: 'tarot', jobId: job.id, amount: TAROT_PRICE, utm: body.utm, visitorId: body.visitorId });
+        // 할인 코드 소진 (잡 생성 성공 후 — 실제 결제에 쓰인 코드만 소진)
+        if (discountCode && !isDev && !freePass) {
+            await consumeCode(discountCode, paidOrderId || `tarot_job_${job.id}`);
+        }
+
+        await recordPaidEvent({ service: 'tarot', jobId: job.id, amount: expectedAmount, utm: body.utm, visitorId: body.visitorId });
 
         if (isDev) {
             // 개발 모드: Inngest 없이 직접 처리

@@ -97,6 +97,8 @@ function PaymentSuccessContent() {
 
                 const payload: any = {
                     rawData, packageId: pendingData.packageId, customerEmail: pendingData.customerEmail,
+                    // 후기 보상 할인 코드 — 서버가 코드를 재검증해 할인가로 금액을 대조한다
+                    discountCode: pendingData.discountCode || null,
                     // 유입 추적 (없으면 null — 결제 처리와 무관)
                     utm: getUtm(), visitorId: getVisitorId(),
                 };

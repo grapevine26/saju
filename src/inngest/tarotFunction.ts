@@ -109,6 +109,10 @@ export const processTarotReading = inngest.createFunction(
                 <a href="${resultUrl}" style="display:inline-block; padding:12px 24px; background-color:#6B3FA8; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">🔮 전체 해석 확인하기</a>
                 <br/><br/>
                 <p style="font-size:12px; color:#6b7280;">본 링크는 개인 정보 보호를 위해 본인만 열람 가능합니다.</p>
+                <p style="font-size:13px; color:#4b5563; line-height:1.7; margin-top:16px;">
+                    리딩이 도움이 되셨다면, 결과 페이지 맨 아래에서 별점 하나만 남겨주세요.<br/>
+                    감사의 마음으로 <strong>다음 이용 시 쓸 수 있는 20% 할인 코드</strong>를 바로 드립니다 🙏
+                </p>
                 ${sajuPs}
             `;
 

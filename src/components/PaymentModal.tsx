@@ -7,7 +7,7 @@ import { PRIVACY_POLICY, TERMS_OF_SERVICE, REFUND_POLICY, PolicyData } from "@/c
 
 interface PaymentModalProps {
     onClose: () => void;
-    onSelectPayment: (method: 'kakao' | 'naver' | 'general', packageId: string, email: string) => void;
+    onSelectPayment: (method: 'kakao' | 'naver' | 'general', packageId: string, email: string, discount?: { code: string; percent: number } | null) => void;
 }
 
 const PACKAGES = [
@@ -34,11 +34,45 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
     const [email, setEmail] = useState("");
     const [legalModalType, setLegalModalType] = useState<'privacy' | 'terms' | 'refund' | null>(null);
 
+    // 후기 보상 할인 코드
+    const [codeInput, setCodeInput] = useState("");
+    const [codeChecking, setCodeChecking] = useState(false);
+    const [codeError, setCodeError] = useState("");
+    const [discount, setDiscount] = useState<{ code: string; percent: number } | null>(null);
+
     const currentPackage = PACKAGES.find(p => p.id === selectedPkg)!;
+    const finalPrice = discount
+        ? Math.round(currentPackage.price * (100 - discount.percent) / 100)
+        : currentPackage.price;
+
+    const handleApplyCode = async () => {
+        const code = codeInput.trim().toUpperCase();
+        if (!code || codeChecking) return;
+        setCodeChecking(true);
+        setCodeError("");
+        try {
+            const res = await fetch('/api/discount/validate', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ code }),
+            });
+            const data = await res.json();
+            if (data.valid) {
+                setDiscount({ code, percent: data.percent });
+            } else {
+                setDiscount(null);
+                setCodeError(data.error || '유효하지 않은 코드입니다.');
+            }
+        } catch {
+            setCodeError('코드 확인에 실패했어요. 잠시 후 다시 시도해 주세요.');
+        } finally {
+            setCodeChecking(false);
+        }
+    };
 
     const handlePaymentClick = (method: 'kakao' | 'naver' | 'general') => {
         if (!email || !email.includes('@')) return;
-        onSelectPayment(method, selectedPkg, email);
+        onSelectPayment(method, selectedPkg, email, discount);
     };
 
     return (
@@ -139,15 +173,54 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                         </div>
                     </div>
 
+                    {/* 할인 코드 */}
+                    <div className="space-y-2">
+                        <label className="text-[13px] font-bold text-[var(--text-primary)] ml-1">할인 코드 <span className="text-[var(--text-muted)] text-[11px] font-medium">(선택)</span></label>
+                        <div className="flex gap-2">
+                            <input
+                                type="text"
+                                placeholder="RE20-XXXXXX"
+                                value={codeInput}
+                                onChange={(e) => { setCodeInput(e.target.value.toUpperCase()); setCodeError(""); if (discount) setDiscount(null); }}
+                                disabled={!!discount}
+                                className="flex-1 bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-xl px-4 py-3 text-[var(--text-primary)] text-[13px] font-mono tracking-wider placeholder:text-[var(--text-muted)] focus:outline-none focus:border-[var(--accent-border)] transition-colors disabled:opacity-60"
+                            />
+                            {discount ? (
+                                <button
+                                    onClick={() => { setDiscount(null); setCodeInput(""); }}
+                                    className="px-4 py-3 rounded-xl text-[12px] font-bold bg-[var(--bg-glass)] border border-[var(--border-glass)] text-[var(--text-secondary)]"
+                                >
+                                    해제
+                                </button>
+                            ) : (
+                                <button
+                                    onClick={handleApplyCode}
+                                    disabled={!codeInput.trim() || codeChecking}
+                                    className="px-4 py-3 rounded-xl text-[12px] font-bold bg-[var(--accent-soft)] border border-[var(--accent-border)] text-[var(--accent-gold)] disabled:opacity-40"
+                                >
+                                    {codeChecking ? '확인 중' : '적용'}
+                                </button>
+                            )}
+                        </div>
+                        {codeError && <p className="text-[11px] text-rose-400 ml-1">{codeError}</p>}
+                        {discount && <p className="text-[11px] text-emerald-400 ml-1">✓ {discount.percent}% 할인이 적용되었어요</p>}
+                    </div>
+
                     {/* 결제 요약 */}
                     <div className="bg-[var(--bg-glass)] p-5 rounded-2xl border border-[var(--border-glass)] space-y-3">
                         <div className="flex justify-between items-center text-sm">
                             <span className="text-[var(--text-secondary)] font-medium">상품 판매가</span>
                             <span className="text-[var(--text-primary)]">{currentPackage.price.toLocaleString()}원</span>
                         </div>
+                        {discount && (
+                            <div className="flex justify-between items-center text-sm">
+                                <span className="text-[var(--text-secondary)] font-medium">후기 할인 ({discount.percent}%)</span>
+                                <span className="text-emerald-400">−{(currentPackage.price - finalPrice).toLocaleString()}원</span>
+                            </div>
+                        )}
                         <div className="flex justify-between items-center pt-3 border-t border-[var(--line-soft)]">
                             <span className="text-[var(--text-primary)] font-bold text-[15px]">최종 결제 금액</span>
-                            <span className="text-[var(--accent-gold)] font-bold text-[20px]">{currentPackage.price.toLocaleString()}원</span>
+                            <span className="text-[var(--accent-gold)] font-bold text-[20px]">{finalPrice.toLocaleString()}원</span>
                         </div>
                     </div>
 
@@ -162,7 +235,7 @@ export default function PaymentModal({ onClose, onSelectPayment }: PaymentModalP
                                 : {background: 'var(--bg-glass)', color: 'var(--text-muted)', cursor: 'not-allowed', border: '1px solid var(--border-glass)'}}
                         >
                             <CreditCard className="w-5 h-5" />
-                            {currentPackage.price.toLocaleString()}원 결제하기
+                            {finalPrice.toLocaleString()}원 결제하기
                         </button>
                     </div>
 

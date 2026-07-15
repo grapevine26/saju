@@ -3,6 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { isFreePassKey, isFreePassSession } from "@/lib/freePass";
 import { recordPaidEvent } from "@/lib/funnel";
 import { safeSend, markDispatchFailed } from "@/lib/jobDispatch";
+import { findValidCode, consumeCode, applyDiscount } from "@/lib/discount";
 
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
 const SAJU_PRICES: Record<string, number> = { premium: 19900, signature: 34900 };
@@ -76,11 +77,25 @@ export async function POST(req: Request) {
 
         // 1) 서버 가격 검증 — 상품 결제 건(payload 존재)은 금액이 상품 가격과 정확히 일치해야 한다.
         //    타 서비스(3,900원 타로 등) 결제로 프리미엄 잡을 만드는 교차 우회를 원천 차단.
+        //    후기 보상 할인 코드가 있으면 서버가 직접 코드를 검증해 할인가를 기대 금액으로 삼는다.
+        let expectedAmount = 0;
+        const discountCode: string | null = typeof payload?.discountCode === 'string' && payload.discountCode.trim()
+            ? payload.discountCode.trim().toUpperCase() : null;
         if (payload) {
             const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
-            const expected = SAJU_PRICES[pkg];
-            if (Number(amount) !== expected) {
-                console.error('[confirm] 금액 불일치:', { amount, expected, pkg, orderId });
+            expectedAmount = SAJU_PRICES[pkg];
+            if (discountCode) {
+                const valid = await findValidCode(discountCode);
+                if (!valid) {
+                    return NextResponse.json(
+                        { success: false, message: '할인 코드가 만료되었거나 이미 사용되었습니다. 코드를 지우고 다시 결제해 주세요.' },
+                        { status: 400 },
+                    );
+                }
+                expectedAmount = applyDiscount(expectedAmount, valid.percent);
+            }
+            if (Number(amount) !== expectedAmount) {
+                console.error('[confirm] 금액 불일치:', { amount, expected: expectedAmount, pkg, orderId });
                 return NextResponse.json(
                     { success: false, message: '결제 금액이 상품 가격과 일치하지 않습니다.' },
                     { status: 400 },
@@ -131,12 +146,12 @@ export async function POST(req: Request) {
                         headers: { Authorization: `Basic ${encryptedSecretKey}` },
                     });
                     const pay = await verifyRes.json();
-                    const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
-                    const valid = verifyRes.ok && pay.status === 'DONE' && pay.totalAmount === SAJU_PRICES[pkg];
+                    const valid = verifyRes.ok && pay.status === 'DONE' && pay.totalAmount === expectedAmount;
                     if (valid) {
                         const jobId = await createJobAndDispatch(payload, paymentKey);
                         if (jobId) {
-                            await recordPaidEvent({ service: 'saju', jobId, amount: SAJU_PRICES[pkg], utm: payload.utm, visitorId: payload.visitorId });
+                            if (discountCode) await consumeCode(discountCode, orderId);
+                            await recordPaidEvent({ service: 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
                             return NextResponse.json({ success: true, data: pay, jobId });
                         }
                     }
@@ -152,8 +167,8 @@ export async function POST(req: Request) {
             if (!jobId) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
-            const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
-            await recordPaidEvent({ service: 'saju', jobId, amount: SAJU_PRICES[pkg], utm: payload.utm, visitorId: payload.visitorId });
+            if (discountCode) await consumeCode(discountCode, orderId);
+            await recordPaidEvent({ service: 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
             return NextResponse.json({ success: true, data, jobId });
         }
 

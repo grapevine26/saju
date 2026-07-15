@@ -71,6 +71,7 @@ export default function AnalysisPage() {
     const lastScrollY = useRef(0);
 
     // 프리미엄 백그라운드 처리 관련 상태
+    const appliedDiscount = useRef<{ code: string; percent: number } | null>(null); // 후기 보상 할인 코드
     const [showPaymentModal, setShowPaymentModal] = useState(false);
     const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const [selectedPackageId, setSelectedPackageId] = useState<string>('basic');
@@ -81,9 +82,10 @@ export default function AnalysisPage() {
 
     const isDev = process.env.NODE_ENV === 'development';
 
-    const handlePaymentSelect = async (method: 'kakao' | 'naver' | 'general', packageId: string, email: string) => {
+    const handlePaymentSelect = async (method: 'kakao' | 'naver' | 'general', packageId: string, email: string, discount?: { code: string; percent: number } | null) => {
         setSelectedPackageId(packageId);
         setCustomerEmail(email);
+        appliedDiscount.current = discount ?? null;
         setShowPaymentModal(false);
 
         const supabase = (await import("@/utils/supabase/client")).createClient();
@@ -107,7 +109,9 @@ export default function AnalysisPage() {
         setShowUpgradeModal(false);
 
         try {
-            const amount = targetPackageId === 'signature' ? 34900 : 19900;
+            const basePrice = targetPackageId === 'signature' ? 34900 : 19900;
+            const discount = appliedDiscount.current;
+            const amount = discount ? Math.round(basePrice * (100 - discount.percent) / 100) : basePrice;
             const orderName = targetPackageId === 'signature' ? '시그니처 컨설팅' : '프리미엄 리포트';
 
             const orderId = `${recordId.current}${Date.now()}`;
@@ -120,6 +124,7 @@ export default function AnalysisPage() {
                 identifier,
                 customerEmail: email,
                 recordId: recordId.current,
+                discountCode: discount?.code || null,
                 metDate,
                 breakupDate,
                 breakupReason
