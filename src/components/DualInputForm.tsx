@@ -218,7 +218,7 @@ export default function DualInputForm() {
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
-            <input ref={yearRef} type="number" placeholder="YYYY" value={cby}
+            <input ref={yearRef} type="number" inputMode="numeric" pattern="[0-9]*" placeholder="YYYY" value={cby}
               onChange={e => {
                 const v = e.target.value.slice(0, 4);
                 isPartner ? setPartnerBirthDate(v, cbm, cbd) : setBirthDate(v, birthMonth, birthDay);
@@ -228,7 +228,7 @@ export default function DualInputForm() {
                 }
               }}
               style={{ ...fieldBox, width: '50%', textAlign: 'center', borderColor: getLiveDateError(cby, cbm, cbd) ? 'rgba(244,63,94,0.6)' : C.cardBorder }} />
-            <input ref={monthRef} type="number" placeholder="MM" value={cbm}
+            <input ref={monthRef} type="number" inputMode="numeric" pattern="[0-9]*" placeholder="MM" value={cbm}
               onChange={e => {
                 const v = e.target.value.slice(0, 2);
                 isPartner ? setPartnerBirthDate(cby, v, cbd) : setBirthDate(birthYear, v, birthDay);
@@ -238,7 +238,7 @@ export default function DualInputForm() {
                 }
               }}
               style={{ ...fieldBox, width: '25%', textAlign: 'center', borderColor: getLiveDateError(cby, cbm, cbd) ? 'rgba(244,63,94,0.6)' : C.cardBorder }} />
-            <input ref={dayRef} type="number" placeholder="DD" value={cbd}
+            <input ref={dayRef} type="number" inputMode="numeric" pattern="[0-9]*" placeholder="DD" value={cbd}
               onChange={e => {
                 const v = e.target.value.slice(0, 2);
                 isPartner ? setPartnerBirthDate(cby, cbm, v) : setBirthDate(birthYear, birthMonth, v);
@@ -277,14 +277,14 @@ export default function DualInputForm() {
             </div>
             <div style={{ display: 'flex', gap: 8 }}>
               <div style={{ position: 'relative', flex: 1 }}>
-                <input ref={hourRef} type="number" min="0" max="23" placeholder="시 (0~23)"
+                <input ref={hourRef} type="number" inputMode="numeric" pattern="[0-9]*" min="0" max="23" placeholder="시 (0~23)"
                   disabled={citu} value={cbh}
                   onChange={e => { let v = e.target.value; if (parseInt(v) > 23) v = "23"; if (parseInt(v) < 0) v = "0"; isPartner ? setPartnerBirthLocationTime(cbc, v, cbmin, citu) : setBirthLocationTime(birthCity, v, birthMinute, isTimeUnknown); if (v.length === 2) minuteRef.current?.focus(); }}
                   style={{ ...fieldBox, textAlign: 'center', opacity: citu ? 0.3 : 1 }} />
                 <span style={{ position: 'absolute', right: 12, top: '50%', transform: 'translateY(-50%)', fontSize: 12, color: C.muted }}>시</span>
               </div>
               <div style={{ position: 'relative', flex: 1 }}>
-                <input ref={minuteRef} type="number" min="0" max="59" placeholder="분 (0~59)"
+                <input ref={minuteRef} type="number" inputMode="numeric" pattern="[0-9]*" min="0" max="59" placeholder="분 (0~59)"
                   disabled={citu} value={cbmin}
                   onChange={e => { let v = e.target.value; if (parseInt(v) > 59) v = "59"; if (parseInt(v) < 0) v = "0"; isPartner ? setPartnerBirthLocationTime(cbc, cbh, v, citu) : setBirthLocationTime(birthCity, birthHour, v, isTimeUnknown); }}
                   style={{ ...fieldBox, textAlign: 'center', opacity: citu ? 0.3 : 1 }} />
