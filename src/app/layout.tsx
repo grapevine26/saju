@@ -1,6 +1,16 @@
-import type { Metadata } from "next";
+import type { Metadata, Viewport } from "next";
 import { Toaster } from "react-hot-toast";
 import "./globals.css";
+
+// 인스타그램 등 인앱 브라우저 키보드 대응:
+// - interactiveWidget: 키보드가 열리면 뷰포트를 줄여 입력칸이 가려지지 않게 (Android/Chromium)
+// - maximumScale 1: iOS가 작은 입력칸 포커스 시 자동 줌인하며 레이아웃이 틀어지는 것 방지
+export const viewport: Viewport = {
+  width: "device-width",
+  initialScale: 1,
+  maximumScale: 1,
+  interactiveWidget: "resizes-content",
+};
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dasisaju.com"),

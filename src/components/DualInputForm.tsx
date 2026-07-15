@@ -130,6 +130,18 @@ export default function DualInputForm() {
     router.push("/analysis");
   };
 
+  // 인앱 브라우저(인스타 등)에서 키보드가 생년월일·시간 입력칸을 가리는 문제 방어 —
+  // 키보드 애니메이션이 끝날 즈음 포커스된 칸을 화면 중앙으로 스크롤한다.
+  const handleFieldFocus = (e: React.FocusEvent<HTMLDivElement>) => {
+    const el = e.target as HTMLElement;
+    if (!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+    const type = (el as HTMLInputElement).type;
+    if (type === 'checkbox' || type === 'radio' || type === 'button') return; // 키보드가 안 뜨는 컨트롤
+    setTimeout(() => {
+      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
+    }, 300);
+  };
+
   const Label = ({ children }: { children: React.ReactNode }) => (
     <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 10, letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{children}</p>
   );
@@ -304,7 +316,7 @@ export default function DualInputForm() {
   ];
 
   return (
-    <div style={{ background: '#0A090C', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: 100 }}>
+    <div onFocusCapture={handleFieldFocus} style={{ background: '#0A090C', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: 100 }}>
 
       {/* 헤더 */}
       <header style={{
