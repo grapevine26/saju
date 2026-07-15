@@ -7,9 +7,8 @@ import { purgeExpiredResults, RETENTION_YEARS } from "@/lib/retentionPurge";
  * 서비스 초기에는 대상이 0건이지만, 방침과 실제 데이터 상태를 항상 일치시킨다.
  */
 export const purgeExpiredData = inngest.createFunction(
-    { id: "purge-expired-data", retries: 2 },
-    [{ cron: "TZ=Asia/Seoul 0 4 * * *" }],
-    async ({ step }) => {
+    { id: "purge-expired-data", retries: 2, triggers: [{ cron: "TZ=Asia/Seoul 0 4 * * *" }] },
+    async ({ step }: { step: any }) => {
         const result = await step.run("purge-expired-results", () => purgeExpiredResults());
 
         const total = result.premiumJobs + result.tarotJobs;
