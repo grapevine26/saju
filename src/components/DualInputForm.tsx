@@ -8,6 +8,7 @@ import { useState, useRef, useEffect } from "react";
 import LocationSearch from "./LocationSearch";
 import { motion, AnimatePresence } from "framer-motion";
 import toast from "react-hot-toast";
+import { useKeyboardAwareForm } from "@/hooks/useKeyboardAwareForm";
 
 const C = {
   bg: '#0A090C',
@@ -130,17 +131,10 @@ export default function DualInputForm() {
     router.push("/analysis");
   };
 
-  // 인앱 브라우저(인스타 등)에서 키보드가 생년월일·시간 입력칸을 가리는 문제 방어 —
-  // 키보드 애니메이션이 끝날 즈음 포커스된 칸을 화면 중앙으로 스크롤한다.
-  const handleFieldFocus = (e: React.FocusEvent<HTMLDivElement>) => {
-    const el = e.target as HTMLElement;
-    if (!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
-    const type = (el as HTMLInputElement).type;
-    if (type === 'checkbox' || type === 'radio' || type === 'button') return; // 키보드가 안 뜨는 컨트롤
-    setTimeout(() => {
-      el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-    }, 300);
-  };
+  // 인앱 브라우저(인스타 등) 키보드 대응 — visualViewport로 키보드 높이를 실측해
+  // 하단 여백을 확보하고, 포커스된 칸을 키보드 위 보이는 영역으로 스크롤 (iOS 웹뷰 포함)
+  const { keyboardPadding, handleFieldFocus, handleFieldBlur } = useKeyboardAwareForm();
+  const keyboardOpen = keyboardPadding > 80;
 
   const Label = ({ children }: { children: React.ReactNode }) => (
     <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 10, letterSpacing: '0.05em', textTransform: 'uppercase' as const }}>{children}</p>
@@ -316,7 +310,7 @@ export default function DualInputForm() {
   ];
 
   return (
-    <div onFocusCapture={handleFieldFocus} style={{ background: '#0A090C', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: 100 }}>
+    <div onFocusCapture={handleFieldFocus} onBlurCapture={handleFieldBlur} style={{ background: '#0A090C', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', display: 'flex', flexDirection: 'column', paddingBottom: 100 + keyboardPadding }}>
 
       {/* 헤더 */}
       <header style={{
@@ -428,13 +422,14 @@ export default function DualInputForm() {
         </AnimatePresence>
       </main>
 
-      {/* 하단 버튼 */}
+      {/* 하단 버튼 — 키보드가 열려 있는 동안은 숨겨서 입력칸이 가려지지 않게 */}
       <div style={{
         position: 'fixed', bottom: 0, left: 0, right: 0,
         maxWidth: 480, margin: '0 auto',
         padding: '14px 20px 24px',
         background: 'rgba(10,9,12,0.90)', backdropFilter: 'blur(12px)',
         borderTop: `1px solid ${C.lineSoft}`, zIndex: 50,
+        display: keyboardOpen ? 'none' : 'block',
       }}>
         {step === 1 && (
           <button onClick={handleNextStep1} style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: C.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>

@@ -7,6 +7,7 @@ import { ArrowLeft } from "lucide-react";
 import Link from "next/link";
 import { TarotInput, TarotGender, TarotSituation } from "@/features/tarot/types";
 import { TAROT_INPUT_KEY } from "@/features/tarot/constants";
+import { useKeyboardAwareForm } from "@/hooks/useKeyboardAwareForm";
 
 const SITUATIONS: { id: TarotSituation; label: string }[] = [
     { id: "dating",     label: "연인 사이" },
@@ -167,20 +168,11 @@ export default function TarotInputPage() {
         router.push("/tarot/select");
     };
 
-    // 인앱 브라우저(인스타 등)에서 키보드가 입력칸을 가리는 문제 방어 —
-    // 키보드 애니메이션이 끝날 즈음 포커스된 칸을 화면 중앙으로 스크롤한다.
-    const handleFieldFocus = (e: React.FocusEvent<HTMLDivElement>) => {
-        const el = e.target as HTMLElement;
-        if (!/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
-        const type = (el as HTMLInputElement).type;
-        if (type === 'checkbox' || type === 'radio' || type === 'button') return;
-        setTimeout(() => {
-            el.scrollIntoView({ block: 'center', behavior: 'smooth' });
-        }, 300);
-    };
+    // 인앱 브라우저(인스타 등) 키보드 대응 — visualViewport 기반 (iOS 웹뷰 포함)
+    const { keyboardPadding, handleFieldFocus, handleFieldBlur } = useKeyboardAwareForm();
 
     return (
-        <div onFocusCapture={handleFieldFocus} style={{ minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden" }}>
+        <div onFocusCapture={handleFieldFocus} onBlurCapture={handleFieldBlur} style={{ minHeight: "100vh", display: "flex", flexDirection: "column", position: "relative", overflow: "hidden", paddingBottom: keyboardPadding }}>
             {/* ── 배경: 별 + 상단 글로우 ── */}
             <div style={{ position: "fixed", inset: 0, pointerEvents: "none", zIndex: 0 }}>
                 {STARS.map(([x, y, r, isGold], i) => (
