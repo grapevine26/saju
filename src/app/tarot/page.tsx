@@ -338,7 +338,10 @@ function ResultMockups() {
 const FAQS = [
     { q:"어떻게 해석이 이루어지나요?", a:"입력하신 두 분의 이름, 성별, 현재 상황과 선택한 카드 조합을 기반으로 실시간으로 맞춤 해석이 이루어집니다. 일반적인 카드 풀이가 아닌, 두 분만의 이야기로 리딩됩니다." },
     { q:"결제는 언제 하나요?", a:"1라운드(2장) 무료 해석을 먼저 확인하신 후, 마음에 드시면 전체 리딩 결제를 진행하시면 됩니다. 무료 체험 후 결정하세요." },
-    { q:"개인정보는 안전한가요?", a:"입력하신 이름과 상황 정보는 카드 해석 생성에 사용됩니다. 유료 리딩 결과는 다시 볼 수 있도록 관련 법령에 따라 일정 기간 안전하게 보관되며, 자세한 내용은 개인정보처리방침에서 확인하실 수 있습니다." },
+    { q:"카드는 매번 새로 섞이나요?", a:"네. 리딩을 시작할 때마다 카드가 새로 섞이며, 뽑는 카드도 매번 달라집니다. 같은 상대라도 질문을 바꿔서 새로운 리딩을 볼 수 있어요 — 지금 마음, 고백 타이밍, 관계의 앞날처럼 궁금한 것이 달라지면 카드도 다른 이야기를 들려줍니다." },
+    { q:"결제 후 환불이 되나요?", a:"1라운드 무료 해석으로 리딩의 결이 맞는지 먼저 확인하신 뒤 결제하실 수 있습니다. 전체 해석은 결제 즉시 맞춤 리딩이 생성되는 디지털 콘텐츠 특성상, 생성이 시작된 후에는 단순 변심에 의한 환불이 어렵습니다. 다만 시스템 오류로 해석이 정상 제공되지 않은 경우에는 재제공 또는 전액 환불해 드립니다." },
+    { q:"리딩 결과를 나중에 다시 볼 수 있나요?", a:"네. 결제하신 전체 해석은 이메일로 결과 링크를 보내드리며, 사이트의 '지난 리딩' 기록에서도 다시 확인하실 수 있습니다. 관련 법령에 따라 결제일로부터 최대 5년간 보관됩니다." },
+    { q:"개인정보는 안전한가요?", a:"입력하신 이름과 상황 정보는 카드 해석 생성에 사용됩니다. 상대방에게 어떤 알림도 가지 않으며, 유료 리딩 결과는 다시 볼 수 있도록 관련 법령에 따라 일정 기간 안전하게 보관됩니다. 자세한 내용은 개인정보처리방침에서 확인하실 수 있습니다." },
 ];
 
 function FaqItem({ q, a }: { q:string; a:string }) {
@@ -805,6 +808,19 @@ export default function TarotLandingPage() {
 
                 {/* ── 7. FAQ ── */}
                 <section style={{ padding:"36px 24px 0" }}>
+                    {/* FAQPage 구조화 데이터 — 구글 즉답 영역(AEO)·AI 검색(GEO) 노출용 */}
+                    <script
+                        type="application/ld+json"
+                        dangerouslySetInnerHTML={{ __html: JSON.stringify({
+                            '@context': 'https://schema.org',
+                            '@type': 'FAQPage',
+                            mainEntity: FAQS.map(f => ({
+                                '@type': 'Question',
+                                name: f.q,
+                                acceptedAnswer: { '@type': 'Answer', text: f.a },
+                            })),
+                        }) }}
+                    />
                     <motion.div initial={{ opacity:0 }} whileInView={{ opacity:1 }} viewport={{ once:true }}>
                         <h2 className="tarot-serif" style={{ fontSize:20, fontWeight:700, color:"#EDE8F8", textAlign:"center", marginBottom:20 }}>자주 묻는 질문</h2>
                     </motion.div>
