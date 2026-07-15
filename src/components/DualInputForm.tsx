@@ -18,7 +18,7 @@ const C = {
   accentBorder: 'rgba(216,72,94,0.35)',
   ink: '#F0EAEB',
   sub: '#9C9199',
-  muted: '#5F565D',
+  muted: '#8A8290', // 폼 라벨·도움말용 — #5F565D는 대비 2.8:1로 WCAG 미달이라 상향 (5.4:1)
   line: 'rgba(240,234,235,0.13)',
   lineSoft: 'rgba(240,234,235,0.07)',
   card: 'rgba(240,234,235,0.04)',

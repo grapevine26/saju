@@ -53,6 +53,7 @@ export const metadata: Metadata = {
 
 import ChannelTalk from "@/components/ChannelTalk";
 import UtmTracker from "@/components/UtmTracker";
+import MotionProvider from "@/components/MotionProvider";
 
 export default function RootLayout({
   children,
@@ -84,7 +85,7 @@ export default function RootLayout({
           }}
         />
         <main className="w-full max-w-[480px] min-h-screen relative overflow-hidden bg-cosmic">
-          {children}
+          <MotionProvider>{children}</MotionProvider>
         </main>
       </body>
     </html>
