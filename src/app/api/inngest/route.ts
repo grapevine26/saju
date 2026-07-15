@@ -3,6 +3,7 @@ import { inngest } from "@/inngest/client";
 import { processPremiumAnalysis } from "@/inngest/functions";
 import { processNamingReport } from "@/features/naming/inngestFunction";
 import { processTarotReading } from "@/inngest/tarotFunction";
+import { purgeExpiredData } from "@/inngest/retentionFunction";
 
 export const maxDuration = 300;
 
@@ -12,5 +13,6 @@ export const { GET, POST, PUT } = serve({
     processPremiumAnalysis,
     processNamingReport,
     processTarotReading,
+    purgeExpiredData,
   ],
 });
