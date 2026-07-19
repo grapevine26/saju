@@ -1,7 +1,8 @@
 ﻿"use client";
 
-import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Share2, Route } from "lucide-react";
+import { ArrowLeft, Sparkles, AlertCircle, CalendarHeart, Heart, Share2, Route, Download } from "lucide-react";
 import LoadingOverlay from "@/components/LoadingOverlay";
+import toast from "react-hot-toast";
 import Link from "next/link";
 import { motion } from "framer-motion";
 import { useState, useEffect, useRef } from "react";
@@ -80,22 +81,49 @@ export default function ResultClient({ job }: { job: any }) {
 
     const compatibility = resultData.compatibility;
 
+    // PDF 저장 — 서버에서 A4 판형 전용 문서를 진짜 PDF 파일로 만들어 내려준다.
+    // (브라우저 인쇄 의존 X → 인앱 브라우저에서도 동작)
+    const handleSavePdf = () => {
+        toast("PDF 리포트를 만들고 있어요. 잠시만요… (10~30초)", { icon: "📄", duration: 6000 });
+        window.location.href = `/api/result/${job.id}/pdf`;
+    };
+
     return (
         <div className="min-h-screen pb-24 relative" style={{ background: '#0A090C' }}>
-            <header className={`fixed top-0 left-0 right-0 max-w-[480px] mx-auto flex items-center justify-between p-4 bg-[var(--bg-primary)]/90 backdrop-blur-md z-50 border-b border-[var(--line-soft)] transition-transform duration-300 relative ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
+            {/* fixed가 곧 absolute 자식(가운데 타이틀)의 기준점 — relative를 같이 주면 fixed를 덮어써 헤더가 흐름에 자리를 차지하므로 금지 */}
+            <header className={`print-hide fixed top-0 left-0 right-0 max-w-[480px] mx-auto flex items-center justify-between p-4 bg-[var(--bg-primary)]/90 backdrop-blur-md z-50 border-b border-[var(--line-soft)] transition-transform duration-300 ${showHeader ? 'translate-y-0' : '-translate-y-full'}`}>
                 <Link href="/saju" className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
-                <span className="absolute left-1/2 -translate-x-1/2 font-semibold text-[var(--text-primary)]">프리미엄 분석 리포트</span>
-                <button className="p-2 -mr-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors">
-                    <Share2 className="w-5 h-5" />
-                </button>
+                <span className="absolute left-1/2 -translate-x-1/2 font-semibold text-[var(--text-primary)]">{resultData?.compatibilityReport ? '시그니처 분석 리포트' : '프리미엄 분석 리포트'}</span>
+                <div className="flex items-center">
+                    <button
+                        onClick={handleSavePdf}
+                        aria-label="PDF로 저장"
+                        title="PDF로 저장"
+                        className="p-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors"
+                    >
+                        <Download className="w-5 h-5" />
+                    </button>
+                    <button className="p-2 -mr-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors">
+                        <Share2 className="w-5 h-5" />
+                    </button>
+                </div>
             </header>
 
             <main className="p-6 pt-20 space-y-8">
+                {/* PDF 표지 헤더 — 인쇄에서만 표시 */}
+                <div className="print-only pb-4 border-b border-[var(--line-soft)]">
+                    <p className="text-[11px] tracking-[0.2em] text-[var(--text-muted)] mb-1">다시, 우리 · 재회 사주</p>
+                    <p className="text-xl font-bold text-[var(--text-primary)]">프리미엄 재회 분석 리포트</p>
+                    <p className="text-[11px] text-[var(--text-muted)] mt-2">
+                        {job.created_at ? new Date(job.created_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" }) + " 생성 · " : ""}dasisaju.com · 리포트 링크는 5년간 유효합니다
+                    </p>
+                </div>
+
                 {/* 탭 헤더 (궁합 패키지 데이터가 있을 때만 노출) */}
                 {resultData.compatibilityReport && (
-                    <div className="sticky top-[60px] z-40 bg-[var(--bg-primary)]/95 backdrop-blur-xl py-2 -mx-2 px-2 shadow-lg">
+                    <div className="print-hide sticky top-[60px] z-40 bg-[var(--bg-primary)]/95 backdrop-blur-xl py-2 -mx-2 px-2 shadow-lg">
                         <div className="flex bg-[var(--bg-glass)] rounded-2xl p-1 border border-[var(--border-glass)]">
                             <button
                                 onClick={() => setActiveTab('personal')}
@@ -113,7 +141,7 @@ export default function ResultClient({ job }: { job: any }) {
                     </div>
                 )}
 
-                <div className={activeTab === 'personal' ? 'block' : 'hidden'}>
+                <div className={`${activeTab === 'personal' ? 'block' : 'hidden'} print-show`}>
                     <div className="space-y-8">
                         {/* 1. 재회 가능성 게이지 */}
                         <motion.div
@@ -143,6 +171,7 @@ export default function ResultClient({ job }: { job: any }) {
                         initial={{ y: 30, opacity: 0 }}
                         animate={{ y: 0, opacity: 1 }}
                         transition={{ delay: 0.2 }}
+                        className="print-avoid"
                     >
                         <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                             <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
@@ -185,6 +214,31 @@ export default function ResultClient({ job }: { job: any }) {
                             <div className="text-[var(--text-primary)] text-[14px] leading-[1.85] whitespace-pre-wrap font-medium">
                                 {resultData.essenceAnalysis.content}
                             </div>
+                        </div>
+                    </motion.div>
+                )}
+
+                {/* 2.8. 핵심 행동 지침 요약 — 무료판에서 [BLUR]로 가려지던 내용을 전부 공개 */}
+                {resultData.secretTeaser && (
+                    <motion.div
+                        initial={{ y: 30, opacity: 0 }}
+                        animate={{ y: 0, opacity: 1 }}
+                        transition={{ delay: 0.28 }}
+                    >
+                        <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                            <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
+                            핵심 행동 지침 요약
+                        </h2>
+                        <div className="print-avoid relative overflow-hidden rounded-2xl border border-[var(--accent-border)] p-5"
+                            style={{ background: 'linear-gradient(160deg, rgba(216,72,94,0.08) 0%, rgba(10,9,12,0.95) 60%)' }}>
+                            <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl pointer-events-none bg-[var(--accent-soft)]" />
+                            <p className="text-[14px] leading-[1.85] font-medium whitespace-pre-wrap break-keep relative z-10 text-[var(--text-primary)]">
+                                {resultData.secretTeaser.split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part: string, i: number) =>
+                                    part.startsWith('[BLUR]') && part.endsWith('[/BLUR]')
+                                        ? <span key={i} className="mx-1 font-bold text-[var(--accent-amber)]">{part.slice(6, -7)}</span>
+                                        : <span key={i}>{part}</span>
+                                )}
+                            </p>
                         </div>
                     </motion.div>
                 )}
@@ -233,15 +287,17 @@ export default function ResultClient({ job }: { job: any }) {
                         골든 윈도우 캘린더
                     </h2>
                     { (resultData.goldenWindows?.windows || resultData.windows) && (
-                        <GoldenWindowTimeline
-                            windows={resultData.goldenWindows?.windows || resultData.windows}
-                            bestMonth={resultData.goldenWindows?.bestMonth || resultData.bestMonth}
-                        />
+                        <div className="print-avoid">
+                            <GoldenWindowTimeline
+                                windows={resultData.goldenWindows?.windows || resultData.windows}
+                                bestMonth={resultData.goldenWindows?.bestMonth || resultData.bestMonth}
+                            />
+                        </div>
                     )}
 
 
                     { (resultData.goldenWindows?.monthlyEnergies || resultData.monthlyEnergies)?.length > 0 && (
-                        <div className="mt-8">
+                        <div className="mt-8 print-avoid">
                             <div className="flex items-center gap-2 mb-4 px-2">
                                 <Sparkles className="w-4 h-4 flex-shrink-0" style={{ color: '#F06A7E' }} />
                                 <h3 className="text-sm font-bold text-[var(--text-primary)] tracking-tight m-0">월별 에너지 흐름</h3>
@@ -253,7 +309,9 @@ export default function ResultClient({ job }: { job: any }) {
 
                     {/* 연락 최적기 캘린더 */}
                     { (resultData.goldenWindows?.goldenWindowMonths || resultData.goldenWindowMonths)?.length > 0 && (
-                        <GoldenWindowCalendar months={resultData.goldenWindows?.goldenWindowMonths || resultData.goldenWindowMonths} />
+                        <div className="print-avoid">
+                            <GoldenWindowCalendar months={resultData.goldenWindows?.goldenWindowMonths || resultData.goldenWindowMonths} />
+                        </div>
                     )}
 
 
@@ -272,7 +330,7 @@ export default function ResultClient({ job }: { job: any }) {
                         initial={{ opacity: 0, y: 14 }}
                         whileInView={{ opacity: 1, y: 0 }}
                         viewport={{ once: true }}
-                        className="mt-10 rounded-2xl p-6 relative overflow-hidden"
+                        className="print-hide mt-10 rounded-2xl p-6 relative overflow-hidden"
                         style={{
                             background: 'linear-gradient(150deg, rgba(61,44,109,0.35) 0%, rgba(13,16,38,0.6) 60%)',
                             border: '1px solid rgba(176,123,180,0.3)',
@@ -308,8 +366,13 @@ export default function ResultClient({ job }: { job: any }) {
                 </div>
                 </div>
 
-                {activeTab === 'compatibility' && resultData.compatibilityReport && (
-                    <div className="space-y-8 animate-in fade-in slide-in-from-bottom-4 duration-500">
+                {/* 궁합 리포트 — 비활성 탭이어도 DOM에 남겨 인쇄(PDF) 시 함께 출력 */}
+                {resultData.compatibilityReport && (
+                    <div className={`space-y-8 ${activeTab === 'compatibility' ? 'block animate-in fade-in slide-in-from-bottom-4 duration-500' : 'hidden'} print-show`}>
+                        {/* 인쇄 시 두 리포트 사이 구분 표지 */}
+                        <div className="print-only pt-6 pb-2 border-t border-[var(--line-soft)]">
+                            <p className="text-lg font-bold text-[var(--text-primary)]">💫 1:1 궁합 리포트</p>
+                        </div>
                         {/* 커플 유형 진단 */}
                         {resultData.compatibilityReport.coupleType && (
                             <section>
@@ -321,7 +384,7 @@ export default function ResultClient({ job }: { job: any }) {
                                     initial={{ scale: 0.95, opacity: 0 }}
                                     animate={{ scale: 1, opacity: 1 }}
                                     transition={{ type: "spring", damping: 15 }}
-                                    className="relative overflow-hidden rounded-2xl border border-indigo-500/20"
+                                    className="print-avoid relative overflow-hidden rounded-2xl border border-indigo-500/20"
                                     style={{ background: 'linear-gradient(145deg, rgba(99,102,241,0.08) 0%, rgba(168,85,247,0.05) 50%, rgba(15,23,42,0.95) 100%)' }}
                                 >
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-indigo-400/30 to-transparent" />
@@ -346,7 +409,9 @@ export default function ResultClient({ job }: { job: any }) {
                                 <Sparkles className="w-4 h-4 text-indigo-400" />
                                 5대 궁합 지표 분석
                             </h2>
-                            <PremiumRadarChart data={resultData.compatibilityReport.radarChart} />
+                            <div className="print-avoid">
+                                <PremiumRadarChart data={resultData.compatibilityReport.radarChart} />
+                            </div>
                         </section>
 
                         {/* VS 카드 */}
@@ -357,7 +422,9 @@ export default function ResultClient({ job }: { job: any }) {
                             </h2>
                             <div className="space-y-4">
                                 {resultData.compatibilityReport.vsCards.map((card: any, idx: number) => (
-                                    <VsCard key={idx} index={idx} {...card} />
+                                    <div key={idx} className="print-avoid">
+                                        <VsCard index={idx} {...card} />
+                                    </div>
                                 ))}
                             </div>
                         </section>
@@ -385,7 +452,7 @@ export default function ResultClient({ job }: { job: any }) {
                                 <motion.div
                                     initial={{ y: 20, opacity: 0 }}
                                     animate={{ y: 0, opacity: 1 }}
-                                    className="relative overflow-hidden rounded-2xl border border-[var(--accent-border)]"
+                                    className="print-avoid relative overflow-hidden rounded-2xl border border-[var(--accent-border)]"
                                     style={{ background: 'linear-gradient(165deg, rgba(216,72,94,0.06) 0%, rgba(240,106,126,0.04) 40%, rgba(10,9,12,0.95) 100%)' }}
                                 >
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-amber)]/30 to-transparent" />
@@ -448,7 +515,7 @@ export default function ResultClient({ job }: { job: any }) {
                     <div className="absolute -inset-3 bg-gradient-to-br from-[var(--accent-soft)] via-rose-500/6 to-purple-500/5 rounded-3xl blur-2xl animate-soft-glow pointer-events-none" />
 
                     <div
-                        className="relative overflow-hidden rounded-2xl border border-[var(--accent-border)]"
+                        className="print-avoid relative overflow-hidden rounded-2xl border border-[var(--accent-border)]"
                         style={{
                             background: 'linear-gradient(165deg, rgba(216,72,94,0.06) 0%, rgba(240,106,126,0.04) 40%, rgba(10,9,12,0.95) 100%)',
                         }}
@@ -485,7 +552,9 @@ export default function ResultClient({ job }: { job: any }) {
                 </motion.div>
 
                 {/* ── 후기 + 20% 할인 코드 발급 ── */}
-                <ReviewForm jobId={job.id} service="saju" />
+                <div className="print-hide">
+                    <ReviewForm jobId={job.id} service="saju" />
+                </div>
             </main>
         </div>
     );

@@ -14,6 +14,20 @@ const JOB_TABLES: Record<string, { table: string; doneStatus: string[] }> = {
     tarot: { table: 'tarot_reading_jobs', doneStatus: ['done'] },
 };
 
+/** 후기 존재 여부 조회 — 보관함 재열람 시 이미 후기를 쓴 잡에는 폼을 숨기기 위함 */
+export async function GET(req: Request) {
+    const jobId = new URL(req.url).searchParams.get('jobId');
+    if (!jobId) {
+        return NextResponse.json({ success: false, error: '잘못된 요청입니다.' }, { status: 400 });
+    }
+    const { data: existing } = await supabaseAdmin
+        .from('reviews')
+        .select('id')
+        .eq('job_id', jobId)
+        .maybeSingle();
+    return NextResponse.json({ success: true, reviewed: !!existing });
+}
+
 export async function POST(req: Request) {
     try {
         const body = await req.json();
