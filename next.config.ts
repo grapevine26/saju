@@ -1,13 +1,9 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  // PDF 생성용 headless Chrome — 번들링하지 않고 런타임에 로드해야 바이너리가 깨지지 않음
-  serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
-  // Chromium 압축 바이너리(bin/*.br)는 코드에서 require되지 않는 데이터 파일이라
-  // Vercel 파일 트레이싱이 누락시킴 → PDF 라우트 번들에 명시적으로 포함
-  outputFileTracingIncludes: {
-    "/api/result/[jobId]/pdf": ["./node_modules/@sparticuz/chromium/bin/**"],
-  },
+  // PDF 생성용 headless Chrome — 번들링하지 않고 런타임에 로드해야 바이너리가 깨지지 않음.
+  // 바이너리 본체는 chromium-min이 콜드스타트 때 원격 팩(tar)에서 /tmp로 내려받는다.
+  serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium-min"],
   async redirects() {
     return [
       // 작명 서비스 리브랜딩: 명담(/naming) → 윤명(/yunmyeong)

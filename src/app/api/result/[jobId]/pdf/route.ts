@@ -26,14 +26,18 @@ const LOCAL_CHROME_CANDIDATES = [
     "/usr/bin/chromium-browser",
 ].filter(Boolean) as string[];
 
+// Vercel용 Chromium 바이너리 팩 — 번들에 포함하지 않고 콜드스타트 시 /tmp로 내려받는다.
+// (@sparticuz/chromium의 bin/은 require 참조가 없어 파일 트레이싱에서 누락되는 문제를 원천 회피)
+const CHROMIUM_PACK_URL = "https://github.com/Sparticuz/chromium/releases/download/v149.0.0/chromium-v149.0.0-pack.x64.tar";
+
 async function launchBrowser() {
     const puppeteer = await import("puppeteer-core");
 
     if (process.env.VERCEL) {
-        const chromium = (await import("@sparticuz/chromium")).default;
+        const chromium = (await import("@sparticuz/chromium-min")).default;
         return puppeteer.launch({
             args: chromium.args,
-            executablePath: await chromium.executablePath(),
+            executablePath: await chromium.executablePath(CHROMIUM_PACK_URL),
             headless: true,
         });
     }
