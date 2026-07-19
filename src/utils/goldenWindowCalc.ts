@@ -28,7 +28,6 @@ export interface GoldenWindow {
 export interface GoldenWindowResult {
     windows: GoldenWindow[];
     bestMonth: GoldenWindow | null;
-    worstMonth: GoldenWindow | null;
 }
 
 // ========================================================================
@@ -101,12 +100,11 @@ export const calculateGoldenWindows = (
         }
     }
 
-    // 최고/최저 달 찾기
+    // 최고점 달 찾기 (최저점 달은 부정 정보라 산출하지 않음 — 피할 날과 같은 제품 결정)
     const sorted = [...windows].sort((a, b) => b.score - a.score);
     const bestMonth = sorted.length > 0 ? sorted[0] : null;
-    const worstMonth = sorted.length > 0 ? sorted[sorted.length - 1] : null;
 
-    return { windows, bestMonth, worstMonth };
+    return { windows, bestMonth };
 };
 
 // ========================================================================
@@ -181,6 +179,62 @@ const calculateMonthScore = (
 };
 
 // ========================================================================
+// 특정 시점(연·월)의 운 에너지 분석 — AI 프롬프트 재료용
+// ========================================================================
+
+/**
+ * 특정 연·월의 세운(연간지)·월운(월간지)을 뽑고, 두 사람의 일주와
+ * 어떤 합충 관계였는지 요약 문자열을 만든다.
+ * 이별 시점·현재 시점의 "그때 왜 그랬는지"를 AI가 지어내지 않고
+ * 실제 간지 근거로 서술하게 하는 것이 목적.
+ * @returns 분석 요약 문자열 (계산 실패 시 null)
+ */
+export const describeTimePointEnergy = (
+    year: number,
+    month: number,
+    myDayGan: string,
+    myDayZhi: string,
+    partnerDayGan: string,
+    partnerDayZhi: string,
+): string | null => {
+    try {
+        const solar = Solar.fromYmd(year, month, 15);
+        const bazi = solar.getLunar().getEightChar();
+        const yGan = HANJA_TO_HANGUL[bazi.getYearGan()] || bazi.getYearGan();
+        const yZhi = HANJA_TO_HANGUL[bazi.getYearZhi()] || bazi.getYearZhi();
+        const mGan = HANJA_TO_HANGUL[bazi.getMonthGan()] || bazi.getMonthGan();
+        const mZhi = HANJA_TO_HANGUL[bazi.getMonthZhi()] || bazi.getMonthZhi();
+
+        const relations: string[] = [];
+        const pairs: { gan: string; zhi: string; label: string }[] = [
+            { gan: yGan, zhi: yZhi, label: '세운(연)' },
+            { gan: mGan, zhi: mZhi, label: '월운(월)' },
+        ];
+        const persons = [
+            { gan: myDayGan, zhi: myDayZhi, who: '나' },
+            { gan: partnerDayGan, zhi: partnerDayZhi, who: '상대방' },
+        ];
+        for (const p of pairs) {
+            for (const person of persons) {
+                const ganHap = getCheonganHap(p.gan, person.gan);
+                if (ganHap) relations.push(`${p.label} 천간이 ${person.who}의 일간과 합(${ganHap.description}) — ${person.who}의 마음이 흔들리거나 열리는 흐름`);
+                const zhiHap = getJijiYukhap(p.zhi, person.zhi);
+                if (zhiHap) relations.push(`${p.label} 지지가 ${person.who}의 일지와 합(${zhiHap.description}) — ${person.who}의 현실 환경에 접점이 생기는 흐름`);
+                const zhiChung = getJijiChung(p.zhi, person.zhi);
+                if (zhiChung) relations.push(`${p.label} 지지가 ${person.who}의 일지와 충(${zhiChung.description}) — ${person.who}에게 변화 압력·불안정이 커지는 흐름`);
+            }
+        }
+        const relText = relations.length > 0
+            ? relations.map(r => `  · ${r}`).join('\n')
+            : '  · 두 사람의 일주와 특별한 합충 없음 (평이한 흐름)';
+        return `${year}년 ${month}월 — 세운 ${yGan}${yZhi}년 · 월운 ${mGan}${mZhi}월\n${relText}`;
+    } catch (e) {
+        console.error(`시점 운 분석 오류 (${year}-${month}):`, e);
+        return null;
+    }
+};
+
+// ========================================================================
 // 일진(日辰) 기반 길일 계산
 // ========================================================================
 
@@ -199,7 +253,8 @@ export interface GoldenDate {
  * — 예전엔 이 날짜를 AI가 임의로 생성했으나, 이제 캘린더의 🔥 날짜에도
  *   월 선정과 같은 명리적 근거 체인이 이어진다.
  *
- * @returns 점수순 상위 2~3일 (날짜 오름차순 정렬, 가능하면 5일 이상 간격으로 분산)
+ * @returns 점수순 상위 N일 (날짜 오름차순 정렬, 가능하면 5일 이상 간격으로 분산)
+ *          기본 2일 — 날짜마다 근거(이유)를 함께 노출하므로 적고 확실하게 (희소가치 유지)
  */
 export const calculateGoldenDates = (
     year: number,
@@ -208,7 +263,7 @@ export const calculateGoldenDates = (
     myDayZhi: string,
     partnerDayGan: string,
     partnerDayZhi: string,
-    maxDates: number = 3,
+    maxDates: number = 2,
 ): GoldenDate[] => {
     const daysInMonth = new Date(year, month, 0).getDate();
     const today = new Date();

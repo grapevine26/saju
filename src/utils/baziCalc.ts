@@ -141,7 +141,12 @@ function calculateBaziWithCorrectedTime(
     const dayGangZhi = bazi.getDay();
     const timeGangZhi = isTimeUnknown ? "??" : bazi.getTime();
 
-    baziStr = `
+    // "??시"는 AI가 의미를 추측하므로 시간 미상을 명시적으로 표기한다
+    baziStr = isTimeUnknown
+        ? `
+        ${yearGangZhi}년 ${monthGangZhi}월 ${dayGangZhi}일 (시주: 출생시간 미상으로 제외)
+    `
+        : `
         ${yearGangZhi}년 ${monthGangZhi}월 ${dayGangZhi}일 ${timeGangZhi}시
     `;
 
@@ -215,12 +220,27 @@ function calculateBaziWithCorrectedTime(
     const uniqueShinsal = filteredShinsal.join(", ");
 
     // 7. 대운 계산 (lunar-javascript 대운 객체 이용)
+    // 대운수만으로는 AI가 시기 분석을 할 수 없으므로, 현재 나이가 속한
+    // 대운 간지(운의 큰 흐름)까지 계산해 프롬프트 재료로 넘긴다.
     let daeunStr = "알 수 없음";
     try {
         const genderCode = gender === 'male' ? 1 : 0;
         const daeunObj = bazi.getYun(genderCode);
         const daeunSu = daeunObj.getStartYear();
         daeunStr = `대운수: ${daeunSu} (매 ${daeunSu}세 단위로 운의 큰 흐름이 바뀜)`;
+
+        const nowYear = new Date().getFullYear();
+        const daYunList = daeunObj.getDaYun() || [];
+        for (const dy of daYunList) {
+            const gz = typeof dy.getGanZhi === 'function' ? dy.getGanZhi() : '';
+            if (!gz) continue; // 첫 구간(기운 전)은 간지가 비어 있음
+            if (dy.getStartYear() <= nowYear && nowYear <= dy.getEndYear()) {
+                const gan = HANJA_TO_HANGUL[gz[0]] || gz[0];
+                const zhi = HANJA_TO_HANGUL[gz[1]] || gz[1];
+                daeunStr = `현재 대운: ${gan}${zhi} (${dy.getStartAge()}세~${dy.getEndAge()}세 구간, ${dy.getStartYear()}~${dy.getEndYear()}년) · 대운수 ${daeunSu}`;
+                break;
+            }
+        }
     } catch (error) {
         console.error("대운 계산 에러:", error);
     }

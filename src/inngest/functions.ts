@@ -4,11 +4,13 @@ import { calculateGoldenWindows, calculateGoldenDates } from "@/utils/goldenWind
 import { calculateBazi } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
 import { genAI, callGemini } from "@/utils/geminiCall";
-import { schema2, schema3, schema4 } from "@/constants/aiSchemas";
+import { schema1, schema2, schema3, schema4 } from "@/constants/aiSchemas";
 import {
   BASE_SYSTEM_INSTRUCTION,
+  SYSTEM_INSTRUCTION_LITE,
   SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
   SYSTEM_INSTRUCTION_COMPATIBILITY,
+  buildPrompt1,
   buildPrompt2,
   buildPrompt3,
   buildPrompt4
@@ -153,17 +155,84 @@ export const processPremiumAnalysis = inngest.createFunction(
         goldenWindowSummary,
       };
 
-      const prompt2 = buildPrompt2(promptCtx, liteResult?.secretTeaser);
+      // --- 2-3-a. 라이트 결과 검증/폴백 ---
+      // liteResult는 클라이언트를 경유하므로 유실·훼손될 수 있다. 필수 필드가 없으면
+      // 서버에서 같은 프롬프트(buildPrompt1)로 재생성해 유료 리포트 결손을 막는다.
+      let lite: any = liteResult;
+      const liteValid = !!(lite?.secretTeaser && lite?.essenceAnalysis?.content
+        && Array.isArray(lite?.details) && lite.details.length > 0 && lite?.myManseryeok);
+      if (!liteValid) {
+        console.warn("[Inngest] 클라이언트 liteResult 불완전 — 서버에서 라이트 분석 재생성");
+        const model1 = genAI.getGenerativeModel({
+          model: "gemini-3.5-flash",
+          systemInstruction: SYSTEM_INSTRUCTION_LITE,
+          generationConfig: { responseMimeType: "application/json", responseSchema: schema1 }
+        });
+        const d1 = await callGemini(model1, buildPrompt1(promptCtx));
+        const details1: any[] = d1?.details || [];
+        const ei = details1.findIndex((d: any) => typeof d?.title === 'string' && d.title.includes('[본질]'));
+        const pick = ei >= 0 ? ei : 0;
+        lite = {
+          reunionKeyword: d1?.reunionKeyword, reunionScore: d1?.reunionScore,
+          summary: d1?.summary, secretTeaser: d1?.secretTeaser,
+          essenceAnalysis: details1[pick] || null,
+          details: details1.filter((_: any, i: number) => i !== pick),
+          myManseryeok: myBazi.manseryeok, partnerManseryeok: partnerBazi.manseryeok,
+          myOhhaeng: myBazi.ohhaengCounts, partnerOhhaeng: partnerBazi.ohhaengCounts,
+          compatibility: {
+            reunionScore: compatibility.reunionScore,
+            attractionScore: compatibility.attractionScore,
+            conflictScore: compatibility.conflictScore,
+            complementScore: compatibility.complementScore,
+            hapList: compatibility.hapList,
+            chungList: compatibility.chungList,
+            hyeongList: compatibility.hyeongList,
+            haeList: compatibility.haeList,
+            dayMasterRelation: compatibility.dayMasterRelation,
+            spouseHouseRelation: compatibility.spouseHouseRelation,
+            ohhaengAnalysis: compatibility.ohhaengAnalysis,
+          },
+          goldenWindows: null, tier: 'premium',
+        };
+      }
+
+      const prompt2 = buildPrompt2(promptCtx, lite?.secretTeaser);
+
+      // --- 2-3-b. 캘린더 선(先)확정: 달 = 계산 최고점, 날짜 = 일진 기반 길일 ---
+      // AI 호출 전에 확정해 prompt3(로드맵·월별 에너지)에 주입한다 — 로드맵이
+      // 최적기 달에 "노컨택"을 배치하는 정면 모순을 막기 위함.
+      let goldenWindowMonths: any[] = [];
+      let bestWindowSummary: string | undefined;
+      if (result.bestMonth) {
+        const goldenDates = calculateGoldenDates(
+          result.bestMonth.year, result.bestMonth.month,
+          myDayGan, myDayZhi, partnerDayGan, partnerDayZhi,
+        );
+        if (goldenDates.length > 0) {
+          goldenWindowMonths = [{
+            month: `${result.bestMonth.year}년 ${result.bestMonth.month}월`,
+            goodDates: goldenDates.map(d => d.day),
+            // 피할 날은 의도적으로 비움 — 행동을 바꾸지 않는 부정 정보는 불안·리스크만 추가 (제품 결정)
+            badDates: [],
+            // 일진 근거 보존 — 캘린더 아래 "이 날이 좋은 이유"로 노출됨
+            dateDetails: goldenDates.map(d => ({ day: d.day, ganzhi: `${d.dayGan}${d.dayZhi}`, reasons: d.reasons })),
+          }];
+          bestWindowSummary = `${result.bestMonth.year}년 ${result.bestMonth.month}월 (길일: ${goldenDates.map(d => `${d.day}일`).join(', ')})`;
+        } else {
+          bestWindowSummary = `${result.bestMonth.year}년 ${result.bestMonth.month}월`;
+        }
+      }
 
       const windowSummary = result.windows.map(w =>
-        `- ${w.year}년 ${w.month}월 (에너지 점수: ${w.score}점, 골든 여부: ${w.isGolden}): ${w.reasons.join(', ')}`
+        `- ${w.year}년 ${w.month}월 (에너지 점수: ${w.score}점, 골든 여부: ${w.isGolden ? '예' : '아니오'}): ${w.reasons.join(', ')}`
       ).join('\n');
 
       const prompt3 = buildPrompt3({
         myName: myRawInput.name, myGender: myRawInput.gender,
         partnerName: partnerRawInput.name, partnerGender: partnerRawInput.gender,
         myDayGan, myDayZhi, partnerDayGan, partnerDayZhi,
-        windowSummary, metDate, breakupDate, breakupReason
+        mySipsin: myBazi.sipsinSummary, partnerSipsin: partnerBazi.sipsinSummary,
+        windowSummary, bestWindowSummary, metDate, breakupDate, breakupReason
       });
 
       // --- 2-4. 병렬 AI 호출 (prompt2 + prompt3 + 조건부 prompt4) ---
@@ -171,7 +240,7 @@ export const processPremiumAnalysis = inngest.createFunction(
       // → Inngest 재시도 후에도 실패하면 onFailure가 자동 환불을 태운다.
       // (예전엔 .catch(()=>{})로 빈 리포트를 completed 저장 + 완료메일까지 보내 자동환불을 우회했음)
       let parsedData2: any = { details: [] };
-      let parsedData3: any = { monthlyEnergies: [], roadmapStages: [], goldenWindowMonths: [] };
+      let parsedData3: any = { monthlyEnergies: [], roadmapStages: [] };
       let compatibilityReport: any = null;
 
       const [data2, data3] = await Promise.all([
@@ -201,39 +270,25 @@ export const processPremiumAnalysis = inngest.createFunction(
       if (!parsedData2?.details?.length) {
         throw new Error("프리미엄 심층 분석(details) 생성 실패 — 자동 환불 대상");
       }
-
-      // --- 2-5. 캘린더 확정: 달 = 계산 최고점, 날짜 = 일진 기반 길일 ---
-      // 예전엔 AI가 달·날짜를 생성했으나, 이제 둘 다 결정론 계산으로 확정한다.
-      // (월간 합충 점수로 달을 고르고, 같은 로직을 그 달의 일진에 적용해 날짜를 고른다)
-      let goldenWindowMonths = parsedData3.goldenWindowMonths || [];
-      if (result.bestMonth) {
-        const goldenDates = calculateGoldenDates(
-          result.bestMonth.year, result.bestMonth.month,
-          myDayGan, myDayZhi, partnerDayGan, partnerDayZhi,
-        );
-        if (goldenDates.length > 0) {
-          goldenWindowMonths = [{
-            month: `${result.bestMonth.year}년 ${result.bestMonth.month}월`,
-            goodDates: goldenDates.map(d => d.day),
-            badDates: [],
-            // 일진 근거 보존 (추후 UI에서 "이 날이 좋은 이유" 노출 가능)
-            dateDetails: goldenDates.map(d => ({ day: d.day, ganzhi: `${d.dayGan}${d.dayZhi}`, reasons: d.reasons })),
-          }];
-        }
+      // 개수·구성 이상은 실패는 아니지만 프롬프트 일탈 신호이므로 로그로 감시
+      if (parsedData2.details.length !== 8) {
+        console.warn(`[Inngest] 심층 분석 개수 이상: ${parsedData2.details.length}개 (기대 8개)`);
+      }
+      if (parsedData3?.monthlyEnergies?.length && parsedData3.monthlyEnergies.length !== 6) {
+        console.warn(`[Inngest] 월별 에너지 개수 이상: ${parsedData3.monthlyEnergies.length}개 (기대 6개)`);
       }
 
-      // --- 2-6. 최종 병합 ---
-      const liteDetails = liteResult.details || [];
+      // --- 2-5. 최종 병합 (캘린더는 2-3-b에서 이미 확정) ---
+      const liteDetails = lite.details || [];
       const premiumDetails = parsedData2.details || [];
 
       return {
-        ...liteResult,
+        ...lite,
         details: [...liteDetails, ...premiumDetails],
         partnerManual: parsedData2.partnerManual || null,
         goldenWindows: {
           windows: result.windows,
           bestMonth: result.bestMonth,
-          worstMonth: result.worstMonth,
           monthlyEnergies: parsedData3.monthlyEnergies,
           roadmapStages: parsedData3.roadmapStages,
           goldenWindowMonths

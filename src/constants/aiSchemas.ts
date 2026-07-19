@@ -13,6 +13,20 @@ const detailItemSchema = {
   required: ["title", "subtitle", "content"]
 };
 
+/** prompt1 스키마: 무료 라이트 분석 (reunion 라우트·Inngest 폴백 공유) */
+export const schema1 = {
+  type: "object" as any,
+  properties: {
+    reunionKeyword: { type: "string" as any },
+    reunionScore: { type: "integer" as any },
+    summary: { type: "string" as any },
+    // 이 필드가 빠지면 클라이언트가 하드코딩 폴백("1개월 내")을 노출해 캘린더와 모순된다
+    secretTeaser: { type: "string" as any },
+    details: { type: "array" as any, items: detailItemSchema }
+  },
+  required: ["reunionKeyword", "reunionScore", "summary", "secretTeaser", "details"]
+};
+
 /** prompt2 스키마: 프리미엄 심층 분석 8개 + 상대방 공략 매뉴얼 */
 export const schema2 = {
   type: "object" as any,
@@ -93,20 +107,10 @@ export const schema3 = {
         required: ["step", "title", "action"]
       }
     },
-    goldenWindowMonths: {
-      type: "array" as any,
-      items: {
-        type: "object" as any,
-        properties: {
-          month: { type: "string" as any },
-          goodDates: { type: "array" as any, items: { type: "number" as any } },
-          badDates: { type: "array" as any, items: { type: "number" as any } }
-        },
-        required: ["month", "goodDates", "badDates"]
-      }
-    }
+    // goldenWindowMonths는 더 이상 AI에 요청하지 않음 — 달·날짜 모두
+    // 결정론 계산(calculateGoldenDates)으로 확정한다
   },
-  required: ["monthlyEnergies", "roadmapStages", "goldenWindowMonths"]
+  required: ["monthlyEnergies", "roadmapStages"]
 };
 
 /** prompt4 스키마: 궁합 집중 분석 리포트 */

@@ -207,7 +207,8 @@ export const calculateCompatibility = (
         uniqueHap, uniqueChung, uniqueHyeong, uniqueHae,
         dayMasterRelation, spouseHouseRelation,
         ohhaengAnalysis: ohhaengResult.analysis,
-        attractionScore, conflictScore, complementScore
+        attractionScore, conflictScore, complementScore,
+        reunionScore: Math.max(0, Math.min(100, reunionScore))
     });
 
     return {
@@ -233,7 +234,7 @@ export const calculateCompatibility = (
 const buildPromptSummary = ({
     uniqueHap, uniqueChung, uniqueHyeong, uniqueHae,
     dayMasterRelation, spouseHouseRelation,
-    ohhaengAnalysis, attractionScore, conflictScore, complementScore
+    ohhaengAnalysis, attractionScore, conflictScore, complementScore, reunionScore
 }: {
     uniqueHap: HapResult[];
     uniqueChung: ClashResult[];
@@ -245,6 +246,7 @@ const buildPromptSummary = ({
     attractionScore: number;
     conflictScore: number;
     complementScore: number;
+    reunionScore: number;
 }): string => {
     const lines: string[] = [];
 
@@ -252,6 +254,7 @@ const buildPromptSummary = ({
     lines.push(`- 끌림 지수: ${attractionScore}/100`);
     lines.push(`- 갈등 지수: ${conflictScore}/100`);
     lines.push(`- 오행 보완도: ${complementScore}/100`);
+    lines.push(`- 재회 가능성 점수(시스템 계산): ${reunionScore}/100`);
     lines.push('');
 
     lines.push(`[일주 관계]`);

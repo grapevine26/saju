@@ -7,7 +7,15 @@ export interface GoldenWindowMonth {
     month: string;
     goodDates: number[];
     badDates: number[];
+    /** 각 길일의 일진·선정 근거 (결정론 계산 산출물 — 구버전 데이터에는 없을 수 있음) */
+    dateDetails?: { day: number; ganzhi: string; reasons: string[] }[];
 }
+
+/** "일간 정임합: 상대방의 마음이 열리는 시기" → 기술 접두어를 떼고 사람 말만 남긴다 */
+const humanizeReason = (r: string): string => {
+    const i = r.indexOf(':');
+    return (i >= 0 ? r.slice(i + 1) : r).replace(/\s*\((주의|자제 필요)\)\s*$/, '').trim();
+};
 
 interface Props {
     months: GoldenWindowMonth[];
@@ -81,6 +89,31 @@ export default function GoldenWindowCalendar({ months }: Props) {
                                 );
                             })}
                         </div>
+
+                        {/* 길일별 근거 — "아무 날이나 찍은 게 아니다"를 보여주는 신뢰 장치 */}
+                        {(() => {
+                            const details = (data.dateDetails || []).filter(d => goodDates.includes(d.day));
+                            if (details.length === 0) return null;
+                            return (
+                                <div className="mt-5 pt-4 border-t border-white/[0.08] space-y-2.5">
+                                    {details.map(d => {
+                                        const reasons = (d.reasons || []).map(humanizeReason).filter(Boolean);
+                                        if (reasons.length === 0) return null;
+                                        return (
+                                            <div key={d.day} className="flex items-start gap-2.5">
+                                                <span className="flex-shrink-0 text-[12px] font-black px-2 py-0.5 rounded-lg border" style={{ color: '#F06A7E', background: 'rgba(216,72,94,0.10)', borderColor: 'rgba(216,72,94,0.35)' }}>
+                                                    {d.day}일
+                                                </span>
+                                                <p className="text-[12px] leading-relaxed text-[var(--text-secondary)] break-keep pt-0.5">
+                                                    <span className="text-[var(--text-muted)]">{d.ganzhi}일 — </span>
+                                                    {reasons.join(' · ')}
+                                                </p>
+                                            </div>
+                                        );
+                                    })}
+                                </div>
+                            );
+                        })()}
 
                         {/* 범례 */}
                         <div className="flex items-center justify-center gap-6 mt-6 pt-5 border-t border-white/[0.08]">
