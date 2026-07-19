@@ -298,11 +298,42 @@ ${metDate || breakupDate || breakupReason ? `[관계 컨텍스트]\n${metDate ? 
 3. monthlyEnergies에서 최적기 달의 theme와 advice는 반드시 '연락을 실행하는 달'의 톤으로 서술하라. 다른 달의 조언도 [향후 6개월간 골든 윈도우 흐름 데이터]의 달을 기준으로만 시기를 말하고, "1개월 내", "곧" 같은 임의의 기간을 지어내지 마라.)`;
 };
 
-/** prompt4: 궁합 집중 분석 리포트 */
+/** prompt4: 궁합 집중 분석 리포트
+ *  ※ 재회 리포트(1장)와 달리 '타고난 궁합'을 다룬다 — 이별·재회 컨텍스트를 본문에서 격리하고
+ *    (챕터 1과의 중복 방지 + 궁합 상품의 독립 가치), 마지막 종합 진단에서만 재회로 연결한다. */
 export const buildPrompt4 = (ctx: PromptContext): string => {
-    const common = buildCommonPrompt(ctx);
+    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary } = ctx;
 
-    return `${common}\n\n위 데이터를 바탕으로 궁합 집중 분석 데이터를 작성해줘.
+    return `[분석 대상]
+- 나: ${myRawInput.name || "익명"} (${genderLabel(myRawInput.gender)}, 만 ${myBazi.age}세)
+- 상대방: ${partnerRawInput.name || "그 사람"} (${genderLabel(partnerRawInput.gender)}, 만 ${partnerBazi.age}세)
+
+[나의 사주팔자]
+${myBazi.baziStr.trim()}
+- 오행: 목(${myBazi.ohhaengCounts['목']}), 화(${myBazi.ohhaengCounts['화']}), 토(${myBazi.ohhaengCounts['토']}), 금(${myBazi.ohhaengCounts['금']}), 수(${myBazi.ohhaengCounts['수']})
+- 십성: ${myBazi.sipsinSummary}
+${myBazi.uniqueShinsal ? `- 주요 신살: ${myBazi.uniqueShinsal}` : ''}
+
+[상대방의 사주팔자]
+${partnerBazi.baziStr.trim()}
+- 오행: 목(${partnerBazi.ohhaengCounts['목']}), 화(${partnerBazi.ohhaengCounts['화']}), 토(${partnerBazi.ohhaengCounts['토']}), 금(${partnerBazi.ohhaengCounts['금']}), 수(${partnerBazi.ohhaengCounts['수']})
+- 십성: ${partnerBazi.sipsinSummary}
+${partnerBazi.uniqueShinsal ? `- 주요 신살: ${partnerBazi.uniqueShinsal}` : ''}
+
+[궁합 분석 데이터]
+${compatibilityPromptSummary}
+
+[현재 상황 — overallGrade의 결론 연결에만 사용할 것]
+두 사람은 현재 이별한 상태이며, 이 궁합 리포트는 재회 리포트에 이어지는 2부다.
+단, 이 사실은 마지막 overallGrade(특히 finalMessage)에서만 반영하고, 그 외 본문에는 절대 드러내지 마라.
+
+(핵심 관점 — 매우 중요: 이 리포트는 '타고난 궁합'이다. 이별이나 재회라는 사건과 무관하게, 두 사주가 만나면 본질적으로 어떤 관계가 되는지를 시점 중립적인 현재형으로 서술하라. radarChart·vsCards·compatibilityDetails·coupleType 본문에서 이별·재회·헤어짐·과거 연애사를 언급하지 마라 — 그 이야기는 1장(재회 리포트)이 이미 다뤘고, 여기서 반복하면 두 리포트가 겹쳐 보인다. 이 장의 가치는 "사건과 무관한 두 사람의 설계도"를 보여주는 것이다)
+
+(중요 지침 1: 위 사주·오행·십성·신살 데이터는 분석의 '재료'일 뿐이다. 결과 텍스트에는 이 용어들을 절대 그대로 옮기지 말고, 방어기제·애착 유형·소통 패턴 같은 심리·관계 언어로만 번역해서 표현할 것)
+
+(중요 지침 2: 모든 content 항목은 모바일 가독성을 위해 한 문단 2~3문장으로 짧게 끊고, 문단 사이에 반드시 줄바꿈 2번(\\n\\n)을 띄울 것)
+
+위 데이터를 바탕으로 궁합 집중 분석 데이터를 작성해줘.
 
 (출력 규칙: compatibilityDetails는 정확히 9개, 반드시 아래 순서 그대로. 각 항목의 "title"은 아래 제공된 문자열을 한 글자도 바꾸지 말고 그대로 복사할 것 — UI에 고정 노출되는 상품 구성이다. content만 새로 작성한다. vsCards는 정확히 4개)
 
@@ -342,7 +373,7 @@ JSON 포맷:\n
     "label": "등급을 한 줄로 설명 (예: '서로를 성장시키는 시너지형 인연')",
     "strengths": ["강점1", "강점2", "강점3"],
     "weaknesses": ["약점1", "약점2", "약점3"],
-    "finalMessage": "이 커플에게 전하는 최종 한마디. 따뜻하지만 현실적으로 (200자 이상)"
+    "finalMessage": "이 커플에게 전하는 최종 한마디 (200자 이상). 여기서만 [현재 상황]을 반영해 타고난 궁합을 재회 관점으로 연결하라 — 이 설계도의 강점·약점이 두 사람의 지난 관계에서 어떻게 나타났을지, 다시 만난다면 무엇을 다르게 해야 이 궁합이 제 힘을 내는지로 맺을 것. 따뜻하지만 현실적으로"
   }
 }`;
 };

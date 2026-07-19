@@ -614,7 +614,7 @@ export default function ReportPdfDocument({ job }: { job: any }) {
             {cr && (
                 <>
                     <ChapterDivider no={2} title="1:1 궁합 심층 분석"
-                        desc="두 사람의 사주를 1:1로 맞대어, 재회 이후 이 관계가 어디까지 갈 수 있는지를 네 파트로 해부합니다."
+                        desc="만남과 이별이라는 사건 이전에, 두 사람이 타고난 관계의 설계도 — 두 사주를 1:1로 맞대어 네 파트로 해부합니다."
                         parts={ch2Items.map(it => it.t)} />
 
                     {/* CH2 PART 1. 커플 유형 진단 */}
