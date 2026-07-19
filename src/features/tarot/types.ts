@@ -34,6 +34,8 @@ export interface TarotRoundResult {
 export interface TarotFreeResult {
     round1: TarotRoundResult;
     directAnswer: string;
+    /** 유료 2·3라운드를 예고하는 개인화 티저 (페이월 블러 미리보기에 노출) — 구버전 결과에는 없음 */
+    nextTeaser?: string;
 }
 
 /** 유료 스페셜 풀이 — 카드 7장을 근거로 한 토픽형 해석 */

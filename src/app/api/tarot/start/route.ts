@@ -22,7 +22,7 @@ import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
 import { genAI, callGemini } from '@/utils/geminiCall';
 import { safeSend, markDispatchFailed } from '@/lib/jobDispatch';
-import { buildPaidReadingPrompt } from '@/features/tarot/tarotPrompt';
+import { buildPaidReadingPrompt, paidReadingSchema, normalizeCardIds } from '@/features/tarot/tarotPrompt';
 import { TarotInput, TarotFreeResult } from '@/features/tarot/types';
 import { TAROT_PRICE } from '@/features/tarot/constants';
 import { isFreePassKey, isFreePassSession } from '@/lib/freePass';
@@ -120,9 +120,10 @@ export async function POST(req: Request) {
             // 개발 모드: Inngest 없이 직접 처리
             (async () => {
                 try {
+                    // Inngest 경로(tarotFunction)와 동일 구성 — 스키마 강제 + 16384 + cardId 정규화
                     const model = genAI.getGenerativeModel({
                         model: 'gemini-3.5-flash',
-                        generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 },
+                        generationConfig: { responseMimeType: 'application/json', responseSchema: paidReadingSchema, maxOutputTokens: 16384 },
                     });
                     const prompt = buildPaidReadingPrompt(
                         input as TarotInput,
@@ -130,6 +131,8 @@ export async function POST(req: Request) {
                         freeResult as TarotFreeResult,
                     );
                     const aiResult = await callGemini(model, prompt);
+                    if (aiResult?.round2?.cards) aiResult.round2.cards = normalizeCardIds(aiResult.round2.cards, rounds[1]);
+                    if (aiResult?.round3?.cards) aiResult.round3.cards = normalizeCardIds(aiResult.round3.cards, rounds[2]);
                     await supabaseAdmin
                         .from('tarot_reading_jobs')
                         .update({ status: 'done', ai_result: aiResult })

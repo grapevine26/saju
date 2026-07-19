@@ -1,7 +1,7 @@
 import { inngest } from './client';
 import { supabaseAdmin } from '@/lib/supabase';
 import { genAI, callGemini } from '@/utils/geminiCall';
-import { buildPaidReadingPrompt } from '@/features/tarot/tarotPrompt';
+import { buildPaidReadingPrompt, paidReadingSchema, normalizeCardIds } from '@/features/tarot/tarotPrompt';
 import { TarotInput, TarotFreeResult } from '@/features/tarot/types';
 import { Resend } from 'resend';
 
@@ -55,21 +55,31 @@ export const processTarotReading = inngest.createFunction(
         });
 
         const aiResult = await step.run('generate-paid-reading', async () => {
+            // maxOutputTokens 16384 — 해석 250자×7 + 종합×3 + 스페셜 5필드 + 최종 400자를 합치면
+            // 8192에 근접해 뒷부분이 잘리는 사고가 날 수 있다 (사주 prompt2에서 동일 사고 전례)
             const model = genAI.getGenerativeModel({
                 model: 'gemini-3.5-flash',
-                generationConfig: { responseMimeType: 'application/json', maxOutputTokens: 8192 },
+                generationConfig: { responseMimeType: 'application/json', responseSchema: paidReadingSchema, maxOutputTokens: 16384 },
             });
 
             const prompt = buildPaidReadingPrompt(input, rounds, freeResult);
             const result = await callGemini(model, prompt);
 
-            // 핵심 콘텐츠(round2/round3) 검증 — 비면 throw하여 재시도, 최종 실패 시 onFailure가 자동 환불.
-            // (불량 결과를 done으로 저장해 유료 고객에게 빈 화면을 보여주는 것을 방지)
+            // 유료 콘텐츠 검증 — 일부라도 결손이면 throw하여 재시도, 최종 실패 시 onFailure가 자동 환불.
+            // (스페셜·최종 메시지가 빠진 반쪽 결과를 done으로 저장하는 것도 방지)
             const r2 = result?.round2?.cards;
             const r3 = result?.round3?.cards;
-            if (!Array.isArray(r2) || r2.length === 0 || !Array.isArray(r3) || r3.length === 0) {
-                throw new Error('타로 유료 해석 생성 실패(round2/round3 누락) — 자동 환불 대상');
+            if (!Array.isArray(r2) || r2.length !== 3 || !Array.isArray(r3) || r3.length !== 2) {
+                throw new Error(`타로 유료 해석 생성 실패(카드 개수 이상: r2=${r2?.length}, r3=${r3?.length}) — 자동 환불 대상`);
             }
+            if (typeof result?.special?.chemistryScore !== 'number' || !result?.finalMessage || !result?.directAnswer) {
+                throw new Error('타로 유료 해석 생성 실패(special/finalMessage/directAnswer 결손) — 자동 환불 대상');
+            }
+
+            // cardId를 실제 뽑힌 카드로 강제 — AI가 순번(1,2,3)을 넣어 카드 그림이
+            // 엉뚱하게 표시되는 사고가 실데이터에서 확인됨 (해석은 제시 순서를 따름)
+            result.round2.cards = normalizeCardIds(result.round2.cards, rounds[1]);
+            result.round3.cards = normalizeCardIds(result.round3.cards, rounds[2]);
             return result;
         });
 
@@ -95,7 +105,7 @@ export const processTarotReading = inngest.createFunction(
             const sajuPs = input.situation === 'breakup' ? `
                 <hr style="border:none; border-top:1px solid #e5e7eb; margin:24px 0 16px;"/>
                 <p style="font-size:13px; color:#4b5563; line-height:1.7;">
-                    <strong>P.S.</strong> 카드가 보여준 건 ${input.partnerName}씨의 '지금'입니다.<br/>
+                    <strong>P.S.</strong> 카드가 보여준 건 ${input.partnerName}님의 '지금'입니다.<br/>
                     다시 만날 '때'가 궁금하다면 — 두 사람의 사주로 재회 가능성과 연락 최적기(골든 윈도우)를 확인해 보세요.
                 </p>
                 <a href="${baseUrl}/saju" style="font-size:13px; color:#D8485E; font-weight:bold;">→ 재회 가능성과 타이밍 확인하기 (무료 분석부터)</a>
@@ -104,7 +114,7 @@ export const processTarotReading = inngest.createFunction(
             const htmlMessage = `
                 <h2>[ODD TAROT] 타로 리딩 완료 안내</h2>
                 <p>${input.myName}님, 일곱 장의 카드 전체 해석이 완성되었습니다.</p>
-                <p>${input.partnerName}씨의 현재 마음과 두 사람의 앞날, 그리고 카드가 전하는 최종 메시지를 지금 확인해 보세요.</p>
+                <p>${input.partnerName}님의 현재 마음과 두 사람의 앞날, 그리고 카드가 전하는 최종 메시지를 지금 확인해 보세요.</p>
                 <br/>
                 <a href="${resultUrl}" style="display:inline-block; padding:12px 24px; background-color:#6B3FA8; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">🔮 전체 해석 확인하기</a>
                 <br/><br/>

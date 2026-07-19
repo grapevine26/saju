@@ -100,7 +100,7 @@ export default function TarotResultPage() {
                 method: 'CARD',
                 amount: { currency: 'KRW', value: payPrice },
                 orderId,
-                orderName: `타로 전체 해석 — ${input.partnerName}씨에 대한 7장`,
+                orderName: `타로 전체 해석 — ${input.partnerName}님에 대한 7장`,
                 successUrl: `${window.location.origin}/tarot/payment/success`,
                 failUrl: `${window.location.origin}/tarot/payment/fail`,
             });
@@ -136,7 +136,7 @@ export default function TarotResultPage() {
                         {input.myName}님의 타로 리딩
                     </p>
                     <p style={{ fontSize: 11, color: 'var(--tarot-text-3)' }}>
-                        {input.partnerName}씨에 대한 7장
+                        {input.partnerName}님에 대한 7장
                     </p>
                 </div>
             </header>
@@ -277,12 +277,12 @@ export default function TarotResultPage() {
                                 2라운드 + 3라운드 + 스페셜 풀이
                             </p>
                             <p style={{ fontSize: 11.5, color: 'var(--tarot-text-3)' }}>
-                                {input.partnerName}씨의 현재 마음 · 앞날 · 궁합 온도까지
+                                {input.partnerName}님의 현재 마음 · 앞날 · 궁합 온도까지
                             </p>
                         </div>
                     </div>
 
-                    {/* 블러 미리보기 */}
+                    {/* 블러 미리보기 — AI가 1라운드 실마리를 이어 쓴 개인화 티저 (구버전 결과는 기본 문구) */}
                     <div style={{
                         background: 'var(--tarot-bg-card)',
                         borderRadius: 12,
@@ -294,8 +294,7 @@ export default function TarotResultPage() {
                         opacity: 0.6,
                     }}>
                         <p style={{ fontSize: 13, color: 'var(--tarot-text-2)', lineHeight: 1.7 }}>
-                            지금 이 순간 {input.partnerName}씨의 마음속에는... 선택의 기로에 서 있는
-                            감정이 감지됩니다. 세 번째 카드가 말하는 것은...
+                            {freeResult.nextTeaser || `지금 이 순간 ${input.partnerName}님의 마음속에는... 선택의 기로에 서 있는 감정이 감지됩니다. 세 번째 카드가 말하는 것은...`}
                         </p>
                     </div>
 
@@ -315,7 +314,7 @@ export default function TarotResultPage() {
                                     fontFamily: 'inherit',
                                 }}
                             >
-                                {input.partnerName}씨의 지금 마음 열어보기 · {TAROT_PRICE.toLocaleString()}원
+                                {input.partnerName}님의 지금 마음 열어보기 · {TAROT_PRICE.toLocaleString()}원
                             </motion.button>
                         ) : (
                             <motion.div

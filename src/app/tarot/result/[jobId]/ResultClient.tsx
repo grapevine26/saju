@@ -116,13 +116,13 @@ export default function TarotResultClient({ job }: Props) {
 
     const rereadBridge = input.situation === 'crush' ? {
         title: <>기류는 확인했어요.<br />이제 &lsquo;진심&rsquo;이 남았습니다</>,
-        desc: <>카드는 두 사람 사이에 흐르는 <strong style={{ color: 'var(--tarot-text-1)' }}>지금의 기류</strong>를 보여드렸어요. {input.partnerName}씨가 이 관계를 어디까지 생각하는지 — 새 질문으로 7장이 다시 답합니다.</>,
+        desc: <>카드는 두 사람 사이에 흐르는 <strong style={{ color: 'var(--tarot-text-1)' }}>지금의 기류</strong>를 보여드렸어요. {input.partnerName}님가 이 관계를 어디까지 생각하는지 — 새 질문으로 7장이 다시 답합니다.</>,
         chips: ['그 사람의 진심', '관계의 진도', '다가올 신호'],
         question: `${input.partnerName}님은 저와의 관계를 어디까지 생각하고 있나요?`,
         cta: '이 질문으로 새 카드 뽑기',
     } : input.situation === 'unrequited' ? {
         title: <>마음의 방향은 봤어요.<br />이제 &lsquo;고백&rsquo;이 남았습니다</>,
-        desc: <>카드는 {input.partnerName}씨를 향한 <strong style={{ color: 'var(--tarot-text-1)' }}>지금의 흐름</strong>을 보여드렸어요. 용기를 내면 어떤 장면이 펼쳐질지 — 새 질문으로 7장이 다시 답합니다.</>,
+        desc: <>카드는 {input.partnerName}님를 향한 <strong style={{ color: 'var(--tarot-text-1)' }}>지금의 흐름</strong>을 보여드렸어요. 용기를 내면 어떤 장면이 펼쳐질지 — 새 질문으로 7장이 다시 답합니다.</>,
         chips: ['고백의 결과', '최적의 타이밍', '조심할 신호'],
         question: '지금 고백하면 어떻게 될까요?',
         cta: '이 질문으로 새 카드 뽑기',
@@ -287,7 +287,7 @@ export default function TarotResultClient({ job }: Props) {
 
                         {/* 토픽 카드들 */}
                         {[
-                            { title: `${input.partnerName}씨가 끌리는 당신의 모습`, content: special.charmPoint },
+                            { title: `${input.partnerName}님가 끌리는 당신의 모습`, content: special.charmPoint },
                             { title: '다가가는 법', content: special.approachTip },
                             { title: '앞으로 한 달, 조심할 것', content: special.monthAhead },
                         ].map((topic, i) => (
@@ -342,7 +342,7 @@ export default function TarotResultClient({ job }: Props) {
                             마음은 확인했어요.<br />이제 &lsquo;언제&rsquo;가 남았습니다
                         </p>
                         <p style={{ fontSize: 13, color: 'var(--tarot-text-2)', lineHeight: 1.75, marginBottom: 16 }}>
-                            카드는 {input.partnerName}씨의 <strong style={{ color: 'var(--tarot-text-1)' }}>지금 마음</strong>을 보여드렸어요.
+                            카드는 {input.partnerName}님의 <strong style={{ color: 'var(--tarot-text-1)' }}>지금 마음</strong>을 보여드렸어요.
                             그 마음이 언제 다시 열리는지 — 연락하기 가장 좋은 시기는 두 사람의 사주에 새겨져 있습니다.
                         </p>
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
