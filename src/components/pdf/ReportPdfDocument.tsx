@@ -746,7 +746,7 @@ const PDF_CSS = `
   }
   .pd-root p { margin: 0; }
   /* 가운데 정렬 박스 — 위 p 리셋(.pd-root p)보다 특이도를 높여 auto 마진이 살아있게 한다 */
-  .pd-root .pd-cover-summary, .pd-root .pd-closing-text { margin-left: auto; margin-right: auto; }
+  .pd-root .pd-cover-summary, .pd-root .pd-closing-text, .pd-root .pd-chdiv-desc { margin-left: auto; margin-right: auto; }
   .pd-body { font-size: 9.5pt; color: #3D2E35; line-height: 1.95; }
   .pd-body.pre, .pre { white-space: pre-wrap; }
   .pd-avoid { break-inside: avoid; }
@@ -805,10 +805,11 @@ const PDF_CSS = `
   .pd-chdiv { text-align: center; padding-top: 70mm; }
   .pd-chdiv-no { font-size: 10pt; font-weight: 800; color: #D8485E; letter-spacing: 0.5em; text-indent: 0.5em; margin-bottom: 5mm; }
   .pd-chdiv-title { font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 26pt; color: #26181E; margin: 0; line-height: 1.4; }
-  .pd-chdiv-desc { font-size: 9.5pt; color: #66525B; max-width: 110mm; margin: 0 auto 12mm; line-height: 1.9; }
-  .pd-chdiv-parts { display: inline-block; text-align: left; }
+  .pd-chdiv-desc { font-size: 9.5pt; color: #66525B; max-width: 118mm; word-break: keep-all; text-wrap: balance; margin: 0 auto 12mm; line-height: 1.9; }
+  /* 파트 목록 — 블록 자체를 정중앙에 두고 내부는 좌측 정렬 (inline-block 중앙 배치의 어긋남 방지) */
+  .pd-chdiv-parts { display: table; margin: 0 auto; text-align: left; }
   .pd-chdiv-parts p { font-size: 9.5pt; font-weight: 700; color: #3D2E35; padding: 1.6mm 0; }
-  .pd-chdiv-parts span { color: #D8485E; font-weight: 800; font-size: 8pt; letter-spacing: 0.12em; margin-right: 4mm; }
+  .pd-chdiv-parts span { display: inline-block; width: 17mm; color: #D8485E; font-weight: 800; font-size: 8pt; letter-spacing: 0.12em; }
 
   /* ── 목차 챕터 라벨 ── */
   .pd-toc-chapter { font-size: 9pt; font-weight: 800; color: #A82E42; letter-spacing: 0.15em; margin-bottom: 1.5mm; padding-top: 2mm; }
