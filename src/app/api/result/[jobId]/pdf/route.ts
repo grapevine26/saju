@@ -105,11 +105,7 @@ export async function GET(req: NextRequest, { params }: { params: Promise<{ jobI
         });
     } catch (e) {
         console.error("PDF generation error:", e);
-        // 임시 디버그: ?debug=1 이면 에러 메시지 문자열만 노출 (원인 파악 후 제거 예정)
-        const detail = req.nextUrl.searchParams.get("debug") === "1"
-            ? String(e instanceof Error ? e.message : e).slice(0, 500)
-            : undefined;
-        return NextResponse.json({ error: "PDF 생성에 실패했습니다. 잠시 후 다시 시도해주세요.", ...(detail ? { detail } : {}) }, { status: 500 });
+        return NextResponse.json({ error: "PDF 생성에 실패했습니다. 잠시 후 다시 시도해주세요." }, { status: 500 });
     } finally {
         await browser?.close().catch(() => {});
     }
