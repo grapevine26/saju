@@ -115,7 +115,7 @@ export default function ResultClient({ job }: { job: any }) {
                 {/* PDF 표지 헤더 — 인쇄에서만 표시 */}
                 <div className="print-only pb-4 border-b border-[var(--line-soft)]">
                     <p className="text-[11px] tracking-[0.2em] text-[var(--text-muted)] mb-1">다시, 우리 · 재회 사주</p>
-                    <p className="text-xl font-bold text-[var(--text-primary)]">프리미엄 재회 분석 리포트</p>
+                    <p className="text-xl font-bold text-[var(--text-primary)]">{resultData?.compatibilityReport ? '시그니처 재회·궁합 리포트' : '프리미엄 재회 분석 리포트'}</p>
                     <p className="text-[11px] text-[var(--text-muted)] mt-2">
                         {job.created_at ? new Date(job.created_at).toLocaleDateString("ko-KR", { year: "numeric", month: "long", day: "numeric" }) + " 생성 · " : ""}dasisaju.com · 리포트 링크는 5년간 유효합니다
                     </p>

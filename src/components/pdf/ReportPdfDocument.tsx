@@ -22,14 +22,33 @@ const humanizeReason = (r: string): string => {
     return (i >= 0 ? r.slice(i + 1) : r).replace(/\s*\((주의|자제 필요)\)\s*$/, "").trim();
 };
 
-function PartHeader({ no, title, lede }: { no: string; title: string; lede?: string }) {
+function PartHeader({ label, title, lede }: { label: string; title: string; lede?: string }) {
     return (
         <div className="pd-part-head">
-            <p className="pd-part-no">PART {no}</p>
+            <p className="pd-part-no">{label}</p>
             <h2 className="pd-part-title">{title}</h2>
             {lede && <p className="pd-part-lede">{lede}</p>}
             <div className="pd-part-rule" />
         </div>
+    );
+}
+
+/** 챕터 구분 페이지 — 시그니처(재회+궁합 2부 구성)에서 책의 '부' 경계를 만든다 */
+function ChapterDivider({ no, title, desc, parts }: { no: number; title: string; desc: string; parts: string[] }) {
+    return (
+        <section className="pd-page-break">
+            <div className="pd-chdiv">
+                <p className="pd-chdiv-no">CHAPTER {no}</p>
+                <h2 className="pd-chdiv-title">{title}</h2>
+                <div className="pd-part-rule" style={{ margin: "6mm auto" }} />
+                <p className="pd-chdiv-desc">{desc}</p>
+                <div className="pd-chdiv-parts">
+                    {parts.map((p, i) => (
+                        <p key={i}><span>PART {String(i + 1).padStart(2, "0")}</span>{p}</p>
+                    ))}
+                </div>
+            </div>
+        </section>
     );
 }
 
@@ -236,16 +255,25 @@ export default function ReportPdfDocument({ job }: { job: any }) {
         { label: "해(害) — 미묘한 어긋남", color: "#5C6470", bg: "#F2F3F5", items: compat.haeList || [] },
     ].filter(g => g.items.length > 0) : [];
 
+    // 시그니처 = 재회(1장) + 궁합(2장)의 2부 구성. 파트 번호는 장마다 새로 센다.
+    const isSignature = !!cr;
     let partNo = 0;
-    const nextPart = () => String(++partNo).padStart(2, "0");
+    const ch1Label = () => `${isSignature ? "CHAPTER 1 · " : ""}PART ${String(++partNo).padStart(2, "0")}`;
+    let part2No = 0;
+    const ch2Label = () => `CHAPTER 2 · PART ${String(++part2No).padStart(2, "0")}`;
 
-    const tocItems = [
+    const ch1Items = [
         { t: "재회 가능성 진단", d: "종합 점수 · 두 사람의 사주 원국 · 관계 에너지" },
         { t: "두 사람의 관계 본질", d: "사주가 말하는 이 관계의 정체" },
         { t: "심층 재회 전략 리포트", d: `${(r.details || []).length}개 챕터 심층 분석` },
         ...(manual ? [{ t: "상대방 공략 매뉴얼", d: "금기어 · 마법 키워드 · 데이트 장소 · 문자 예시" }] : []),
         { t: "골든 윈도우", d: "월별 운기 흐름 · 연락 최적기 · 장기 로드맵" },
-        ...(cr ? [{ t: "1:1 궁합 리포트", d: "5대 지표 · 성향 비교 · 종합 등급" }] : []),
+    ];
+    const ch2Items = [
+        { t: "커플 유형 진단", d: "우리는 어떤 커플인가 · 5대 궁합 지표" },
+        { t: "극과 극 성향 비교", d: "가장 극명하게 갈리는 성향 4가지" },
+        { t: "심층 궁합 해부", d: `${cr?.compatibilityDetails?.length || 9}개 주제 심층 분석` },
+        { t: "궁합 종합 진단", d: "종합 등급 · 강점과 약점 · 최종 조언" },
     ];
 
     return (
@@ -262,8 +290,8 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                         <p className="pd-cover-service">다시, 우리 · 재회 사주</p>
                     </div>
                     <div className="pd-cover-center">
-                        <p className="pd-cover-eyebrow">PREMIUM REPORT</p>
-                        <h1 className="pd-cover-title">프리미엄 재회<br />심층 분석 리포트</h1>
+                        <p className="pd-cover-eyebrow">{isSignature ? "SIGNATURE REPORT" : "PREMIUM REPORT"}</p>
+                        <h1 className="pd-cover-title">{isSignature ? <>시그니처<br />재회·궁합 리포트</> : <>프리미엄 재회<br />심층 분석 리포트</>}</h1>
                         <div className="pd-cover-gauge"><Donut score={score} /></div>
                         {r.reunionKeyword && <p className="pd-cover-keyword">{r.reunionKeyword}</p>}
                         {r.summary && <p className="pd-cover-summary">{r.summary}</p>}
@@ -282,7 +310,8 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                     <h2 className="pd-part-title">이 리포트의 구성</h2>
                     <div className="pd-part-rule" />
                 </div>
-                {tocItems.map((it, i) => (
+                {isSignature && <p className="pd-toc-chapter">CHAPTER 1 — 재회 심층 분석</p>}
+                {ch1Items.map((it, i) => (
                     <div key={i} className="pd-toc-row">
                         <span className="pd-toc-no">{String(i + 1).padStart(2, "0")}</span>
                         <div>
@@ -291,6 +320,20 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                         </div>
                     </div>
                 ))}
+                {isSignature && (
+                    <>
+                        <p className="pd-toc-chapter" style={{ marginTop: "7mm" }}>CHAPTER 2 — 1:1 궁합 심층 분석</p>
+                        {ch2Items.map((it, i) => (
+                            <div key={i} className="pd-toc-row">
+                                <span className="pd-toc-no">{String(i + 1).padStart(2, "0")}</span>
+                                <div>
+                                    <p className="pd-toc-title">{it.t}</p>
+                                    <p className="pd-toc-desc">{it.d}</p>
+                                </div>
+                            </div>
+                        ))}
+                    </>
+                )}
                 <div className="pd-toc-note">
                     <p className="pd-body">
                         사주는 절대적인 미래를 정해놓은 것이 아니라, 우리가 나아갈 수 있는 여러 길 중
@@ -300,9 +343,16 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                 </div>
             </section>
 
+            {/* ───────── CHAPTER 1 구분 페이지 (시그니처 전용) ───────── */}
+            {isSignature && (
+                <ChapterDivider no={1} title="재회 심층 분석"
+                    desc="이별의 원인부터 다시 만날 타이밍까지 — 재회를 위한 모든 것을 다섯 파트로 분석합니다."
+                    parts={ch1Items.map(it => it.t)} />
+            )}
+
             {/* ───────────────────────── PART 1. 진단 ───────────────────────── */}
             <section className="pd-page-break">
-                <PartHeader no={nextPart()} title="재회 가능성 진단"
+                <PartHeader label={ch1Label()} title="재회 가능성 진단"
                     lede="두 사람의 사주 원국을 대조해 산출한 종합 진단입니다." />
 
                 {r.summary && (
@@ -373,7 +423,7 @@ export default function ReportPdfDocument({ job }: { job: any }) {
             {/* ───────────────────────── PART 2. 관계의 본질 ───────────────────────── */}
             {r.essenceAnalysis && (
                 <section className="pd-page-break">
-                    <PartHeader no={nextPart()} title="두 사람의 관계 본질"
+                    <PartHeader label={ch1Label()} title="두 사람의 관계 본질"
                         lede="사주가 말하는, 두 분이 만나고 헤어질 수밖에 없었던 이유." />
                     <div className="pd-essence pd-avoid">
                         {r.essenceAnalysis.subtitle && <p className="pd-essence-sub">{r.essenceAnalysis.subtitle}</p>}
@@ -385,7 +435,7 @@ export default function ReportPdfDocument({ job }: { job: any }) {
             {/* ───────────────────────── PART 3. 심층 전략 ───────────────────────── */}
             {r.details?.length > 0 && (
                 <section className="pd-page-break">
-                    <PartHeader no={nextPart()} title="심층 재회 전략 리포트"
+                    <PartHeader label={ch1Label()} title="심층 재회 전략 리포트"
                         lede={`${r.details.length}개의 챕터로 성향·심리·타이밍·전략을 순서대로 분석합니다.`} />
                     {r.details.map((d: any, i: number) => (
                         <ChapterCard key={i} no={String(i + 1).padStart(2, "0")}
@@ -397,7 +447,7 @@ export default function ReportPdfDocument({ job }: { job: any }) {
             {/* ───────────────────────── PART 4. 공략 매뉴얼 ───────────────────────── */}
             {manual && (
                 <section className="pd-page-break">
-                    <PartHeader no={nextPart()} title="상대방 공략 매뉴얼"
+                    <PartHeader label={ch1Label()} title="상대방 공략 매뉴얼"
                         lede="그 사람의 사주 성향에 맞춘 실전 대응 가이드입니다." />
 
                     {manual.forbiddenWords?.length > 0 && (
@@ -460,7 +510,7 @@ export default function ReportPdfDocument({ job }: { job: any }) {
             {/* ───────────────────────── PART 5. 골든 윈도우 ───────────────────────── */}
             {(windows.length > 0 || monthlyEnergies.length > 0 || roadmap.length > 0) && (
                 <section className="pd-page-break">
-                    <PartHeader no={nextPart()} title="골든 윈도우"
+                    <PartHeader label={ch1Label()} title="골든 윈도우"
                         lede="앞으로의 운기 흐름과, 연락을 넣기 가장 좋은 시기입니다." />
 
                     {windows.length > 0 && (
@@ -560,34 +610,43 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                 </section>
             )}
 
-            {/* ───────────────────────── PART 6. 궁합 리포트 ───────────────────────── */}
+            {/* ───────── CHAPTER 2. 1:1 궁합 심층 분석 (시그니처 전용, 4개 파트) ───────── */}
             {cr && (
-                <section className="pd-page-break">
-                    <PartHeader no={nextPart()} title="1:1 궁합 리포트"
-                        lede="두 사람의 사주를 1:1로 맞대어 본 심층 궁합 분석입니다." />
+                <>
+                    <ChapterDivider no={2} title="1:1 궁합 심층 분석"
+                        desc="두 사람의 사주를 1:1로 맞대어, 재회 이후 이 관계가 어디까지 갈 수 있는지를 네 파트로 해부합니다."
+                        parts={ch2Items.map(it => it.t)} />
 
-                    {cr.coupleType && (
-                        <div className="pd-couple pd-avoid">
-                            {cr.coupleType.emoji && <p className="pd-couple-emoji">{cr.coupleType.emoji}</p>}
-                            <p className="pd-couple-label">{cr.coupleType.label}</p>
-                            <p className="pd-body pre" style={{ textAlign: "left" }}>{cr.coupleType.description}</p>
-                        </div>
-                    )}
+                    {/* CH2 PART 1. 커플 유형 진단 */}
+                    <section className="pd-page-break">
+                        <PartHeader label={ch2Label()} title="커플 유형 진단"
+                            lede="두 사람의 궁합을 관통하는 유형과 5대 지표입니다." />
 
-                    {cr.radarChart && (
-                        <div className="pd-avoid">
-                            <H3>5대 궁합 지표</H3>
-                            <div className="pd-card">
-                                <Radar data={cr.radarChart} />
-                                {cr.radarChart.subtitle && <p className="pd-radar-sub">{cr.radarChart.subtitle}</p>}
-                                {cr.radarChart.summary && <p className="pd-body pre" style={{ marginTop: "2mm" }}>{cr.radarChart.summary}</p>}
+                        {cr.coupleType && (
+                            <div className="pd-couple pd-avoid">
+                                {cr.coupleType.emoji && <p className="pd-couple-emoji">{cr.coupleType.emoji}</p>}
+                                <p className="pd-couple-label">{cr.coupleType.label}</p>
+                                <p className="pd-body pre" style={{ textAlign: "left" }}>{cr.coupleType.description}</p>
                             </div>
-                        </div>
-                    )}
+                        )}
 
+                        {cr.radarChart && (
+                            <div className="pd-avoid">
+                                <H3>5대 궁합 지표</H3>
+                                <div className="pd-card">
+                                    <Radar data={cr.radarChart} />
+                                    {cr.radarChart.subtitle && <p className="pd-radar-sub">{cr.radarChart.subtitle}</p>}
+                                    {cr.radarChart.summary && <p className="pd-body pre" style={{ marginTop: "2mm" }}>{cr.radarChart.summary}</p>}
+                                </div>
+                            </div>
+                        )}
+                    </section>
+
+                    {/* CH2 PART 2. 극과 극 성향 비교 */}
                     {cr.vsCards?.length > 0 && (
-                        <div>
-                            <H3>극과 극 성향 비교</H3>
+                        <section className="pd-page-break">
+                            <PartHeader label={ch2Label()} title="극과 극 성향 비교"
+                                lede="같은 상황에서 정반대로 반응하는 두 사람 — 가장 극명하게 갈리는 지점들입니다." />
                             {cr.vsCards.map((c: any, i: number) => (
                                 <div key={i} className="pd-vs pd-avoid">
                                     <p className="pd-vs-topic">{c.topic}</p>
@@ -598,36 +657,43 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                                     <p className="pd-body pre" style={{ marginTop: "2.5mm" }}>{c.explanation}</p>
                                 </div>
                             ))}
-                        </div>
+                        </section>
                     )}
 
+                    {/* CH2 PART 3. 심층 궁합 해부 */}
                     {cr.compatibilityDetails?.length > 0 && (
-                        <div>
-                            <H3>심층 궁합 해부</H3>
+                        <section className="pd-page-break">
+                            <PartHeader label={ch2Label()} title="심층 궁합 해부"
+                                lede={`카르마부터 재물 시너지까지 — ${cr.compatibilityDetails.length}개 주제로 파고듭니다.`} />
                             {cr.compatibilityDetails.map((d: any, i: number) => (
                                 <ChapterCard key={i} no={String(i + 1).padStart(2, "0")} title={d.title} content={d.content} />
                             ))}
-                        </div>
+                        </section>
                     )}
 
+                    {/* CH2 PART 4. 궁합 종합 진단 */}
                     {cr.overallGrade && (
-                        <div className="pd-grade pd-avoid">
-                            <div className="pd-grade-badge">{cr.overallGrade.grade}</div>
-                            <p className="pd-grade-label">{cr.overallGrade.label}</p>
-                            <div className="pd-grade-cols">
-                                <div className="pd-grade-col" style={{ background: "#EDF7F2" }}>
-                                    <p className="pd-grade-col-title" style={{ color: "#2E8B62" }}>강점</p>
-                                    {(cr.overallGrade.strengths || []).map((s: string, i: number) => <p key={i}>· {s}</p>)}
+                        <section className="pd-page-break">
+                            <PartHeader label={ch2Label()} title="궁합 종합 진단"
+                                lede="모든 궁합 데이터를 종합한 최종 등급과 조언입니다." />
+                            <div className="pd-grade pd-avoid">
+                                <div className="pd-grade-badge">{cr.overallGrade.grade}</div>
+                                <p className="pd-grade-label">{cr.overallGrade.label}</p>
+                                <div className="pd-grade-cols">
+                                    <div className="pd-grade-col" style={{ background: "#EDF7F2" }}>
+                                        <p className="pd-grade-col-title" style={{ color: "#2E8B62" }}>강점</p>
+                                        {(cr.overallGrade.strengths || []).map((s: string, i: number) => <p key={i}>· {s}</p>)}
+                                    </div>
+                                    <div className="pd-grade-col" style={{ background: "#FBF0F2" }}>
+                                        <p className="pd-grade-col-title" style={{ color: "#A82E42" }}>약점</p>
+                                        {(cr.overallGrade.weaknesses || []).map((w: string, i: number) => <p key={i}>· {w}</p>)}
+                                    </div>
                                 </div>
-                                <div className="pd-grade-col" style={{ background: "#FBF0F2" }}>
-                                    <p className="pd-grade-col-title" style={{ color: "#A82E42" }}>약점</p>
-                                    {(cr.overallGrade.weaknesses || []).map((w: string, i: number) => <p key={i}>· {w}</p>)}
-                                </div>
+                                {cr.overallGrade.finalMessage && <p className="pd-body pre" style={{ marginTop: "3mm" }}>{cr.overallGrade.finalMessage}</p>}
                             </div>
-                            {cr.overallGrade.finalMessage && <p className="pd-body pre" style={{ marginTop: "3mm" }}>{cr.overallGrade.finalMessage}</p>}
-                        </div>
+                        </section>
                     )}
-                </section>
+                </>
             )}
 
             {/* ───────────────────────── 마치며 ───────────────────────── */}
@@ -728,12 +794,24 @@ const PDF_CSS = `
   .pd-cover-foot { font-size: 8pt; color: rgba(245,233,236,0.45); line-height: 1.9; }
 
   /* ── 목차 ── */
-  .pd-toc-head { margin-bottom: 10mm; padding-top: 6mm; }
-  .pd-toc-row { display: flex; gap: 6mm; align-items: baseline; padding: 4.5mm 1mm; border-bottom: 1px solid #F0E7E9; }
-  .pd-toc-no { font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 13pt; color: #D8485E; }
-  .pd-toc-title { font-weight: 800; font-size: 11.5pt; color: #26181E; }
+  .pd-toc-head { margin-bottom: 8mm; padding-top: 6mm; }
+  .pd-toc-row { display: flex; gap: 6mm; align-items: baseline; padding: 3.2mm 1mm; border-bottom: 1px solid #F0E7E9; }
+  .pd-toc-no { font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 12pt; color: #D8485E; }
+  .pd-toc-title { font-weight: 800; font-size: 11pt; color: #26181E; }
   .pd-toc-desc { font-size: 8.5pt; color: #A08D96; margin-top: 0.5mm; }
-  .pd-toc-note { margin-top: 10mm; padding: 6mm 7mm; background: #FBF0F2; border-radius: 3mm; }
+  .pd-toc-note { margin-top: 7mm; padding: 5mm 6mm; background: #FBF0F2; border-radius: 3mm; break-inside: avoid; }
+
+  /* ── 챕터 구분 페이지 ── */
+  .pd-chdiv { text-align: center; padding-top: 70mm; }
+  .pd-chdiv-no { font-size: 10pt; font-weight: 800; color: #D8485E; letter-spacing: 0.5em; text-indent: 0.5em; margin-bottom: 5mm; }
+  .pd-chdiv-title { font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 26pt; color: #26181E; margin: 0; line-height: 1.4; }
+  .pd-chdiv-desc { font-size: 9.5pt; color: #66525B; max-width: 110mm; margin: 0 auto 12mm; line-height: 1.9; }
+  .pd-chdiv-parts { display: inline-block; text-align: left; }
+  .pd-chdiv-parts p { font-size: 9.5pt; font-weight: 700; color: #3D2E35; padding: 1.6mm 0; }
+  .pd-chdiv-parts span { color: #D8485E; font-weight: 800; font-size: 8pt; letter-spacing: 0.12em; margin-right: 4mm; }
+
+  /* ── 목차 챕터 라벨 ── */
+  .pd-toc-chapter { font-size: 9pt; font-weight: 800; color: #A82E42; letter-spacing: 0.15em; margin-bottom: 1.5mm; padding-top: 2mm; }
 
   /* ── 파트 헤더 ── */
   .pd-part-head { padding-top: 6mm; margin-bottom: 8mm; }
