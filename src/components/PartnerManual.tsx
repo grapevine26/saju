@@ -28,7 +28,7 @@ export default function PartnerManual({ data }: PartnerManualProps) {
     return (
         <div className="space-y-4">
             {/* 탭 바 */}
-            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1">
+            <div className="flex gap-1.5 overflow-x-auto scrollbar-hide pb-1 print-hide">
                 {tabs.map((tab) => (
                     <button
                         key={tab.key}
@@ -55,8 +55,10 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                 transition={{ duration: 0.2 }}
                 className="space-y-3"
             >
-                {/* 🚫 금기어 */}
-                {activeTab === "forbidden" && data.forbiddenWords.map((item, i) => (
+                {/* 🚫 금기어 — 비활성 탭도 DOM에 남겨 인쇄(PDF) 시 전부 표시 */}
+                <div className={`${activeTab === "forbidden" ? "block" : "hidden"} print-show space-y-3 print-avoid`}>
+                <p className="print-only text-[12px] font-bold text-rose-400">🚫 금기어</p>
+                {data.forbiddenWords.map((item, i) => (
                     <div key={i} className="bg-rose-500/[0.04] border border-rose-500/15 rounded-xl p-4">
                         <div className="flex items-start gap-3">
                             <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-rose-500/15 border border-rose-500/25 flex items-center justify-center text-[11px] font-black text-rose-400">
@@ -73,9 +75,12 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                         </div>
                     </div>
                 ))}
+                </div>
 
                 {/* 💎 마법 키워드 */}
-                {activeTab === "magic" && data.magicKeywords.map((item, i) => (
+                <div className={`${activeTab === "magic" ? "block" : "hidden"} print-show space-y-3 print-avoid`}>
+                <p className="print-only text-[12px] font-bold text-emerald-400 pt-2">💎 마법 키워드</p>
+                {data.magicKeywords.map((item, i) => (
                     <div key={i} className="bg-emerald-500/[0.04] border border-emerald-500/15 rounded-xl p-4">
                         <div className="flex items-start gap-3">
                             <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-emerald-500/15 border border-emerald-500/25 flex items-center justify-center text-[11px] font-black text-emerald-400">
@@ -92,9 +97,12 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                         </div>
                     </div>
                 ))}
+                </div>
 
                 {/* 📍 데이트 장소 */}
-                {activeTab === "date" && data.dateSpots.map((item, i) => (
+                <div className={`${activeTab === "date" ? "block" : "hidden"} print-show space-y-3 print-avoid`}>
+                <p className="print-only text-[12px] font-bold text-indigo-400 pt-2">📍 데이트 장소</p>
+                {data.dateSpots.map((item, i) => (
                     <div key={i} className="bg-indigo-500/[0.04] border border-indigo-500/15 rounded-xl p-4">
                         <div className="flex items-start gap-3">
                             <span className="flex-shrink-0 w-7 h-7 rounded-lg bg-indigo-500/15 border border-indigo-500/25 flex items-center justify-center text-[13px]">
@@ -111,9 +119,12 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                         </div>
                     </div>
                 ))}
+                </div>
 
                 {/* 💬 문자 예시 */}
-                {activeTab === "text" && data.textExamples.map((item, i) => (
+                <div className={`${activeTab === "text" ? "block" : "hidden"} print-show space-y-3 print-avoid`}>
+                <p className="print-only text-[12px] font-bold text-[var(--accent-gold)] pt-2">💬 문자 예시</p>
+                {data.textExamples.map((item, i) => (
                     <div key={i} className="bg-white/[0.03] border border-white/[0.10] rounded-xl p-4 space-y-3">
                         <p className="text-[12px] font-bold text-[var(--accent-gold)] tracking-wide" style={{opacity:0.8}}>
                             💬 상황: {item.situation}
@@ -130,6 +141,7 @@ export default function PartnerManual({ data }: PartnerManualProps) {
                         </div>
                     </div>
                 ))}
+                </div>
             </motion.div>
         </div>
     );

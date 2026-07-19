@@ -540,3 +540,27 @@ input[type="number"] {
   10%, 85% { opacity: 1; transform: translateX(-50%) translateY(0); }
   100% { opacity: 0; transform: translateX(-50%) translateY(-6px); }
 }
+/* ── 프리미엄 리포트 PDF 저장(인쇄) ──
+   화면에선 탭/아코디언으로 접혀 있는 콘텐츠를 인쇄 시 전부 펼친다.
+   .print-hide  : 인쇄에서 숨김 (헤더·탭바·타로 브릿지·후기 폼)
+   .print-show  : 화면에선 hidden이어도 인쇄에선 강제 표시
+   .print-only  : 화면에선 안 보이고 인쇄에서만 표시 (표지 헤더 등)
+   .print-avoid : 카드·차트가 페이지 경계에서 잘리지 않게 통째로 넘김 */
+.print-only { display: none; }
+
+@media print {
+  @page { size: A4; margin: 10mm; }
+  html, body { background: #0A090C !important; }
+  * {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+  .print-hide { display: none !important; }
+  .print-show { display: block !important; }
+  .print-only { display: block !important; }
+  .glass-card, .print-avoid { break-inside: avoid; }
+  /* framer-motion whileInView: 스크롤 전 요소가 인라인 opacity 0으로 남아
+     인쇄 시 투명하게 찍힘 → 인라인 opacity를 가진 요소만 강제 표시 */
+  [style*="opacity"] { opacity: 1 !important; }
+  * { animation: none !important; transition: none !important; }
+}

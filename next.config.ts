@@ -1,6 +1,8 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
+  // PDF 생성용 headless Chrome — 번들링하지 않고 런타임에 로드해야 바이너리가 깨지지 않음
+  serverExternalPackages: ["puppeteer-core", "@sparticuz/chromium"],
   async redirects() {
     return [
       // 작명 서비스 리브랜딩: 명담(/naming) → 윤명(/yunmyeong)

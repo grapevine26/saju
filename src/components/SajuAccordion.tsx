@@ -146,8 +146,8 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
                                 </div>
                             </button>
 
-                            {isOpen && (
-                                <div className="px-4 pb-5 pt-1 relative">
+                            {/* 접혀 있어도 DOM에 남겨 인쇄(PDF 저장) 시 전부 펼쳐지게 한다 */}
+                            <div className={`px-4 pb-5 pt-1 relative ${isOpen ? "block" : "hidden"} print-show`}>
                                     <div className={`mt-2 p-4 bg-[var(--bg-glass)] rounded-xl border border-[var(--border-glass)] transition-all ${isLocked ? 'blur-sm select-none opacity-40' : ''}`}>
                                         {detail.subtitle && (
                                             <div className="font-bold text-[var(--accent-gold)] text-[15px] mb-4 leading-snug flex items-start gap-2">
@@ -182,7 +182,6 @@ export default function SajuAccordion({ details, isPremium = true, onUpgrade, mo
                                         </div>
                                     )}
                                 </div>
-                            )}
                         </div>
                     </div>
                 );
