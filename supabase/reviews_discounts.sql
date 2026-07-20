@@ -18,14 +18,20 @@ CREATE TABLE IF NOT EXISTS reviews (
 CREATE INDEX IF NOT EXISTS idx_reviews_service ON reviews (service, created_at DESC);
 
 CREATE TABLE IF NOT EXISTS discount_codes (
-  code          TEXT        PRIMARY KEY,             -- 예: RE20-A3F9K2
+  code          TEXT        PRIMARY KEY,             -- 예: RE20-A3F9K2, 묘연10(공유)
   created_at    TIMESTAMPTZ DEFAULT NOW(),
   percent       INTEGER     NOT NULL DEFAULT 20 CHECK (percent BETWEEN 1 AND 90),
   review_id     UUID        REFERENCES reviews(id),
   expires_at    TIMESTAMPTZ NOT NULL,
-  used_at       TIMESTAMPTZ,                          -- NULL = 미사용
-  used_order_id TEXT                                  -- 사용된 주문 (감사용)
+  used_at       TIMESTAMPTZ,                          -- 1회용: NULL = 미사용
+  used_order_id TEXT,                                 -- 마지막 사용 주문 (감사용)
+  max_uses      INTEGER,                              -- NULL = 1회용 · 값 있으면 공유 코드(횟수 한도)
+  use_count     INTEGER     NOT NULL DEFAULT 0        -- 공유 코드 사용 횟수
 );
+
+-- 기존 테이블에 공유 코드 컬럼 추가 (2026-07-21 · 이미 생성된 DB에서 1회 실행)
+ALTER TABLE discount_codes ADD COLUMN IF NOT EXISTS max_uses INTEGER;
+ALTER TABLE discount_codes ADD COLUMN IF NOT EXISTS use_count INTEGER NOT NULL DEFAULT 0;
 
 -- RLS 활성화 + 정책 없음 = anon/authenticated 완전 차단, service role만 접근
 ALTER TABLE reviews        ENABLE ROW LEVEL SECURITY;
