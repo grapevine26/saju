@@ -56,7 +56,7 @@ export default function PremiumRadarChart({ data }: { data: RadarData }) {
                         </span>
                     </div>
                 )}
-                <p className="text-[14px] text-[var(--text-secondary)] font-medium leading-[1.8] break-keep text-left">
+                <p className="text-[14px] text-[var(--text-secondary)] font-medium leading-[1.8] break-keep text-left whitespace-pre-wrap">
                     {data.summary}
                 </p>
             </div>

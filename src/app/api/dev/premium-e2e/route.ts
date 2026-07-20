@@ -108,7 +108,7 @@ export async function GET(req: NextRequest) {
         callGemini(model3, prompt3),
         (async () => {
             if (packageId === "signature") {
-                const model4 = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY, generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 16384 } });
+                const model4 = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY, generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 32768 } });
                 compatibilityReport = await callGemini(model4, buildPrompt4(promptCtx));
             }
         })(),

@@ -256,7 +256,7 @@ export const processPremiumAnalysis = inngest.createFunction(
             const model4 = genAI.getGenerativeModel({
               model: "gemini-3.5-flash",
               systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY,
-              generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 16384 }
+              generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 32768 }
             });
             const prompt4 = buildPrompt4(promptCtx);
             compatibilityReport = await callGemini(model4, prompt4);

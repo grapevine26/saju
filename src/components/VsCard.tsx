@@ -44,7 +44,7 @@ export default function VsCard({ topic, myTrait, partnerTrait, explanation, inde
             </div>
 
             <div className="p-4 bg-[var(--bg-glass)] border-t border-[var(--line-soft)]">
-                <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7] font-medium break-keep">
+                <p className="text-[14px] text-[var(--text-secondary)] leading-[1.7] font-medium break-keep whitespace-pre-wrap">
                     {explanation}
                 </p>
             </div>
