@@ -491,8 +491,9 @@ export default function ResultClient({ job }: { job: any }) {
                                             </div>
                                         </div>
 
-                                        {/* 최종 메시지 */}
+                                        {/* 최종 메시지 — 관계 처방전 */}
                                         <div className="bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-xl p-4">
+                                            <p className="text-[11px] font-bold text-[var(--accent-gold)] mb-2.5 tracking-wide">💊 관계 처방전</p>
                                             <p className="text-[13px] text-[var(--text-secondary)] leading-[1.8] whitespace-pre-wrap font-medium">
                                                 {resultData.compatibilityReport.overallGrade.finalMessage}
                                             </p>

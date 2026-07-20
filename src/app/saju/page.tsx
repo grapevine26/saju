@@ -457,7 +457,7 @@ function Plans({ onStart }: { onStart: () => void }) {
               <div><span style={{ fontFamily:C.serif, fontSize:20, fontWeight:700, color:C.accentBright }}>34,900원</span></div>
             </div>
           </div>
-          {['Premium 전체 포함','📊 5가지 궁합 레이더 차트 (소통·애정·친밀감·미래·갈등)','✂️ 나와 상대방의 성향 비교','💌 커플 유형 진단 및 궁합 심층 해석','🏅 종합 궁합 등급 및 관계 처방전'].map((f,i) => (
+          {['Premium 전체 포함','📊 5가지 궁합 레이더 차트 (소통·애정·친밀감·미래·갈등)','✂️ 나와 상대방의 성향 비교','💘 커플 유형 진단','📚 9가지 궁합 심층 리포트','🏅 종합 궁합 등급 및 관계 처방전'].map((f,i) => (
             <div key={i} style={{ display:'flex', gap:9, fontSize:12.5, color:C.sub, padding:'5px 0', alignItems:'center' }}>
               <span style={{ color:C.accentBright, fontWeight:700, flexShrink:0 }}>✓</span> {f}
             </div>

@@ -695,7 +695,12 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                                         {(cr.overallGrade.weaknesses || []).map((w: string, i: number) => <p key={i}>· {w}</p>)}
                                     </div>
                                 </div>
-                                {cr.overallGrade.finalMessage && <p className="pd-body pre" style={{ marginTop: "3mm" }}>{cr.overallGrade.finalMessage}</p>}
+                                {cr.overallGrade.finalMessage && (
+                                    <div className="pd-grade-rx">
+                                        <p className="pd-grade-rx-label">💊 관계 처방전</p>
+                                        <p className="pd-body pre" style={{ textAlign: "left" }}>{cr.overallGrade.finalMessage}</p>
+                                    </div>
+                                )}
                             </div>
                         </section>
                     )}
@@ -957,6 +962,8 @@ const PDF_CSS = `
   .pd-grade-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; text-align: left; }
   .pd-grade-col { border-radius: 2.5mm; padding: 3.5mm 4mm; font-size: 8.8pt; line-height: 1.8; color: #3D2E35; }
   .pd-grade-col-title { font-weight: 800; font-size: 8.5pt; letter-spacing: 0.1em; margin-bottom: 1.5mm; }
+  .pd-grade-rx { margin-top: 4mm; padding: 4mm 4.5mm; background: #FFFDFC; border: 1px solid #EADDE0; border-radius: 2.5mm; text-align: left; }
+  .pd-grade-rx-label { font-size: 8.5pt; font-weight: 800; color: #A82E42; letter-spacing: 0.12em; margin-bottom: 2mm; }
 
   /* ── 마치며 ── */
   .pd-closing { text-align: center; padding-top: 48mm; }

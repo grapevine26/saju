@@ -62,6 +62,20 @@ export const parseJsonResponse = (raw: string): any => {
 };
 
 /**
+ * 모델이 이스케이프 시퀀스를 그대로 텍스트로 출력한 경우("...습니다.\\n\\n장점은...")
+ * 실제 줄바꿈으로 복원한다. 한국어 리포트 본문에 리터럴 백슬래시-n이 의도로 쓰일 일은 없다.
+ */
+const fixLiteralNewlines = (v: any): any => {
+  if (typeof v === "string") return v.replace(/\\r/g, "").replace(/\\n/g, "\n");
+  if (Array.isArray(v)) return v.map(fixLiteralNewlines);
+  if (v && typeof v === "object") {
+    for (const k of Object.keys(v)) v[k] = fixLiteralNewlines(v[k]);
+    return v;
+  }
+  return v;
+};
+
+/**
  * 재시도 포함 Gemini AI 호출 헬퍼
  * @param model - Gemini 모델 인스턴스
  * @param prompt - 프롬프트 문자열
@@ -88,7 +102,7 @@ export const callGemini = async (
           throw new Error(`Gemini 출력이 토큰 한도에서 잘림 (${text.length}자)`);
         }
       }
-      return parseJsonResponse(text);
+      return fixLiteralNewlines(parseJsonResponse(text));
     } catch (e) {
       attempt++;
       if (attempt > maxRetries) {
