@@ -525,6 +525,12 @@ export default function HistoryDetailPage() {
                                             {resultData.compatibilityReport.coupleType.label}
                                         </h3>
                                         <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto my-4 rounded-full" />
+                                        {resultData.compatibilityReport.coupleType.natureMetaphor && (
+                                            <p className="text-[14px] text-indigo-200/90 leading-[1.9] whitespace-pre-wrap text-left mb-4 px-1"
+                                                style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                                                {resultData.compatibilityReport.coupleType.natureMetaphor}
+                                            </p>
+                                        )}
                                         <p className="text-[13px] text-[var(--text-secondary)] leading-[1.85] whitespace-pre-wrap font-medium text-left">
                                             {resultData.compatibilityReport.coupleType.description}
                                         </p>
@@ -584,6 +590,13 @@ export default function HistoryDetailPage() {
                                 >
                                     <div className="absolute top-0 left-0 right-0 h-px bg-gradient-to-r from-transparent via-[var(--accent-amber)]/30 to-transparent" />
                                     <div className="p-6">
+                                        {/* 한 문장 결론 */}
+                                        {resultData.compatibilityReport.overallGrade.oneLiner && (
+                                            <p className="text-center text-[16px] font-bold text-[var(--text-primary)] leading-[1.7] mb-6 px-2"
+                                                style={{ fontFamily: "'Noto Serif KR', serif" }}>
+                                                &ldquo;{resultData.compatibilityReport.overallGrade.oneLiner}&rdquo;
+                                            </p>
+                                        )}
                                         {/* 등급 뱃지 */}
                                         <div className="text-center mb-5">
                                             <div className={`inline-flex items-center justify-center w-20 h-20 rounded-2xl text-4xl font-black mb-2 ${resultData.compatibilityReport.overallGrade.grade === 'S' ? 'bg-gradient-to-br from-[#F06A7E]/20 to-[#D8485E]/10 text-[#F06A7E] border border-[#D8485E]/30 shadow-[0_0_30px_rgba(216,72,94,0.20)]' :
@@ -616,6 +629,25 @@ export default function HistoryDetailPage() {
                                                 </div>
                                             </div>
                                         </div>
+
+                                        {/* 영역별 등급표 */}
+                                        {resultData.compatibilityReport.overallGrade.categoryGrades?.length > 0 && (
+                                            <div className="mb-5 rounded-xl border border-[var(--border-glass)] overflow-hidden">
+                                                {resultData.compatibilityReport.overallGrade.categoryGrades.map((cg: any, i: number) => (
+                                                    <div key={i} className={`flex items-center gap-3 px-4 py-2.5 ${i > 0 ? 'border-t border-[var(--line-soft)]' : ''}`}>
+                                                        <span className="w-14 flex-shrink-0 text-[12px] font-bold text-[var(--text-secondary)]">{cg.area}</span>
+                                                        <span className={`w-7 h-7 flex-shrink-0 rounded-lg flex items-center justify-center text-[13px] font-black ${
+                                                            cg.grade === 'S' ? 'bg-[#F06A7E]/20 text-[#F06A7E]' :
+                                                            cg.grade === 'A' ? 'bg-emerald-500/15 text-emerald-400' :
+                                                            cg.grade === 'B' ? 'bg-blue-500/15 text-blue-400' :
+                                                            cg.grade === 'C' ? 'bg-slate-500/15 text-slate-400' :
+                                                            'bg-rose-500/15 text-rose-400'
+                                                        }`}>{cg.grade}</span>
+                                                        <span className="text-[12px] text-[var(--text-muted)] leading-snug break-keep">{cg.comment}</span>
+                                                    </div>
+                                                ))}
+                                            </div>
+                                        )}
 
                                         {/* 최종 메시지 — 관계 처방전 */}
                                         <div className="bg-[var(--bg-glass)] border border-[var(--border-glass)] rounded-xl p-4">

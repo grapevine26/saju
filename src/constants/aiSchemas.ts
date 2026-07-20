@@ -160,20 +160,37 @@ export const schema4 = {
       properties: {
         label: { type: "string" as any },
         emoji: { type: "string" as any },
+        // 두 기질을 자연물로 의인화한 오프닝 비유 (예: 큰 산과 그 비탈에 피는 꽃)
+        natureMetaphor: { type: "string" as any },
         description: { type: "string" as any }
       },
-      required: ["label", "emoji", "description"]
+      required: ["label", "emoji", "natureMetaphor", "description"]
     },
     overallGrade: {
       type: "object" as any,
       properties: {
         grade: { type: "string" as any },
         label: { type: "string" as any },
+        // 이 인연을 꿰뚫는 한 문장 선언 — 종합 진단 상단 인용 타이포로 노출
+        oneLiner: { type: "string" as any },
+        // 영역별 등급표 (연애·결혼생활·소통·재물·가정)
+        categoryGrades: {
+          type: "array" as any,
+          items: {
+            type: "object" as any,
+            properties: {
+              area: { type: "string" as any },
+              grade: { type: "string" as any },
+              comment: { type: "string" as any }
+            },
+            required: ["area", "grade", "comment"]
+          }
+        },
         strengths: { type: "array" as any, items: { type: "string" as any } },
         weaknesses: { type: "array" as any, items: { type: "string" as any } },
         finalMessage: { type: "string" as any }
       },
-      required: ["grade", "label", "strengths", "weaknesses", "finalMessage"]
+      required: ["grade", "label", "oneLiner", "categoryGrades", "strengths", "weaknesses", "finalMessage"]
     }
   },
   required: ["radarChart", "vsCards", "compatibilityDetails", "coupleType", "overallGrade"]

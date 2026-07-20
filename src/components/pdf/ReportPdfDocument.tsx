@@ -632,6 +632,9 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                             <div className="pd-couple pd-avoid">
                                 {cr.coupleType.emoji && <p className="pd-couple-emoji">{cr.coupleType.emoji}</p>}
                                 <p className="pd-couple-label">{cr.coupleType.label}</p>
+                                {cr.coupleType.natureMetaphor && (
+                                    <p className="pd-couple-metaphor">{cr.coupleType.natureMetaphor}</p>
+                                )}
                                 <p className="pd-body pre" style={{ textAlign: "left" }}>{cr.coupleType.description}</p>
                             </div>
                         )}
@@ -683,8 +686,22 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                             <PartHeader label={ch2Label()} title="궁합 종합 진단"
                                 lede="모든 궁합 데이터를 종합한 최종 등급과 조언입니다." />
                             <div className="pd-grade pd-avoid">
+                                {cr.overallGrade.oneLiner && (
+                                    <p className="pd-grade-oneliner">&ldquo;{cr.overallGrade.oneLiner}&rdquo;</p>
+                                )}
                                 <div className="pd-grade-badge">{cr.overallGrade.grade}</div>
                                 <p className="pd-grade-label">{cr.overallGrade.label}</p>
+                                {cr.overallGrade.categoryGrades?.length > 0 && (
+                                    <div className="pd-cat-grades">
+                                        {cr.overallGrade.categoryGrades.map((cg: any, i: number) => (
+                                            <div key={i} className="pd-cat-row">
+                                                <span className="pd-cat-area">{cg.area}</span>
+                                                <span className="pd-cat-grade">{cg.grade}</span>
+                                                <span className="pd-cat-comment">{cg.comment}</span>
+                                            </div>
+                                        ))}
+                                    </div>
+                                )}
                                 <div className="pd-grade-cols">
                                     <div className="pd-grade-col" style={{ background: "#EDF7F2" }}>
                                         <p className="pd-grade-col-title" style={{ color: "#2E8B62" }}>강점</p>
@@ -946,6 +963,7 @@ const PDF_CSS = `
   .pd-couple { text-align: center; border: 1px solid rgba(79,91,213,0.25); border-radius: 3mm; padding: 6mm 7mm; background: linear-gradient(160deg, #EFF1FB, #FFFDFC); margin-bottom: 5mm; }
   .pd-couple-emoji { font-size: 22pt; line-height: 1.2; margin-bottom: 2mm; }
   .pd-couple-label { font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 15pt; color: #26181E; margin-bottom: 3mm; }
+  .pd-couple-metaphor { font-family: 'Noto Serif KR', serif; font-size: 10.5pt; font-weight: 600; color: #4F5BD5; line-height: 2.0; text-align: left; white-space: pre-wrap; margin-bottom: 3.5mm; padding: 3.5mm 4mm; background: rgba(79,91,213,0.06); border-radius: 2.5mm; }
   .pd-radar-sub { text-align: center; font-size: 10pt; font-weight: 800; color: #A82E42; margin-top: 2mm; }
   .pd-vs { border: 1px solid #EADDE0; border-radius: 3mm; padding: 4.5mm 5mm; margin-bottom: 3.5mm; background: #FFFDFC; }
   .pd-vs-topic { font-size: 10.5pt; font-weight: 800; color: #26181E; text-align: center; margin-bottom: 2.5mm; }
@@ -959,6 +977,13 @@ const PDF_CSS = `
   .pd-grade { text-align: center; border: 1.5px solid rgba(216,72,94,0.35); border-radius: 3mm; padding: 6mm 7mm; background: linear-gradient(165deg, #FBF0F2 0%, #FFFDFC 55%); margin-top: 5mm; }
   .pd-grade-badge { width: 18mm; height: 18mm; margin: 0 auto 2mm; border-radius: 4mm; background: linear-gradient(135deg, #F06A7E, #A82E42); color: #FFF0F2; font-family: 'Noto Serif KR', serif; font-weight: 900; font-size: 20pt; display: flex; align-items: center; justify-content: center; }
   .pd-grade-label { font-size: 11pt; font-weight: 800; color: #26181E; margin-bottom: 4mm; }
+  .pd-grade-oneliner { font-family: 'Noto Serif KR', serif; font-size: 14pt; font-weight: 900; color: #26181E; line-height: 1.7; margin-bottom: 6mm; }
+  .pd-cat-grades { text-align: left; border: 1px solid #EADDE0; border-radius: 2.5mm; overflow: hidden; margin-bottom: 4mm; background: #FFFDFC; }
+  .pd-cat-row { display: flex; align-items: center; gap: 3mm; padding: 2.2mm 4mm; border-bottom: 1px solid #F5EEF0; }
+  .pd-cat-row:last-child { border-bottom: none; }
+  .pd-cat-area { width: 16mm; flex-shrink: 0; font-size: 9pt; font-weight: 800; color: #66525B; }
+  .pd-cat-grade { width: 7mm; flex-shrink: 0; font-family: 'Noto Serif KR', serif; font-size: 11pt; font-weight: 900; color: #A82E42; text-align: center; }
+  .pd-cat-comment { font-size: 8.5pt; color: #3D2E35; line-height: 1.6; }
   .pd-grade-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 3mm; text-align: left; }
   .pd-grade-col { border-radius: 2.5mm; padding: 3.5mm 4mm; font-size: 8.8pt; line-height: 1.8; color: #3D2E35; }
   .pd-grade-col-title { font-weight: 800; font-size: 8.5pt; letter-spacing: 0.1em; margin-bottom: 1.5mm; }
