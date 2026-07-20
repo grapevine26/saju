@@ -505,6 +505,46 @@ export const getJijiYukhap = (zhi1: string, zhi2: string): HapResult | null => {
 };
 
 /**
+ * 지지삼합(三合) 반합 검사 — 두 지지가 같은 삼합국에 속하고 왕지를 포함하면 반합 성립
+ * 신자진 수국, 해묘미 목국, 인오술 화국, 사유축 금국 (왕지: 자·묘·오·유)
+ */
+export const getJijiSamhapBan = (zhi1: string, zhi2: string): HapResult | null => {
+    const GROUPS: { members: string[]; wangji: string; element: string; name: string }[] = [
+        { members: ['신', '자', '진'], wangji: '자', element: '수', name: '신자진 수국' },
+        { members: ['해', '묘', '미'], wangji: '묘', element: '목', name: '해묘미 목국' },
+        { members: ['인', '오', '술'], wangji: '오', element: '화', name: '인오술 화국' },
+        { members: ['사', '유', '축'], wangji: '유', element: '금', name: '사유축 금국' },
+    ];
+    if (!zhi1 || !zhi2 || zhi1 === zhi2 || zhi1 === '?' || zhi2 === '?') return null;
+    for (const g of GROUPS) {
+        if (g.members.includes(zhi1) && g.members.includes(zhi2) && (zhi1 === g.wangji || zhi2 === g.wangji)) {
+            return { type: '지지삼합(반합)', description: `${zhi1}${zhi2} 반합 (${g.name})`, element: g.element, pair: [zhi1, zhi2] };
+        }
+    }
+    return null;
+};
+
+/**
+ * 지지방합(方合) 반합 검사 — 같은 계절 방합에 속하고 왕지를 포함하는 두 지지
+ * 인묘진 목방, 사오미 화방, 신유술 금방, 해자축 수방
+ */
+export const getJijiBanghapBan = (zhi1: string, zhi2: string): HapResult | null => {
+    const GROUPS: { members: string[]; wangji: string; element: string; name: string }[] = [
+        { members: ['인', '묘', '진'], wangji: '묘', element: '목', name: '인묘진 목방' },
+        { members: ['사', '오', '미'], wangji: '오', element: '화', name: '사오미 화방' },
+        { members: ['신', '유', '술'], wangji: '유', element: '금', name: '신유술 금방' },
+        { members: ['해', '자', '축'], wangji: '자', element: '수', name: '해자축 수방' },
+    ];
+    if (!zhi1 || !zhi2 || zhi1 === zhi2 || zhi1 === '?' || zhi2 === '?') return null;
+    for (const g of GROUPS) {
+        if (g.members.includes(zhi1) && g.members.includes(zhi2) && (zhi1 === g.wangji || zhi2 === g.wangji)) {
+            return { type: '지지방합(반합)', description: `${zhi1}${zhi2} 방합 (${g.name})`, element: g.element, pair: [zhi1, zhi2] };
+        }
+    }
+    return null;
+};
+
+/**
  * 지지충(地支沖) 검사 — 두 지지가 충돌하는지 확인
  * 자오충, 축미충, 인신충, 묘유충, 진술충, 사해충
  */

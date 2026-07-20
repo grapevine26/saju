@@ -6,6 +6,7 @@ import { BaziCalculationResult } from './baziCalc';
 import {
     getCheonganHap, getJijiYukhap, getJijiChung,
     getJijiHyeong, getJijiHae, getOhhaengBalance,
+    getJijiSamhapBan, getJijiBanghapBan,
     HapResult, ClashResult
 } from './sajuMapper';
 
@@ -152,6 +153,12 @@ export const calculateCompatibility = (
             const yukhap = getJijiYukhap(myZhi, partnerZhi);
             if (yukhap) hapList.push(yukhap);
 
+            // 삼합·방합 반합 — 육합만 보면 삼합 커플이 저평가된다
+            const samhap = getJijiSamhapBan(myZhi, partnerZhi);
+            if (samhap) hapList.push(samhap);
+            const banghap = getJijiBanghapBan(myZhi, partnerZhi);
+            if (banghap) hapList.push(banghap);
+
             const chung = getJijiChung(myZhi, partnerZhi);
             if (chung) chungList.push(chung);
 
@@ -187,6 +194,8 @@ export const calculateCompatibility = (
     for (const hap of uniqueHap) {
         if (hap.type === '천간합') attractionRaw += 15;
         if (hap.type === '지지육합') attractionRaw += 12;
+        if (hap.type === '지지삼합(반합)') attractionRaw += 10;
+        if (hap.type === '지지방합(반합)') attractionRaw += 7;
     }
 
     // 일간끼리 합이면 특별 보너스 (+20)

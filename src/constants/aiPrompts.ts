@@ -13,7 +13,7 @@ export const BASE_SYSTEM_INSTRUCTION = `
 
 # Principles
 1. **톤**: 따뜻하지만 객관적이고 논리적. 마치 오랜 경험이 있는 심리상담사가 편안하게 분석해주는 느낌.
-2. **사주 용어 절대 금지 (★매우 중요)**: 오행(목,화,토,금,수), 십성(비견, 겁재, 편관 등), 합충, 신강/신약, 대운/세운, 신살 명칭(도화살, 역마살, 천을귀인 등) 같은 사주 전문 용어를 결과 텍스트에 단 한 단어도 노출하지 마.
+2. **사주 용어 절대 금지 (★매우 중요)**: 오행(목,화,토,금,수), 십성(비견, 겁재, 편관 등), 합충, 신강/신약, 대운/세운, 신살 명칭(도화살, 역마살, 천을귀인 등), 12운성(장생, 제왕, 절 등), 지장간 같은 사주 전문 용어를 결과 텍스트에 단 한 단어도 노출하지 마.
 3. **심리학적 치환**: 사주 데이터를 분석하되, 표현은 "방어기제", "애착 유형", "회피형", "통제 성향", "자율성", "인정 욕구" 등 철저하게 심리학과 연애 역학 용어로만 설명해.
 4. **분량 (★ 매우 중요)**: 각 항목에 지정된 분량 지시(예: 최소 600자)를 반드시 지켜라. 별도 지시가 없는 항목은 최소 300자. 2~4개 문단으로 나누어 깊이 있게 분석하고, 문단 사이에 반드시 줄바꿈 2번(\n\n)을 띄워서 가독성을 높일 것. 유료 상담 수준의 밀도 있는 분석을 목표로 할 것.
 5. **이모지 금지**: content 본문 문단에는 이모지를 사용하지 마라 (무료·유료 챕터 간 톤이 어긋난다). 단, 프롬프트가 포맷으로 명시한 자리(로드맵 소제목 앞 이모지 등)는 예외.
@@ -52,9 +52,25 @@ interface BaziData {
     daeunStr: string;
     /** 주요 신살 요약 (예: "도화살, 역마살") — calculateBazi 결과에 포함 */
     uniqueShinsal?: string;
-    /** 만세력 원본 — 일주(일간/일지)로 시점 운 분석에 사용 */
-    manseryeok?: { day?: { gan?: string; zhi?: string } };
+    /** 만세력 원본 — 일주(시점 운 분석)·12운성·지장간 주입에 사용 */
+    manseryeok?: any;
 }
+
+/** 기둥별 12운성 요약 라인 (예: "년 절 · 월 태 · 일 제왕") */
+const unsungLine = (m: any): string => {
+    if (!m) return '';
+    const labels = ['년', '월', '일', '시'];
+    const parts = ['year', 'month', 'day', 'time']
+        .map((k, i) => m[k]?.shibiUnsung ? `${labels[i]} ${m[k].shibiUnsung}` : null)
+        .filter(Boolean);
+    return parts.length ? `- 12운성(기둥별 에너지 상태): ${parts.join(' · ')}` : '';
+};
+
+/** 일지 지장간 라인 — 배우자궁 속에 숨은 천간 = '겉과 다른 속마음'의 재료 */
+const jijangganLine = (m: any): string => {
+    const jj = m?.day?.jijanggan;
+    return Array.isArray(jj) && jj.length ? `- 일지 지장간(배우자궁 속 숨은 기운): ${jj.join(', ')}` : '';
+};
 
 interface PromptContext {
     myRawInput: any;
@@ -137,6 +153,8 @@ ${myBazi.baziStr.trim()}
 - 십성: ${myBazi.sipsinSummary}
 - 대운: ${myBazi.daeunStr}
 ${myBazi.uniqueShinsal ? `- 주요 신살: ${myBazi.uniqueShinsal}` : ''}
+${unsungLine(myBazi.manseryeok)}
+${jijangganLine(myBazi.manseryeok)}
 
 [상대방의 사주팔자]
 ${partnerBazi.baziStr.trim()}
@@ -144,6 +162,8 @@ ${partnerBazi.baziStr.trim()}
 - 십성: ${partnerBazi.sipsinSummary}
 - 대운: ${partnerBazi.daeunStr}
 ${partnerBazi.uniqueShinsal ? `- 주요 신살: ${partnerBazi.uniqueShinsal}` : ''}
+${unsungLine(partnerBazi.manseryeok)}
+${jijangganLine(partnerBazi.manseryeok)}
 
 [궁합 분석 데이터]
 ${compatibilityPromptSummary}
@@ -208,7 +228,7 @@ JSON 포맷:\n
     { "title": "🛡️ [심리] 왜 우리는 '회피'와 '공격'으로 맞섰을까?", "subtitle": "...", "content": "사주 성향상 각자의 방어기제와 갈등 상황 대처 방식. 실제 연애에서 벌어졌을 상황을 구체적으로 묘사하며 분석 (최소 600자)" },
     { "title": "⏳ [타이밍] 이별이 일어날 수밖에 없었던 시기적 압박", "subtitle": "...", "content": "이별 시기의 에너지 흐름이 관계에 미친 영향, 왜 하필 그 시기에 갈등이 폭발했는지 구체적으로 분석. 반드시 위 [시점별 운 에너지]의 '이별 시점' 계산 결과를 근거로 서술하되, '두 사람 모두 변화 압력이 커진 시기였다'처럼 일상 언어로 풀어 설명하고 대운/세운/월운 같은 용어는 절대 노출하지 말 것 (최소 600자)" },
     { "title": "☠️ [결론] 끝내 이별로 이끈 '진짜 사유' 분석", "subtitle": "...", "content": "단순한 표면적 이유가 아닌, 두 사람의 기질 데이터가 가리키는 궁극적 이별 원인. 종합 진단과 함께 냉정한 팩트 전달 (최소 600자)" },
-    { "title": "🫀 [속마음] 그 사람, 아직 나에게 미련이 있을까?", "subtitle": "...", "content": "상대방 사주 성향(신살 포함)과 위 [시점별 운 에너지]의 '현재 시점' 계산 결과로 추론한 속마음. 구체적인 근거를 대며 몇 가지 시나리오를 제시 (최소 600자)" },
+    { "title": "🫀 [속마음] 그 사람, 아직 나에게 미련이 있을까?", "subtitle": "...", "content": "상대방 사주 성향(신살·일지 지장간의 '겉과 다른 속' 포함)과 위 [시점별 운 에너지]의 '현재 시점' 계산 결과로 추론한 속마음. 구체적인 근거를 대며 몇 가지 시나리오를 제시 (최소 600자)" },
     { "title": "🚨 [경고] 제발 이것만은! 재회를 망치는 치명적 실수", "subtitle": "...", "content": "절대로 하면 안 되는 행동 3가지 이상과 각각의 구체적 이유. 실수 시 어떤 결과가 오는지까지 서술 (최소 600자)" },
     { "title": "🥲 [타이밍] 다시 연락이 닿을 길일과 먼저 연락 올 확률", "subtitle": "...", "content": "다시 연락하기 좋은 구체적 시기와 최적의 연락 태도. 시기는 반드시 [연락 최적 시기] 계산 결과의 달을 그대로 사용할 것 (골든 윈도우 캘린더와 함께 표시되므로 일치 필수). 먼저 갈지 기다릴지 전략적 판단 근거도 함께 (최소 600자)" },
     { "title": "😈 [전략] 재회 확률 200% 극대화 시크릿 비법", "subtitle": "...", "content": "상대방이 무의식적으로 끌리는 스타일링(컬러·무드) 추천, 만남 장소, 대화법, 유혹 포인트 등 구체적인 행동 가이드. 상대방의 오행·신살 성향을 재료로 쓰되 용어는 노출 금지 (최소 600자)" },
@@ -314,12 +334,16 @@ ${myBazi.baziStr.trim()}
 - 오행: 목(${myBazi.ohhaengCounts['목']}), 화(${myBazi.ohhaengCounts['화']}), 토(${myBazi.ohhaengCounts['토']}), 금(${myBazi.ohhaengCounts['금']}), 수(${myBazi.ohhaengCounts['수']})
 - 십성: ${myBazi.sipsinSummary}
 ${myBazi.uniqueShinsal ? `- 주요 신살: ${myBazi.uniqueShinsal}` : ''}
+${unsungLine(myBazi.manseryeok)}
+${jijangganLine(myBazi.manseryeok)}
 
 [상대방의 사주팔자]
 ${partnerBazi.baziStr.trim()}
 - 오행: 목(${partnerBazi.ohhaengCounts['목']}), 화(${partnerBazi.ohhaengCounts['화']}), 토(${partnerBazi.ohhaengCounts['토']}), 금(${partnerBazi.ohhaengCounts['금']}), 수(${partnerBazi.ohhaengCounts['수']})
 - 십성: ${partnerBazi.sipsinSummary}
 ${partnerBazi.uniqueShinsal ? `- 주요 신살: ${partnerBazi.uniqueShinsal}` : ''}
+${unsungLine(partnerBazi.manseryeok)}
+${jijangganLine(partnerBazi.manseryeok)}
 
 [궁합 분석 데이터]
 ${compatibilityPromptSummary}
