@@ -3,8 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { calculateBazi } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
 import { calculateGoldenWindows, calculateGoldenDates } from "@/utils/goldenWindowCalc";
-import { genAI, callGemini } from "@/utils/geminiCall";
-import { schema2, schema3, schema4 } from "@/constants/aiSchemas";
+import { callTerra } from "@/utils/openaiCall";
 import {
     BASE_SYSTEM_INSTRUCTION,
     SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
@@ -116,17 +115,13 @@ export async function GET(req: NextRequest) {
         windowSummary, bestWindowSummary, metDate, breakupDate, breakupReason,
     });
 
-    const model2 = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction: BASE_SYSTEM_INSTRUCTION, generationConfig: { responseMimeType: "application/json", responseSchema: schema2, maxOutputTokens: 16384 } });
-    const model3 = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction: SYSTEM_INSTRUCTION_GOLDEN_WINDOW, generationConfig: { responseMimeType: "application/json", responseSchema: schema3, maxOutputTokens: 16384 } });
-
     let compatibilityReport: any = null;
     const [parsedData2, parsedData3] = await Promise.all([
-        callGemini(model2, prompt2),
-        callGemini(model3, prompt3),
+        callTerra(BASE_SYSTEM_INSTRUCTION, prompt2, 16384),
+        callTerra(SYSTEM_INSTRUCTION_GOLDEN_WINDOW, prompt3, 16384),
         (async () => {
             if (packageId === "signature") {
-                const model4 = genAI.getGenerativeModel({ model: "gemini-3.5-flash", systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY, generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 32768 } });
-                compatibilityReport = await callGemini(model4, buildPrompt4(promptCtx));
+                compatibilityReport = await callTerra(SYSTEM_INSTRUCTION_COMPATIBILITY, buildPrompt4(promptCtx), 32768);
             }
         })(),
     ]);

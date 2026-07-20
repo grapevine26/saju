@@ -271,8 +271,8 @@ export default function ReportPdfDocument({ job }: { job: any }) {
     ];
     const ch2Items = [
         { t: "커플 유형 진단", d: "우리는 어떤 커플인가 · 5대 궁합 지표" },
+        { t: "심층 궁합 해부", d: `${cr?.compatibilityDetails?.length || 11}개 주제 심층 분석` },
         { t: "극과 극 성향 비교", d: "가장 극명하게 갈리는 성향 4가지" },
-        { t: "심층 궁합 해부", d: `${cr?.compatibilityDetails?.length || 9}개 주제 심층 분석` },
         { t: "궁합 종합 진단", d: "종합 등급 · 강점과 약점 · 최종 조언" },
     ];
 
@@ -651,7 +651,18 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                         )}
                     </section>
 
-                    {/* CH2 PART 2. 극과 극 성향 비교 */}
+                    {/* CH2 PART 2. 심층 궁합 해부 */}
+                    {cr.compatibilityDetails?.length > 0 && (
+                        <section className="pd-page-break">
+                            <PartHeader label={ch2Label()} title="심층 궁합 해부"
+                                lede={`카르마부터 노년의 풍경까지 — ${cr.compatibilityDetails.length}개 주제로 파고듭니다.`} />
+                            {cr.compatibilityDetails.map((d: any, i: number) => (
+                                <ChapterCard key={i} no={String(i + 1).padStart(2, "0")} title={d.title} subtitle={d.subtitle} content={d.content} />
+                            ))}
+                        </section>
+                    )}
+
+                    {/* CH2 PART 3. 극과 극 성향 비교 — 해부 리포트 뒤에 배치 */}
                     {cr.vsCards?.length > 0 && (
                         <section className="pd-page-break">
                             <PartHeader label={ch2Label()} title="극과 극 성향 비교"
@@ -665,17 +676,6 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                                     </div>
                                     <p className="pd-body pre" style={{ marginTop: "2.5mm" }}>{c.explanation}</p>
                                 </div>
-                            ))}
-                        </section>
-                    )}
-
-                    {/* CH2 PART 3. 심층 궁합 해부 */}
-                    {cr.compatibilityDetails?.length > 0 && (
-                        <section className="pd-page-break">
-                            <PartHeader label={ch2Label()} title="심층 궁합 해부"
-                                lede={`카르마부터 재물 시너지까지 — ${cr.compatibilityDetails.length}개 주제로 파고듭니다.`} />
-                            {cr.compatibilityDetails.map((d: any, i: number) => (
-                                <ChapterCard key={i} no={String(i + 1).padStart(2, "0")} title={d.title} subtitle={d.subtitle} content={d.content} />
                             ))}
                         </section>
                     )}

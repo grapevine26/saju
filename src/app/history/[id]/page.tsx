@@ -549,20 +549,7 @@ export default function HistoryDetailPage() {
                             <PremiumRadarChart data={resultData.compatibilityReport.radarChart} />
                         </section>
 
-                        {/* VS 카드 */}
-                        <section>
-                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                                <Heart className="w-4 h-4 text-rose-400" />
-                                극과 극 성향 비교
-                            </h2>
-                            <div className="space-y-4">
-                                {resultData.compatibilityReport.vsCards.map((card: any, idx: number) => (
-                                    <VsCard key={idx} index={idx} {...card} />
-                                ))}
-                            </div>
-                        </section>
-
-                        {/* 궁합 디테일 (9개 아코디언) */}
+                        {/* 궁합 디테일 (11개 아코디언) */}
                         <section>
                             <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
                                 <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
@@ -573,6 +560,19 @@ export default function HistoryDetailPage() {
                                 isPremium={true}
                                 mode="compatibility"
                             />
+                        </section>
+
+                        {/* VS 카드 — 해부 리포트 뒤에 배치 */}
+                        <section>
+                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                <Heart className="w-4 h-4 text-rose-400" />
+                                극과 극 성향 비교
+                            </h2>
+                            <div className="space-y-4">
+                                {resultData.compatibilityReport.vsCards.map((card: any, idx: number) => (
+                                    <VsCard key={idx} index={idx} {...card} />
+                                ))}
+                            </div>
                         </section>
 
                         {/* 궁합 종합 등급 */}

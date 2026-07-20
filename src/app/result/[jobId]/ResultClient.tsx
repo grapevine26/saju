@@ -420,7 +420,20 @@ export default function ResultClient({ job }: { job: any }) {
                             </div>
                         </section>
 
-                        {/* VS 카드 */}
+                        {/* 궁합 디테일 (11개 아코디언) */}
+                        <section>
+                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
+                                심층 궁합 해부 리포트
+                            </h2>
+                            <SajuAccordion
+                                details={resultData.compatibilityReport.compatibilityDetails}
+                                isPremium={true}
+                                mode="compatibility"
+                            />
+                        </section>
+
+                        {/* VS 카드 — 해부 리포트 뒤에 배치 */}
                         <section>
                             <h2 className="text-base font-bold text-white mb-4 flex items-center gap-2">
                                 <Heart className="w-4 h-4 text-rose-400" />
@@ -433,19 +446,6 @@ export default function ResultClient({ job }: { job: any }) {
                                     </div>
                                 ))}
                             </div>
-                        </section>
-
-                        {/* 궁합 디테일 (9개 아코디언) */}
-                        <section>
-                            <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
-                                <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
-                                심층 궁합 해부 리포트
-                            </h2>
-                            <SajuAccordion 
-                                details={resultData.compatibilityReport.compatibilityDetails} 
-                                isPremium={true} 
-                                mode="compatibility"
-                            />
                         </section>
 
                         {/* 궁합 종합 등급 */}

@@ -1,14 +1,13 @@
 import { NextResponse } from "next/server";
 import { SYSTEM_INSTRUCTION_LITE, buildPrompt1 } from "@/constants/aiPrompts";
-import { schema1 } from "@/constants/aiSchemas";
 import { calculateBazi, BaziCalculationResult } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
 import { calculateGoldenWindows } from "@/utils/goldenWindowCalc";
-import { genAI, callGemini } from "@/utils/geminiCall";
+import { callTerra } from "@/utils/openaiCall";
 import { supabaseAdmin } from "@/lib/supabase";
 import { headers } from "next/headers";
 
-const apiKey = process.env.GEMINI_API_KEY || "";
+const apiKey = process.env.OPENAI_API_KEY || "";
 
 // 사용자 입력 정보 타입
 interface PersonInput {
@@ -77,7 +76,7 @@ export async function POST(request: Request) {
 
         if (!apiKey) {
             return NextResponse.json(
-                { success: false, error: "서버에 Gemini API 키가 설정되지 않았습니다." },
+                { success: false, error: "서버에 AI API 키가 설정되지 않았습니다." },
                 { status: 500 }
             );
         }
@@ -123,16 +122,9 @@ export async function POST(request: Request) {
             : null;
 
         // ─────────────────────────────────────
-        // 4. Gemini AI 재회 분석 호출
-        // 프롬프트·스키마는 공유 상수 사용 (Inngest 폴백과 동일 소스 — 드리프트 방지)
-        // 모델: 티저가 결제 전환의 핵심 문구이므로 lite가 아닌 flash 사용
+        // 4. AI 재회 분석 호출 — GPT-5.6 Terra (2026-07 모델 비교 후 전환)
+        // 프롬프트는 공유 상수 사용 (Inngest 폴백과 동일 소스 — 드리프트 방지)
         // ─────────────────────────────────────
-        const model1 = genAI.getGenerativeModel({
-            model: "gemini-3.5-flash",
-            systemInstruction: SYSTEM_INSTRUCTION_LITE,
-            generationConfig: { responseMimeType: "application/json", responseSchema: schema1 }
-        });
-
         const prompt1 = buildPrompt1({
             myRawInput: my,
             partnerRawInput: partner,
@@ -148,7 +140,7 @@ export async function POST(request: Request) {
         // ── prompt1 호출 (항상 Lite) ──
         let parsedData1: any;
         try {
-            parsedData1 = await callGemini(model1, prompt1);
+            parsedData1 = await callTerra(SYSTEM_INSTRUCTION_LITE, prompt1, 8192);
         } catch (e) {
             console.error('prompt1 최종 실패:', e);
             return NextResponse.json(

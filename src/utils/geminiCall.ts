@@ -65,7 +65,7 @@ export const parseJsonResponse = (raw: string): any => {
  * 모델이 이스케이프 시퀀스를 그대로 텍스트로 출력한 경우("...습니다.\\n\\n장점은...")
  * 실제 줄바꿈으로 복원한다. 한국어 리포트 본문에 리터럴 백슬래시-n이 의도로 쓰일 일은 없다.
  */
-const fixLiteralNewlines = (v: any): any => {
+export const fixLiteralNewlines = (v: any): any => {
   if (typeof v === "string") return v.replace(/\\r/g, "").replace(/\\n/g, "\n");
   if (Array.isArray(v)) return v.map(fixLiteralNewlines);
   if (v && typeof v === "object") {

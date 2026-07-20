@@ -3,8 +3,7 @@ import { supabaseAdmin } from "@/lib/supabase";
 import { calculateGoldenWindows, calculateGoldenDates } from "@/utils/goldenWindowCalc";
 import { calculateBazi } from "@/utils/baziCalc";
 import { calculateCompatibility } from "@/utils/compatibilityCalc";
-import { genAI, callGemini } from "@/utils/geminiCall";
-import { schema1, schema2, schema3, schema4 } from "@/constants/aiSchemas";
+import { callTerra } from "@/utils/openaiCall";
 import {
   BASE_SYSTEM_INSTRUCTION,
   SYSTEM_INSTRUCTION_LITE,
@@ -125,20 +124,9 @@ export const processPremiumAnalysis = inngest.createFunction(
       );
       const compatibility = calculateCompatibility(myBazi, partnerBazi);
 
-      // --- 2-2. AI 모델 준비 ---
-      // maxOutputTokens 명시 — 한국어 리포트(섹션 9개 + 매뉴얼)가 기본 한도(8192)에
-      // 걸려 뒷 섹션이 문장 중간에 잘리는 사례가 있어 여유 있게 상향
-      const model2 = genAI.getGenerativeModel({
-        model: "gemini-3.5-flash",
-        systemInstruction: BASE_SYSTEM_INSTRUCTION,
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema2, maxOutputTokens: 16384 }
-      });
-
-      const model3 = genAI.getGenerativeModel({
-        model: "gemini-3.5-flash",
-        systemInstruction: SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
-        generationConfig: { responseMimeType: "application/json", responseSchema: schema3, maxOutputTokens: 16384 }
-      });
+      // --- 2-2. AI 모델: GPT-5.6 Terra (2026-07 모델 비교 후 전환) ---
+      // 토큰 한도는 한국어 리포트가 잘리지 않게 여유 있게 — 잘림(finish_reason=length)은
+      // callTerra가 재시도하고, 최종 실패 시 스텝 실패 → 자동 환불 경로.
 
       // --- 2-3. 프롬프트 생성 ---
       // 골든윈도우 계산 요약을 공통 컨텍스트에 주입 — 심층 분석(prompt2)의 시기 언급이
@@ -163,12 +151,7 @@ export const processPremiumAnalysis = inngest.createFunction(
         && Array.isArray(lite?.details) && lite.details.length > 0 && lite?.myManseryeok);
       if (!liteValid) {
         console.warn("[Inngest] 클라이언트 liteResult 불완전 — 서버에서 라이트 분석 재생성");
-        const model1 = genAI.getGenerativeModel({
-          model: "gemini-3.5-flash",
-          systemInstruction: SYSTEM_INSTRUCTION_LITE,
-          generationConfig: { responseMimeType: "application/json", responseSchema: schema1 }
-        });
-        const d1 = await callGemini(model1, buildPrompt1(promptCtx));
+        const d1 = await callTerra(SYSTEM_INSTRUCTION_LITE, buildPrompt1(promptCtx), 8192);
         const details1: any[] = d1?.details || [];
         const ei = details1.findIndex((d: any) => typeof d?.title === 'string' && d.title.includes('[본질]'));
         const pick = ei >= 0 ? ei : 0;
@@ -245,21 +228,16 @@ export const processPremiumAnalysis = inngest.createFunction(
 
       const [data2, data3] = await Promise.all([
         // 1) 재회 심층 분석 + 공략 매뉴얼 (핵심 상품)
-        callGemini(model2, prompt2),
+        callTerra(BASE_SYSTEM_INSTRUCTION, prompt2, 16384),
 
         // 2) 골든 윈도우 + 로드맵 (핵심 상품)
-        callGemini(model3, prompt3),
+        callTerra(SYSTEM_INSTRUCTION_GOLDEN_WINDOW, prompt3, 16384),
 
         // 3) 궁합 리포트 (signature 패키지만) — 결제한 상품이므로 실패 시에도 throw
         (async () => {
           if (raw_data.packageId === 'signature') {
-            const model4 = genAI.getGenerativeModel({
-              model: "gemini-3.5-flash",
-              systemInstruction: SYSTEM_INSTRUCTION_COMPATIBILITY,
-              generationConfig: { responseMimeType: "application/json", responseSchema: schema4, maxOutputTokens: 32768 }
-            });
             const prompt4 = buildPrompt4(promptCtx);
-            compatibilityReport = await callGemini(model4, prompt4);
+            compatibilityReport = await callTerra(SYSTEM_INSTRUCTION_COMPATIBILITY, prompt4, 32768);
           }
         })()
       ]);
