@@ -563,16 +563,22 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                                             </span>
                                         </div>
                                     )}
-                                    {/* 길일별 선정 근거 (구버전 데이터에는 dateDetails 없음) */}
-                                    {(m.dateDetails || []).map((d: any) => {
-                                        const reasons = (d.reasons || []).map(humanizeReason).filter(Boolean);
-                                        if (reasons.length === 0) return null;
-                                        return (
-                                            <p key={d.day} className="pd-cal-reason">
-                                                <strong>{d.day}일</strong> <span>({d.ganzhi}일)</span> — {reasons.join(" · ")}
+                                    {/* 길일별 선정 근거 — 사유가 같은 날은 한 줄로 합침 (구버전 데이터에는 dateDetails 없음) */}
+                                    {(() => {
+                                        const groups: { days: any[]; text: string }[] = [];
+                                        for (const d of (m.dateDetails || [])) {
+                                            const text = (d.reasons || []).map(humanizeReason).filter(Boolean).join(" · ");
+                                            if (!text) continue;
+                                            const g = groups.find(x => x.text === text);
+                                            if (g) g.days.push(d); else groups.push({ days: [d], text });
+                                        }
+                                        return groups.map((g, i) => (
+                                            <p key={i} className="pd-cal-reason">
+                                                <strong>{g.days.map((d: any) => `${d.day}일`).join(" · ")}</strong>{" "}
+                                                <span>({g.days.map((d: any) => `${d.ganzhi}일`).join("·")})</span> — {g.text}
                                             </p>
-                                        );
-                                    })}
+                                        ));
+                                    })()}
                                 </div>
                             ))}
                         </div>
@@ -666,7 +672,7 @@ export default function ReportPdfDocument({ job }: { job: any }) {
                             <PartHeader label={ch2Label()} title="심층 궁합 해부"
                                 lede={`카르마부터 재물 시너지까지 — ${cr.compatibilityDetails.length}개 주제로 파고듭니다.`} />
                             {cr.compatibilityDetails.map((d: any, i: number) => (
-                                <ChapterCard key={i} no={String(i + 1).padStart(2, "0")} title={d.title} content={d.content} />
+                                <ChapterCard key={i} no={String(i + 1).padStart(2, "0")} title={d.title} subtitle={d.subtitle} content={d.content} />
                             ))}
                         </section>
                     )}

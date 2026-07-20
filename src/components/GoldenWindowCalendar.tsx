@@ -90,27 +90,32 @@ export default function GoldenWindowCalendar({ months }: Props) {
                             })}
                         </div>
 
-                        {/* 길일별 근거 — "아무 날이나 찍은 게 아니다"를 보여주는 신뢰 장치 */}
+                        {/* 길일별 근거 — "아무 날이나 찍은 게 아니다"를 보여주는 신뢰 장치.
+                            사유가 같은 날들은 한 줄로 합쳐 반복 문구를 없앤다 */}
                         {(() => {
                             const details = (data.dateDetails || []).filter(d => goodDates.includes(d.day));
-                            if (details.length === 0) return null;
+                            const groups: { days: { day: number; ganzhi: string }[]; text: string }[] = [];
+                            for (const d of details) {
+                                const text = (d.reasons || []).map(humanizeReason).filter(Boolean).join(' · ');
+                                if (!text) continue;
+                                const g = groups.find(x => x.text === text);
+                                if (g) g.days.push({ day: d.day, ganzhi: d.ganzhi });
+                                else groups.push({ days: [{ day: d.day, ganzhi: d.ganzhi }], text });
+                            }
+                            if (groups.length === 0) return null;
                             return (
                                 <div className="mt-5 pt-4 border-t border-white/[0.08] space-y-2.5">
-                                    {details.map(d => {
-                                        const reasons = (d.reasons || []).map(humanizeReason).filter(Boolean);
-                                        if (reasons.length === 0) return null;
-                                        return (
-                                            <div key={d.day} className="flex items-start gap-2.5">
-                                                <span className="flex-shrink-0 text-[12px] font-black px-2 py-0.5 rounded-lg border" style={{ color: '#F06A7E', background: 'rgba(216,72,94,0.10)', borderColor: 'rgba(216,72,94,0.35)' }}>
-                                                    {d.day}일
-                                                </span>
-                                                <p className="text-[12px] leading-relaxed text-[var(--text-secondary)] break-keep pt-0.5">
-                                                    <span className="text-[var(--text-muted)]">{d.ganzhi}일 — </span>
-                                                    {reasons.join(' · ')}
-                                                </p>
-                                            </div>
-                                        );
-                                    })}
+                                    {groups.map((g, i) => (
+                                        <div key={i} className="flex items-start gap-2.5">
+                                            <span className="flex-shrink-0 text-[12px] font-black px-2 py-0.5 rounded-lg border" style={{ color: '#F06A7E', background: 'rgba(216,72,94,0.10)', borderColor: 'rgba(216,72,94,0.35)' }}>
+                                                {g.days.map(d => `${d.day}일`).join(' · ')}
+                                            </span>
+                                            <p className="text-[12px] leading-relaxed text-[var(--text-secondary)] break-keep pt-0.5">
+                                                <span className="text-[var(--text-muted)]">{g.days.map(d => `${d.ganzhi}일`).join('·')} — </span>
+                                                {g.text}
+                                            </p>
+                                        </div>
+                                    ))}
                                 </div>
                             );
                         })()}

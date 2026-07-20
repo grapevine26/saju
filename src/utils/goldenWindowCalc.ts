@@ -101,10 +101,44 @@ export const calculateGoldenWindows = (
     }
 
     // 최고점 달 찾기 (최저점 달은 부정 정보라 산출하지 않음 — 피할 날과 같은 제품 결정)
+    // 월 점수가 동점(합충 없는 평탄한 6개월 등)이면 그 달 안의 일진 길일 품질로 타이브레이크 —
+    // "왜 하필 이 달이 최적기냐"에 근거를 만들어 준다 (동점 시 무조건 첫 달이 되는 임의성 제거)
     const sorted = [...windows].sort((a, b) => b.score - a.score);
-    const bestMonth = sorted.length > 0 ? sorted[0] : null;
+    let bestMonth = sorted.length > 0 ? sorted[0] : null;
+    if (bestMonth) {
+        const tied = sorted.filter(w => w.score === bestMonth!.score);
+        if (tied.length > 1) {
+            const withQuality = tied.map(w => ({
+                w,
+                quality: bestDayQuality(w.year, w.month, myDayGan, myDayZhi, partnerDayGan, partnerDayZhi),
+            }));
+            withQuality.sort((a, b) =>
+                b.quality - a.quality
+                || (a.w.year * 100 + a.w.month) - (b.w.year * 100 + b.w.month) // 품질도 같으면 빠른 달
+            );
+            bestMonth = withQuality[0].w;
+        }
+    }
 
     return { windows, bestMonth };
+};
+
+/** 해당 달 일진 중 상위 2일의 합충 점수 합 — 동점 달 사이의 타이브레이크용 */
+const bestDayQuality = (
+    year: number, month: number,
+    myDayGan: string, myDayZhi: string, partnerDayGan: string, partnerDayZhi: string,
+): number => {
+    const daysInMonth = new Date(year, month, 0).getDate();
+    const scores: number[] = [];
+    for (let day = 1; day <= daysInMonth; day++) {
+        try {
+            const lunar = Solar.fromYmd(year, month, day).getLunar();
+            const dayGan = HANJA_TO_HANGUL[lunar.getDayGan()] || lunar.getDayGan();
+            const dayZhi = HANJA_TO_HANGUL[lunar.getDayZhi()] || lunar.getDayZhi();
+            scores.push(calculateMonthScore(dayGan, dayZhi, myDayGan, myDayZhi, partnerDayGan, partnerDayZhi).score);
+        } catch { /* 개별 날짜 실패 무시 */ }
+    }
+    return scores.sort((a, b) => b - a).slice(0, 2).reduce((s, v) => s + v, 0);
 };
 
 // ========================================================================

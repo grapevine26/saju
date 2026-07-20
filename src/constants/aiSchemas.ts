@@ -149,9 +149,10 @@ export const schema4 = {
         type: "object" as any,
         properties: {
           title: { type: "string" as any },
+          subtitle: { type: "string" as any },
           content: { type: "string" as any }
         },
-        required: ["title", "content"]
+        required: ["title", "subtitle", "content"]
       }
     },
     coupleType: {
