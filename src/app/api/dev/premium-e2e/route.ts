@@ -51,9 +51,11 @@ export async function GET(req: NextRequest) {
         birthYear: "1993", birthMonth: "11", birthDay: "2",
         birthCity: "seoul", birthHour: "14", birthMinute: "30", isTimeUnknown: false,
     });
-    const metDate = req.nextUrl.searchParams.get("metDate") || "2024년 5월";
-    const breakupDate = req.nextUrl.searchParams.get("breakupDate") || "2026-03";
-    const breakupReason = req.nextUrl.searchParams.get("breakupReason") || "연락 문제로 다투다가 상대가 지쳤다며 이별을 통보했어요.";
+    // 관계 컨텍스트는 파라미터로 준 경우에만 주입 — 기본값으로 지어내지 않는다
+    // (비어 있으면 프롬프트의 관계 컨텍스트·시점 운 블록이 통째로 생략됨)
+    const metDate = req.nextUrl.searchParams.get("metDate") || undefined;
+    const breakupDate = req.nextUrl.searchParams.get("breakupDate") || undefined;
+    const breakupReason = req.nextUrl.searchParams.get("breakupReason") || undefined;
 
     // ── 0. 라이트 결과 (essence/teaser/성향) — 실제 결제 흐름과 동일하게 내부 API 호출
     const liteRes = await fetch(`${req.nextUrl.origin}/api/reunion`, {
