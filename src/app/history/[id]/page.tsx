@@ -526,7 +526,7 @@ export default function HistoryDetailPage() {
                                         </h3>
                                         <div className="w-12 h-0.5 bg-gradient-to-r from-indigo-500 to-purple-500 mx-auto my-4 rounded-full" />
                                         {resultData.compatibilityReport.coupleType.natureMetaphor && (
-                                            <p className="text-[14px] text-indigo-200/90 leading-[1.95] whitespace-pre-wrap text-left mb-4 p-4 rounded-xl bg-indigo-500/[0.07] border border-indigo-500/20"
+                                            <p className="text-[14.5px] text-[var(--text-primary)]/95 leading-[2.05] whitespace-pre-wrap text-left mb-4 px-4 py-4 rounded-xl bg-white/[0.04] border border-white/[0.08] break-keep"
                                                 style={{ fontFamily: "'Noto Serif KR', serif" }}>
                                                 {resultData.compatibilityReport.coupleType.natureMetaphor}
                                             </p>
