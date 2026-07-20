@@ -27,18 +27,33 @@ export async function GET(req: NextRequest) {
     }
     const packageId = req.nextUrl.searchParams.get("package") === "signature" ? "signature" : "basic";
 
-    const myRawInput = {
+    // 인물 커스텀: ?my=이름,성별,YYYY-MM-DD,HH:MM,도시&partner=... (시간 미상은 HH:MM 자리에 "?" )
+    const parsePerson = (raw: string | null, fallback: any) => {
+        if (!raw) return fallback;
+        const [name, gender, birth, time, city] = raw.split(",");
+        const [y, m, d] = (birth || "").split("-");
+        const timeUnknown = !time || time === "?";
+        const [hh, mm] = timeUnknown ? ["", ""] : time.split(":");
+        return {
+            name, gender, calendarType: "solar",
+            birthYear: y, birthMonth: String(Number(m)), birthDay: String(Number(d)),
+            birthCity: city || "seoul", birthHour: hh || "", birthMinute: mm || "",
+            isTimeUnknown: timeUnknown,
+        };
+    };
+    const myRawInput = parsePerson(req.nextUrl.searchParams.get("my"), {
         name: "나영", gender: "female", calendarType: "solar",
         birthYear: "1995", birthMonth: "7", birthDay: "15",
         birthCity: "seoul", birthHour: "", birthMinute: "", isTimeUnknown: true,
-    };
-    const partnerRawInput = {
+    });
+    const partnerRawInput = parsePerson(req.nextUrl.searchParams.get("partner"), {
         name: "혁준", gender: "male", calendarType: "solar",
         birthYear: "1993", birthMonth: "11", birthDay: "2",
         birthCity: "seoul", birthHour: "14", birthMinute: "30", isTimeUnknown: false,
-    };
-    const metDate = "2024년 5월", breakupDate = "2026-03";
-    const breakupReason = "연락 문제로 다투다가 상대가 지쳤다며 이별을 통보했어요.";
+    });
+    const metDate = req.nextUrl.searchParams.get("metDate") || "2024년 5월";
+    const breakupDate = req.nextUrl.searchParams.get("breakupDate") || "2026-03";
+    const breakupReason = req.nextUrl.searchParams.get("breakupReason") || "연락 문제로 다투다가 상대가 지쳤다며 이별을 통보했어요.";
 
     // ── 0. 라이트 결과 (essence/teaser/성향) — 실제 결제 흐름과 동일하게 내부 API 호출
     const liteRes = await fetch(`${req.nextUrl.origin}/api/reunion`, {

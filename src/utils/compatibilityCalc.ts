@@ -54,6 +54,67 @@ const extractPillars = (manseryeok: BaziCalculationResult['manseryeok']) => {
 };
 
 // ========================================================================
+// 일간 생극(生剋) 관계 — 합충만으로는 놓치는 고전 궁합의 핵심 축
+// (예: 을목×무토 = 합은 없지만 '산에 뿌리내리는 꽃'의 유정한 상극 구조)
+// ========================================================================
+
+const GAN_OHHAENG: Record<string, string> = { 갑: '목', 을: '목', 병: '화', 정: '화', 무: '토', 기: '토', 경: '금', 신: '금', 임: '수', 계: '수' };
+const GAN_YANG: Record<string, boolean> = { 갑: true, 을: false, 병: true, 정: false, 무: true, 기: false, 경: true, 신: false, 임: true, 계: false };
+const SAENG: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' }; // A가 B를 생
+const GEUK: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' };  // A가 B를 극
+
+/** 나의 일간 기준으로 상대 일간이 어떤 십신인지 */
+const crossSipsin = (myGan: string, otherGan: string): string | null => {
+    const myOh = GAN_OHHAENG[myGan], otOh = GAN_OHHAENG[otherGan];
+    if (!myOh || !otOh) return null;
+    const same = GAN_YANG[myGan] === GAN_YANG[otherGan];
+    if (myOh === otOh) return same ? '비견' : '겁재';
+    if (SAENG[myOh] === otOh) return same ? '식신' : '상관';
+    if (SAENG[otOh] === myOh) return same ? '편인' : '정인';
+    if (GEUK[myOh] === otOh) return same ? '편재' : '정재';
+    if (GEUK[otOh] === myOh) return same ? '편관' : '정관';
+    return null;
+};
+
+const SIPSIN_LOVE_MEANING: Record<string, string> = {
+    비견: '대등하게 나란히 걷는 동료 같은 존재',
+    겁재: '경쟁심과 승부욕을 자극하는 존재',
+    식신: '편안하게 마음을 표현하게 만드는 존재',
+    상관: '감정을 자극하고 뒤흔드는 존재',
+    편재: '재미와 설렘, 소유욕을 일으키는 존재',
+    정재: '안정적으로 곁에 두고 지키고 싶은 존재',
+    편관: '긴장감과 강한 끌림을 동시에 주는 존재',
+    정관: '존중하게 되고 의지하게 되는 존재',
+    편인: '독특한 방식으로 나를 품어주는 존재',
+    정인: '조건 없이 기대고 싶은 안식처 같은 존재',
+};
+
+/** 일간 생극 구조 분석 → 관계 서사 + 끌림 가점 */
+const analyzeDayGanStructure = (myGan: string, partnerGan: string): { desc: string; bonus: number } => {
+    const myOh = GAN_OHHAENG[myGan], ptOh = GAN_OHHAENG[partnerGan];
+    if (!myOh || !ptOh) return { desc: '', bonus: 0 };
+    const mySip = crossSipsin(myGan, partnerGan);   // 나에게 상대는?
+    const ptSip = crossSipsin(partnerGan, myGan);   // 상대에게 나는?
+    const sipText = mySip && ptSip
+        ? ` 나에게 그 사람은 '${mySip}'(${SIPSIN_LOVE_MEANING[mySip]}), 그 사람에게 나는 '${ptSip}'(${SIPSIN_LOVE_MEANING[ptSip]})`
+        : '';
+
+    if (myOh === ptOh) {
+        return { desc: `일간 ${myGan}(${myOh})×${partnerGan}(${ptOh}) — 같은 기질이 나란히 선 비화(比和) 구조. 서로를 가장 잘 이해하지만 양보가 어려운 관계.${sipText}`, bonus: 5 };
+    }
+    if (SAENG[ptOh] === myOh) {
+        return { desc: `일간 ${myGan}(${myOh})×${partnerGan}(${ptOh}) — 그 사람의 기운이 나를 살리는 상생(相生) 구조. 함께 있으면 내가 채워지는 관계.${sipText}`, bonus: 12 };
+    }
+    if (SAENG[myOh] === ptOh) {
+        return { desc: `일간 ${myGan}(${myOh})×${partnerGan}(${ptOh}) — 내 기운이 그 사람을 살리는 상생(相生) 구조. 내가 아낌없이 주게 되는 관계.${sipText}`, bonus: 12 };
+    }
+    if (GEUK[myOh] === ptOh) {
+        return { desc: `일간 ${myGan}(${myOh})×${partnerGan}(${ptOh}) — 내가 그 사람을 붙잡는 유정(有情)한 상극 구조. 고전 궁합에서 서로를 소유와 책임으로 묶는 인연으로 본다.${sipText}`, bonus: 10 };
+    }
+    return { desc: `일간 ${myGan}(${myOh})×${partnerGan}(${ptOh}) — 그 사람이 나를 이끄는 유정(有情)한 상극 구조. 긴장감이 곧 끌림이 되는 인연.${sipText}`, bonus: 10 };
+};
+
+// ========================================================================
 // 메인 분석 함수
 // ========================================================================
 
@@ -142,6 +203,12 @@ export const calculateCompatibility = (
     );
     if (dayZhiHap) attractionRaw += 18;
 
+    // 일간 생극 구조 가점 — 합이 없어도 상생·유정한 상극은 고전 궁합의 끌림 축
+    attractionRaw += analyzeDayGanStructure(
+        myBazi.manseryeok.day?.gan || '',
+        partnerBazi.manseryeok.day?.gan || ''
+    ).bonus;
+
     const attractionScore = Math.min(100, attractionRaw);
 
     // ─────────────────────────────────────
@@ -170,10 +237,17 @@ export const calculateCompatibility = (
 
     // ─────────────────────────────────────
     // 5. 일간 관계 분석 (핵심 궁합)
+    // 합이 없어도 생극(상생·유정한 상극)과 서로에 대한 십신 관계가 고전 궁합의 본론이다
     // ─────────────────────────────────────
+    const ganStructure = analyzeDayGanStructure(
+        myBazi.manseryeok.day?.gan || '',
+        partnerBazi.manseryeok.day?.gan || ''
+    );
     let dayMasterRelation = '';
     if (dayGanHap) {
-        dayMasterRelation = `일간 ${dayGanHap.description} — 정신적으로 강하게 끌리는 관계`;
+        dayMasterRelation = `일간 ${dayGanHap.description} — 정신적으로 강하게 끌리는 관계.${ganStructure.desc ? ` ${ganStructure.desc.split(' — ')[1] || ''}` : ''}`;
+    } else if (ganStructure.desc) {
+        dayMasterRelation = ganStructure.desc;
     } else {
         dayMasterRelation = `일간 합 없음 — 자연스러운 끌림보다는 의식적 노력이 필요한 관계`;
     }

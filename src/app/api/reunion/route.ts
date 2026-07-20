@@ -43,7 +43,7 @@ export async function POST(request: Request) {
         //    tier는 클라이언트 입력이므로 신뢰하지 않는다. 이 엔드포인트는 무료 분석 경로이며
         //    (유료 심층 분석은 결제 후 Inngest에서 별도 처리) 항상 IP 기준으로 제한한다.
         // ─────────────────────────────────────
-        {
+        if (process.env.NODE_ENV !== 'development') { // 개발 모드는 무료 한도 미적용 (타로 free-reading과 동일)
             const headerList = await headers();
             const ip = headerList.get("x-forwarded-for")?.split(",")[0] || "unknown";
             
