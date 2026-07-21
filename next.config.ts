@@ -36,6 +36,12 @@ const nextConfig: NextConfig = {
         destination: "/saju?utm_source=instagram&utm_medium=organic&utm_campaign=comment",
         permanent: false,
       },
+      // /tt: 틱톡 프로필 링크 전용 — 인스타 유입과 분리 집계
+      {
+        source: "/tt",
+        destination: "/saju?utm_source=tiktok&utm_medium=organic&utm_campaign=bio",
+        permanent: false,
+      },
     ];
   },
 };
