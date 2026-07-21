@@ -6,6 +6,7 @@ import { motion } from "framer-motion";
 import { useSajuStore } from "@/store/useSajuStore";
 import toast from "react-hot-toast"; import { Suspense } from "react";
 import { getUtm, getVisitorId } from "@/utils/utm";
+import { trackPurchase } from "@/utils/metaPixel";
 import PremiumGaugePreview from "@/components/PremiumGaugePreview";
 
 function PaymentSuccessContent() {
@@ -125,6 +126,9 @@ function PaymentSuccessContent() {
                 if (!jobId) {
                     throw new Error("분석 작업 ID를 받지 못했습니다.");
                 }
+
+                // Meta 픽셀 구매 전환 (주문번호 기준 1회 · 실패해도 결제 흐름과 무관)
+                trackPurchase(orderId, Number(amountStr));
 
                 // 4. 결제 승인 성공 및 작업 생성 확인됨
                 setStatus("analyzing");

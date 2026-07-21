@@ -6,6 +6,7 @@ import { motion } from 'framer-motion';
 import { NAMING_PENDING_KEY } from '@/features/naming/constants';
 import { saveNamingHistory } from '@/features/naming/history';
 import { getUtm, getVisitorId } from '@/utils/utm';
+import { trackPurchase } from '@/utils/metaPixel';
 
 // ─────────────────────────────────────────────
 // 작명 결제 성공 → 승인 → 리포트 생성 대기 페이지
@@ -74,6 +75,9 @@ function NamingPaymentSuccessContent() {
                 if (!confirmJson.success || !confirmJson.jobId) {
                     throw new Error(confirmJson.message || '결제 승인에 실패했습니다.');
                 }
+
+                // Meta 픽셀 구매 전환 (주문번호 기준 1회 · 실패해도 결제 흐름과 무관)
+                trackPurchase(orderId, Number(amount));
 
                 sessionStorage.removeItem(NAMING_PENDING_KEY);
                 const jobId = confirmJson.jobId;

@@ -7,6 +7,7 @@ import CardBack from "@/components/tarot/CardBack";
 import { TAROT_PENDING_KEY, TAROT_JOB_ID_KEY, TAROT_HISTORY_KEY, TAROT_INPUT_KEY, TAROT_ROUNDS_KEY, TAROT_FREE_KEY } from "@/features/tarot/constants";
 import { createClient } from "@/utils/supabase/client";
 import { getUtm, getVisitorId } from "@/utils/utm";
+import { trackPurchase } from "@/utils/metaPixel";
 
 /* 타이머로 순환하는 리딩 단계 문구 — 마지막 문구에서 멈춤 */
 const LOADING_STEPS = [
@@ -111,6 +112,9 @@ function TarotPaymentSuccessContent() {
                 });
                 const startData = await startRes.json();
                 if (!startData.success) throw new Error(startData.error || '분석 시작 실패');
+
+                // Meta 픽셀 구매 전환 (주문번호 기준 1회 · 실패해도 결제 흐름과 무관)
+                trackPurchase(orderId, Number(amountStr));
 
                 try {
                     sessionStorage.removeItem(TAROT_PENDING_KEY);

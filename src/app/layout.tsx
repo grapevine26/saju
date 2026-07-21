@@ -54,6 +54,7 @@ export const metadata: Metadata = {
 import ChannelTalk from "@/components/ChannelTalk";
 import UtmTracker from "@/components/UtmTracker";
 import MotionProvider from "@/components/MotionProvider";
+import MetaPixel from "@/components/MetaPixel";
 
 export default function RootLayout({
   children,
@@ -71,6 +72,7 @@ export default function RootLayout({
       <body className="antialiased flex justify-center min-h-screen" style={{background:'radial-gradient(ellipse 1200px 700px at 50% 10%, #1E0C12 0%, #0F080B 45%, #0A090C 75%)'}}>
         <ChannelTalk />
         <UtmTracker />
+        <MetaPixel />
         <Toaster
           position="top-center"
           toastOptions={{
