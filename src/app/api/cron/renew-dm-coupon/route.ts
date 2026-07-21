@@ -6,7 +6,10 @@ export const dynamic = "force-dynamic";
 const SHARED_CODE = "묘연20";
 const PERCENT = 20;
 const VALID_DAYS = 3;
-const MAX_USES_PER_DAY = 100;
+// 상한은 정상 고객을 막는 장치가 아니라 봇/극단적 유출용 퓨즈 — DM으로 약속받은
+// 사람이 한도 때문에 막히면 그게 더 큰 손해라서 사실상 안 걸리는 수준으로 넉넉하게.
+// 유출 감지는 차단이 아니라 매일 크론 로그의 직전 사용량(previousUseCount)으로 한다.
+const MAX_USES_PER_DAY = 1000;
 
 /**
  * [Vercel Cron] DM 웰컴 공유 쿠폰(묘연20) 자동 갱신 — 매일 자정(KST) 실행.
