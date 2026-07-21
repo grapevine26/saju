@@ -1,0 +1,8 @@
+{
+    "crons": [
+        {
+            "path": "/api/cron/renew-dm-coupon",
+            "schedule": "0 15 * * *"
+        }
+    ]
+}
