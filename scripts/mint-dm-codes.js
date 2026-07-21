@@ -42,11 +42,26 @@ function generateCode() {
   if (shared) {
     // 공유 코드 — 대소문자 정규화(결제 검증이 대문자로 비교)
     const code = sharedName.toUpperCase();
-    const { error } = await sb.from('discount_codes').insert({
-      code, percent, expires_at: expiresAt.toISOString(), max_uses: maxUses,
-    });
-    if (error) { console.error('발급 실패:', error.message); process.exit(1); }
-    console.log(`# 공유 쿠폰 발급 · ${percent}% · ${expiry}까지 · 최대 ${maxUses}회\n`);
+
+    // 같은 이름의 코드가 이미 있으면 갱신(만료 연장 + 사용 카운트 리셋).
+    // 짧은 기한(예: 3일) 공유 코드를 같은 이름으로 계속 돌려쓰는 운영을 위해
+    // insert 충돌 시 삭제 후 재발급이 아니라 update로 이어받는다 (used_order_id 이력 유지).
+    const { data: existing } = await sb.from('discount_codes')
+      .select('code, use_count').eq('code', code).maybeSingle();
+
+    if (existing) {
+      const { error } = await sb.from('discount_codes')
+        .update({ percent, expires_at: expiresAt.toISOString(), max_uses: maxUses, use_count: 0 })
+        .eq('code', code);
+      if (error) { console.error('갱신 실패:', error.message); process.exit(1); }
+      console.log(`# 공유 쿠폰 갱신 · ${percent}% · ${expiry}까지 · 최대 ${maxUses}회 (이전 사용 ${existing.use_count}회 → 카운트 리셋)\n`);
+    } else {
+      const { error } = await sb.from('discount_codes').insert({
+        code, percent, expires_at: expiresAt.toISOString(), max_uses: maxUses,
+      });
+      if (error) { console.error('발급 실패:', error.message); process.exit(1); }
+      console.log(`# 공유 쿠폰 발급 · ${percent}% · ${expiry}까지 · 최대 ${maxUses}회\n`);
+    }
     console.log(code);
     console.log(`\n사용 현황: SELECT code, use_count, max_uses FROM discount_codes WHERE code = '${code}';`);
     return;
