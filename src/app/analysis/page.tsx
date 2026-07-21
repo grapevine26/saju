@@ -142,6 +142,13 @@ export default function AnalysisPage() {
                 return;
             }
 
+            // 100% 할인 쿠폰 — 결제할 금액이 없으므로 토스 없이 성공 플로우로 직행
+            // (서버 confirm이 코드를 재검증해 기대 금액 0원을 확인해야만 승인)
+            if (discount && amount === 0) {
+                window.location.href = `/payment/success?paymentKey=coupon_free_${Date.now()}&orderId=${orderId}&amount=0`;
+                return;
+            }
+
             const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
             if (!clientKey) {
                 toast.error("결제 설정 오류입니다. 잠시 후 다시 시도해 주세요.");

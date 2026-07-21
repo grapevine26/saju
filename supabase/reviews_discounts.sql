@@ -20,7 +20,7 @@ CREATE INDEX IF NOT EXISTS idx_reviews_service ON reviews (service, created_at D
 CREATE TABLE IF NOT EXISTS discount_codes (
   code          TEXT        PRIMARY KEY,             -- 예: RE20-A3F9K2, 묘연10(공유)
   created_at    TIMESTAMPTZ DEFAULT NOW(),
-  percent       INTEGER     NOT NULL DEFAULT 20 CHECK (percent BETWEEN 1 AND 90),
+  percent       INTEGER     NOT NULL DEFAULT 20 CHECK (percent BETWEEN 1 AND 100), -- 100 = 0원 쿠폰 (토스 승인 생략 경로)
   review_id     UUID        REFERENCES reviews(id),
   expires_at    TIMESTAMPTZ NOT NULL,
   used_at       TIMESTAMPTZ,                          -- 1회용: NULL = 미사용

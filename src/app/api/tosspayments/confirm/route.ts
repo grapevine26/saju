@@ -73,7 +73,6 @@ export async function POST(req: Request) {
         if (freePass && !(await isFreePassSession())) {
             return NextResponse.json({ success: false, message: '결제 정보가 올바르지 않습니다.' }, { status: 403 });
         }
-        const bypassToss = isDev || freePass;
 
         // 1) 서버 가격 검증 — 상품 결제 건(payload 존재)은 금액이 상품 가격과 정확히 일치해야 한다.
         //    타 서비스(3,900원 타로 등) 결제로 프리미엄 잡을 만드는 교차 우회를 원천 차단.
@@ -103,6 +102,12 @@ export async function POST(req: Request) {
             }
         }
 
+        // 100% 쿠폰 — 서버가 직접 검증한 코드로 계산한 기대 금액이 0원이면 수납할 돈이
+        // 없으므로 토스 승인 없이 통과시킨다. 코드가 무효면 위 findValidCode에서 이미
+        // 걸러졌고, 금액도 위에서 0원 일치를 확인했으므로 위조 여지가 없다.
+        const zeroWonCoupon = !!payload && !!discountCode && expectedAmount === 0;
+        const bypassToss = isDev || freePass || zeroWonCoupon;
+
         // 2) 멱등 — 동일 결제로 이미 만든 잡이 있으면 그대로 반환 (새로고침/중복요청/StrictMode)
         if (payload && paymentKey && !bypassToss) {
             const existingId = await findExistingJob(paymentKey);
@@ -114,7 +119,7 @@ export async function POST(req: Request) {
         let data: any = { method: "CARD", status: "DONE" };
 
         if (bypassToss) {
-            console.log(`[${isDev ? 'DEV MODE' : 'FREE PASS'}] Toss Payments 승인 우회:`, orderId, amount);
+            console.log(`[${isDev ? 'DEV MODE' : zeroWonCoupon ? '0원 쿠폰' : 'FREE PASS'}] Toss Payments 승인 우회:`, orderId, amount);
         } else {
             const secretKey = process.env.TOSS_SECRET_KEY;
             if (!secretKey) {

@@ -93,6 +93,13 @@ export default function TarotResultPage() {
                 return;
             }
 
+            // 100% 할인 쿠폰 — 결제할 금액이 없으므로 토스 없이 성공 플로우로 직행
+            // (서버가 코드를 재검증해 기대 금액 0원을 확인해야만 승인)
+            if (discount && payPrice === 0) {
+                window.location.href = `/tarot/payment/success?paymentKey=coupon_free_${Date.now()}&orderId=${orderId}&amount=0`;
+                return;
+            }
+
             const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
             const toss = await loadTossPayments(process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY || '');
             const payment = toss.payment({ customerKey: ANONYMOUS });

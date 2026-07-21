@@ -58,9 +58,12 @@ export async function POST(req: Request) {
             expectedAmount = applyDiscount(TAROT_PRICE, validCode.percent);
         }
 
+        // 100% 쿠폰 — 서버 검증 코드 기준 기대 금액이 0원이면 수납할 돈이 없으므로 토스 검증 생략
+        const zeroWonCoupon = !!discountCode && expectedAmount === 0;
+
         // 결제 검증 — paymentKey 없이 직접 호출해 유료 리딩을 생성하는 우회 차단
         let paidOrderId: string | null = null;
-        if (!isDev && !freePass) {
+        if (!isDev && !freePass && !zeroWonCoupon) {
             if (!paymentKey || !process.env.TOSS_SECRET_KEY) {
                 return NextResponse.json({ success: false, error: '결제 정보가 없습니다.' }, { status: 403 });
             }
