@@ -111,7 +111,7 @@ export default function AnalysisLoading({ myName, partnerName }: AnalysisLoading
             </div>
 
             <p style={{ fontSize: 11, color: '#5F565D', marginTop: 16, lineHeight: 1.6, textAlign: 'center', position: 'relative' }}>
-                보통 10~20초 정도 걸려요
+                잠시만 기다려 주세요 · 두 분의 사주를 꼼꼼히 읽고 있어요
             </p>
         </div>
     );

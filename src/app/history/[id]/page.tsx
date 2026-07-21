@@ -392,6 +392,31 @@ export default function HistoryDetailPage() {
                             </motion.div>
                         )}
 
+                        {/* 2.8. 핵심 행동 지침 요약 — 프리미엄은 [BLUR] 해제 공개 (ResultClient와 동일) */}
+                        {resultData.secretTeaser && !isLite && (
+                            <motion.div
+                                initial={{ y: 30, opacity: 0 }}
+                                animate={{ y: 0, opacity: 1 }}
+                                transition={{ delay: 0.28 }}
+                            >
+                                <h2 className="text-base font-bold text-[var(--text-primary)] mb-4 flex items-center gap-2">
+                                    <Sparkles className="w-4 h-4 text-[var(--accent-gold)]" />
+                                    핵심 행동 지침 요약
+                                </h2>
+                                <div className="relative overflow-hidden rounded-2xl border border-[var(--accent-border)] p-5"
+                                    style={{ background: 'linear-gradient(160deg, rgba(216,72,94,0.08) 0%, rgba(10,9,12,0.95) 60%)' }}>
+                                    <div className="absolute top-0 right-0 w-24 h-24 rounded-full blur-2xl pointer-events-none bg-[var(--accent-soft)]" />
+                                    <p className="text-[14px] leading-[1.85] font-medium whitespace-pre-wrap break-keep relative z-10 text-[var(--text-primary)]">
+                                        {resultData.secretTeaser.split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part: string, i: number) =>
+                                            part.startsWith('[BLUR]') && part.endsWith('[/BLUR]')
+                                                ? <span key={i} className="mx-1 font-bold text-[var(--accent-amber)]">{part.slice(6, -7)}</span>
+                                                : <span key={i}>{part}</span>
+                                        )}
+                                    </p>
+                                </div>
+                            </motion.div>
+                        )}
+
                         {/* 3. AI 재회 전략 리포트 */}
                         {resultData.details && (
                             <motion.div
