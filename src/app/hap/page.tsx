@@ -32,7 +32,7 @@ const PARTS = [
 
 export default function HapLandingPage() {
     return (
-        <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
+        <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
             <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px 120px' }}>
 
                 {/* 히어로 */}

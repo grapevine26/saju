@@ -123,7 +123,7 @@ function HapPaymentSuccessContent() {
     }, [paymentKey, orderId, amountStr]);
 
     return (
-        <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
+        <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 24 }}>
             {status === 'loading' ? (
                 <div style={{ textAlign: 'center' }}>
                     <style>{`

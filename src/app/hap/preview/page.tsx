@@ -164,7 +164,7 @@ export default function HapPreviewPage() {
 
     if (loading || !preview) {
         return (
-            <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, sans-serif' }}>
+            <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, sans-serif' }}>
                 <p style={{ color: C.sub, fontSize: 14 }}>두 분의 사주를 맞춰보는 중…</p>
             </div>
         );
@@ -173,7 +173,7 @@ export default function HapPreviewPage() {
     const comp = preview.compatibility;
 
     return (
-        <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', paddingBottom: 60 }}>
+        <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif', paddingBottom: 60 }}>
             <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px' }}>
 
                 {/* 헤더 */}

@@ -42,12 +42,25 @@ interface Props {
 
 /* ── 공용 조각 ── */
 
-const PartHead = ({ num, title, anchorId }: { num: string; title: string; anchorId: string }) => (
-    <div id={anchorId} data-part-anchor style={{ background: C.band, border: `1px solid ${C.cardBorder}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px', scrollMarginTop: 74 }}>
-        <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.22em', color: C.accentBright, margin: '0 0 6px' }}>{num}</p>
-        <h2 style={{ fontFamily: C.serif, fontSize: 19, fontWeight: 700, margin: 0, color: C.ink }}>{title}</h2>
-    </div>
-);
+// 파트가 진행될수록(첫 만남 → 최종 판정) 밴드 톤이 점점 짙은 금으로 깊어진다 —
+// 네 파트가 다 똑같은 카드로 보이지 않게, 그리고 리포트가 결론을 향해
+// '무르익는' 감각을 배경 톤 하나로 표현.
+const PART_TIERS = [
+    { band: 'linear-gradient(135deg, rgba(180,172,160,0.05) 0%, rgba(240,234,235,0.05) 100%)', border: 'rgba(240,234,235,0.13)', glow: null },
+    { band: 'linear-gradient(135deg, rgba(201,161,92,0.07) 0%, rgba(240,234,235,0.045) 100%)', border: 'rgba(201,161,92,0.20)', glow: null },
+    { band: 'linear-gradient(135deg, rgba(201,161,92,0.11) 0%, rgba(240,234,235,0.04) 100%)', border: 'rgba(201,161,92,0.26)', glow: null },
+    { band: 'linear-gradient(135deg, rgba(217,184,114,0.16) 0%, rgba(10,9,8,0.5) 100%)', border: 'rgba(217,184,114,0.4)', glow: '0 0 40px rgba(217,184,114,0.12)' },
+];
+
+const PartHead = ({ num, title, anchorId, tier = 0 }: { num: string; title: string; anchorId: string; tier?: number }) => {
+    const t = PART_TIERS[tier] || PART_TIERS[0];
+    return (
+        <div id={anchorId} data-part-anchor style={{ background: t.band, border: `1px solid ${t.border}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px', scrollMarginTop: 74, boxShadow: t.glow || 'none' }}>
+            <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.22em', color: C.accentBright, margin: '0 0 6px' }}>{num}</p>
+            <h2 style={{ fontFamily: C.serif, fontSize: 19, fontWeight: 700, margin: 0, color: C.ink }}>{title}</h2>
+        </div>
+    );
+};
 
 /**
  * 파트 이동 네비 — 스크롤에 따라 현재 파트를 강조하고 클릭 시 부드럽게 이동.
@@ -162,7 +175,7 @@ const starsText = (stars: number) => '★'.repeat(Math.floor(stars)) + (stars % 
 export default function HapResultClient({ job, myName, partnerName }: Props) {
     if (!job || !job.ai_result?.hapReport) {
         return (
-            <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, fontFamily: 'Pretendard, sans-serif', padding: 24 }}>
+            <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, fontFamily: 'Pretendard, sans-serif', padding: 24 }}>
                 <p style={{ fontSize: 15, fontWeight: 700 }}>리포트를 찾을 수 없어요</p>
                 <p style={{ fontSize: 13, color: C.sub, textAlign: 'center', wordBreak: 'keep-all' }}>{job && job.status !== 'completed' ? '아직 분석이 진행 중이거나 실패한 작업입니다.' : '링크가 정확한지 확인해 주세요.'}</p>
                 <Link href="/hap" style={{ fontSize: 13, color: C.accentBright }}>운명의 합 처음으로 →</Link>
@@ -189,7 +202,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
     const p1 = rep.part1 || {}, p2 = rep.part2 || {}, p3 = rep.part3 || {}, fin = rep.final || {};
 
     return (
-        <div style={{ background: C.bg, minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
+        <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
             <div style={{ maxWidth: 560, margin: '0 auto', padding: '0 22px 110px' }}>
 
                 {/* ── 히어로 ── */}
@@ -212,7 +225,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 ]} />
 
                 {/* ══════════ PART 1 ══════════ */}
-                <PartHead num="PART 1" title="첫 만남의 설계도" anchorId="part1" />
+                <PartHead num="PART 1" title="첫 만남의 설계도" anchorId="part1" tier={0} />
 
                 <H3>첫인상</H3>
                 <P>{p1.firstImpression}</P>
@@ -280,7 +293,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <Quote>{p1.quote}</Quote>
 
                 {/* ══════════ PART 2 ══════════ */}
-                <PartHead num="PART 2" title="연애의 실전" anchorId="part2" />
+                <PartHead num="PART 2" title="연애의 실전" anchorId="part2" tier={1} />
 
                 <H3>누가 먼저 마음을 열까?</H3>
                 <P>{p2.whoOpensFirst?.comment}</P>
@@ -342,7 +355,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <P>{p2.review?.comment}</P>
 
                 {/* ══════════ PART 3 ══════════ */}
-                <PartHead num="PART 3" title="함께 만드는 생활" anchorId="part3" />
+                <PartHead num="PART 3" title="함께 만드는 생활" anchorId="part3" tier={2} />
 
                 <H3>두 사람의 재물운 구조</H3>
                 <PairCards
@@ -401,7 +414,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <P>{p3.review}</P>
 
                 {/* ══════════ FINAL ══════════ */}
-                <PartHead num="FINAL" title="최종 판정" anchorId="final" />
+                <PartHead num="FINAL" title="최종 판정" anchorId="final" tier={3} />
 
                 <H3>두 사람의 인연을 한 문장으로</H3>
                 <Quote>{fin.oneLineDestiny}</Quote>
