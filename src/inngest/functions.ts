@@ -2,17 +2,19 @@ import { inngest } from "./client";
 import { supabaseAdmin } from "@/lib/supabase";
 import { calculateGoldenWindows, calculateGoldenDates } from "@/utils/goldenWindowCalc";
 import { calculateBazi } from "@/utils/baziCalc";
-import { calculateCompatibility } from "@/utils/compatibilityCalc";
+import { calculateCompatibility, calculateHapScores, hapGradeFromScore, hapStarsFromScore } from "@/utils/compatibilityCalc";
 import { callTerra } from "@/utils/openaiCall";
 import {
   BASE_SYSTEM_INSTRUCTION,
   SYSTEM_INSTRUCTION_LITE,
   SYSTEM_INSTRUCTION_GOLDEN_WINDOW,
   SYSTEM_INSTRUCTION_COMPATIBILITY,
+  SYSTEM_INSTRUCTION_HAP,
   buildPrompt1,
   buildPrompt2,
   buildPrompt3,
-  buildPrompt4
+  buildPrompt4,
+  buildPromptHap
 } from "@/constants/aiPrompts";
 import { Resend } from "resend";
 
@@ -98,6 +100,117 @@ export const processPremiumAnalysis = inngest.createFunction(
         .update({ status: "processing" })
         .eq("id", jobId);
     });
+
+    // 1.5 운명의 합(궁합 단독 상품, packageId: 'compatibility') — 재회 파이프라인과 분리된 전용 경로.
+    // liteResult·골든윈도우·prompt1~3에 의존하지 않으며, 실패 시 throw → onFailure 자동 환불 재사용.
+    if (raw_data?.packageId === 'compatibility') {
+      const hapAiResult = await step.run("analyze-hap-report", async () => {
+        const { myRawInput, partnerRawInput, relationshipStatus } = raw_data;
+
+        const myBazi = calculateBazi(
+          myRawInput.gender, myRawInput.calendarType,
+          myRawInput.birthYear, myRawInput.birthMonth, myRawInput.birthDay,
+          myRawInput.birthCity, myRawInput.birthHour || '', myRawInput.birthMinute || '',
+          myRawInput.isTimeUnknown, myRawInput.birthTimezone, myRawInput.birthLongitude
+        );
+        const partnerBazi = calculateBazi(
+          partnerRawInput.gender, partnerRawInput.calendarType,
+          partnerRawInput.birthYear, partnerRawInput.birthMonth, partnerRawInput.birthDay,
+          partnerRawInput.birthCity, partnerRawInput.birthHour || '', partnerRawInput.birthMinute || '',
+          partnerRawInput.isTimeUnknown, partnerRawInput.birthTimezone, partnerRawInput.birthLongitude
+        );
+        const compatibility = calculateCompatibility(myBazi, partnerBazi);
+        const hapScores = calculateHapScores(compatibility);
+
+        const report = await callTerra(SYSTEM_INSTRUCTION_HAP, buildPromptHap({
+          myRawInput, partnerRawInput, myBazi, partnerBazi,
+          compatibilityPromptSummary: compatibility.promptSummary,
+          relationshipStatus, hapScores,
+        }), 32768);
+
+        // 핵심 콘텐츠가 비면 실패로 간주 (빈 리포트를 유료 완료로 저장하지 않음)
+        if (!report?.part1?.firstImpression || !report?.final?.finalReview) {
+          throw new Error("운명의 합 리포트 생성 실패 — 자동 환불 대상");
+        }
+
+        // 점수·등급·별점은 시스템 계산값으로 확정 (AI 인플레 방지)
+        const gradeTable = [
+          { area: '연애', score: hapScores.romance, grade: hapGradeFromScore(hapScores.romance) },
+          { area: '결혼', score: hapScores.marriage, grade: hapGradeFromScore(hapScores.marriage) },
+          { area: '재물', score: hapScores.wealth, grade: hapGradeFromScore(hapScores.wealth) },
+          { area: '성격', score: hapScores.personality, grade: hapGradeFromScore(hapScores.personality) },
+          { area: '가정', score: hapScores.family, grade: hapGradeFromScore(hapScores.family) },
+          { area: '소통', score: hapScores.communication, grade: hapGradeFromScore(hapScores.communication) },
+        ];
+
+        return {
+          tier: 'premium', packageId: 'compatibility',
+          hapReport: report,
+          hapScores, gradeTable,
+          totalGrade: hapGradeFromScore(hapScores.total),
+          stars: hapStarsFromScore(hapScores.total),
+          myManseryeok: myBazi.manseryeok, partnerManseryeok: partnerBazi.manseryeok,
+          myOhhaeng: myBazi.ohhaengCounts, partnerOhhaeng: partnerBazi.ohhaengCounts,
+          compatibility: {
+            reunionScore: compatibility.reunionScore,
+            attractionScore: compatibility.attractionScore,
+            conflictScore: compatibility.conflictScore,
+            complementScore: compatibility.complementScore,
+            hapList: compatibility.hapList,
+            chungList: compatibility.chungList,
+            hyeongList: compatibility.hyeongList,
+            haeList: compatibility.haeList,
+            dayMasterRelation: compatibility.dayMasterRelation,
+            spouseHouseRelation: compatibility.spouseHouseRelation,
+            ohhaengAnalysis: compatibility.ohhaengAnalysis,
+          },
+        };
+      });
+
+      await step.run("save-hap-result", async () => {
+        const { error } = await supabaseAdmin
+          .from("premium_analysis_jobs")
+          .update({ status: "completed", ai_result: hapAiResult })
+          .eq("id", jobId);
+        if (error) throw new Error(error.message);
+      });
+
+      await step.run("send-hap-completion-email", async () => {
+        if (!customerEmail) return { success: true, message: "No email, skipped." };
+
+        const baseUrl = process.env.NEXT_PUBLIC_SITE_URL
+          || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null)
+          || "http://localhost:3000";
+        const resultUrl = `${baseUrl}/hap/result/${jobId}`;
+
+        const htmlMessage = `
+          <h2>[운명의 합] 궁합 리포트 완성 안내</h2>
+          <p>두 분의 궁합 리포트가 완성되었습니다.</p>
+          <p>첫 만남의 설계도부터 연애의 실전, 함께 만드는 생활, 그리고 최종 판정까지 — 지금 바로 확인해 보세요.</p>
+          <br/>
+          <a href="${resultUrl}" style="display:inline-block; padding:12px 24px; background-color:#D8485E; color:white; text-decoration:none; border-radius:8px; font-weight:bold;">👉 궁합 리포트 확인하기</a>
+          <br/><br/>
+          <p style="font-size:12px; color:#6b7280;">본 링크는 개인 정보 보호를 위해 본인만 열람 가능합니다.</p>
+        `;
+
+        if (process.env.NODE_ENV === "development") {
+          console.log("[로컬 개발 모드] 운명의 합 완료 메일 발송 생략:", customerEmail, resultUrl);
+          return { success: true, jobId };
+        }
+        try {
+          await resend.emails.send({
+            from: "운명의 합 <support@dasisaju.com>",
+            to: customerEmail,
+            subject: "💞 두 분의 궁합 리포트가 완성되었습니다",
+            html: htmlMessage,
+          });
+        } catch (error: any) {
+          console.error("Resend 이메일 발송 에러:", error);
+        }
+      });
+
+      return { success: true, jobId };
+    }
 
     // 2. Gemini AI 분석 (메인 작업)
     const aiResult = await step.run("analyze-with-gemini", async () => {

@@ -68,6 +68,7 @@ export function getVisitorId(): string | null {
 /** 경로 → 서비스 구분 */
 export function serviceFromPath(pathname: string): string {
     if (pathname.startsWith('/tarot')) return 'tarot';
+    if (pathname.startsWith('/hap')) return 'hap';
     if (pathname.startsWith('/yunmyeong')) return 'naming';
     if (pathname === '/') return 'hub';
     return 'saju';

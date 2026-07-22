@@ -370,6 +370,61 @@ export default function TarotResultClient({ job, hasOwner = false }: Props) {
                     </motion.div>
                 )}
 
+                {/* ── 운명의 합 브릿지 (연인·썸 한정) ──
+                    타로가 답한 건 "지금 마음". 남은 질문 "우리가 얼마나 맞는 사이인가"를 궁합 리포트로 연결 */}
+                {(input.situation === 'dating' || input.situation === 'crush') && (
+                    <motion.div
+                        initial={{ opacity: 0, y: 14 }}
+                        animate={{ opacity: 1, y: 0 }}
+                        transition={{ delay: 0.6 }}
+                        style={{
+                            marginTop: 28,
+                            borderRadius: 18,
+                            padding: '24px 22px',
+                            background: 'linear-gradient(150deg, rgba(216,72,94,0.10) 0%, rgba(30,26,66,0.55) 55%)',
+                            border: '1px solid rgba(240,106,126,0.28)',
+                            position: 'relative',
+                            overflow: 'hidden',
+                        }}
+                    >
+                        <div style={{
+                            position: 'absolute', top: -40, right: -30, width: 160, height: 150,
+                            background: 'radial-gradient(circle, rgba(216,72,94,0.16) 0%, transparent 70%)',
+                            pointerEvents: 'none',
+                        }} />
+                        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#F06A7E', marginBottom: 10 }}>
+                            운명의 합 · 궁합 리포트
+                        </p>
+                        <p className="tarot-serif" style={{ fontSize: 18, fontWeight: 700, color: 'var(--tarot-text-1)', lineHeight: 1.5, marginBottom: 10 }}>
+                            마음은 확인했어요.<br />우리는 &lsquo;운명의 합&rsquo;일까요?
+                        </p>
+                        <p style={{ fontSize: 13, color: 'var(--tarot-text-2)', lineHeight: 1.75, marginBottom: 16 }}>
+                            카드는 {input.partnerName}님의 <strong style={{ color: 'var(--tarot-text-1)' }}>지금 마음</strong>을 보여드렸어요.
+                            두 사람이 타고나기를 얼마나 맞는 사이인지 — 첫인상부터 결혼, 노년까지는 사주에 새겨져 있습니다.
+                        </p>
+                        <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
+                            {['궁합 총점 6항목', '싸움의 원인과 화해 공식', '결혼 적기 · 최종 판정'].map((t) => (
+                                <span key={t} style={{
+                                    fontSize: 11, color: 'rgba(240,106,126,0.9)',
+                                    background: 'rgba(216,72,94,0.10)', border: '1px solid rgba(240,106,126,0.22)',
+                                    padding: '4px 10px', borderRadius: 999,
+                                }}>{t}</span>
+                            ))}
+                        </div>
+                        <Link href="/hap?utm_source=tarot&utm_medium=bridge" style={{
+                            display: 'block', textAlign: 'center', padding: '15px 20px', borderRadius: 13,
+                            background: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)',
+                            color: '#FFF0F2', fontSize: 14.5, fontWeight: 700, textDecoration: 'none',
+                            boxShadow: '0 6px 24px rgba(216,72,94,0.28)',
+                        }}>
+                            무료로 궁합 미리보기
+                        </Link>
+                        <p style={{ fontSize: 11, color: 'var(--tarot-text-3)', textAlign: 'center', marginTop: 9 }}>
+                            끌림·갈등 지수 무료 확인 · 가입 없이 바로
+                        </p>
+                    </motion.div>
+                )}
+
                 {/* ── 썸·짝사랑 재구매 브릿지 ──
                     다음 상품이 없는 세그먼트는 "다음 질문"을 대신 정해줘 타로 재리딩으로 연결 */}
                 {rereadBridge && (

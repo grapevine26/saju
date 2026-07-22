@@ -43,9 +43,10 @@ const fieldBox: React.CSSProperties = {
   boxSizing: 'border-box',
 };
 
-export default function DualInputForm() {
+export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' | 'hap' }) {
   const router = useRouter();
   const [step, setStep] = useState<1 | 2 | 3>(1);
+  const isHap = mode === 'hap';
 
   const yearRef   = useRef<HTMLInputElement>(null);
   const monthRef  = useRef<HTMLInputElement>(null);
@@ -68,6 +69,7 @@ export default function DualInputForm() {
   } = useSajuStore();
 
   const { metDate, setMetDate, breakupDate, setBreakupDate, breakupReason, setBreakupReason } = useSajuStore();
+  const { relationshipStatus, setRelationshipStatus } = useSajuStore();
 
   const maxYear = new Date().getFullYear();
 
@@ -124,6 +126,10 @@ export default function DualInputForm() {
   };
 
   const handleSubmit = () => {
+    if (isHap) {
+      router.push("/hap/preview");
+      return;
+    }
     // 입력 폼을 거친 명시적 새 분석 요청 표시 — /analysis가 이 플래그를 보면
     // 최근 기록 캐시(같은 이름·생일이면 이전 결제 리포트까지 그대로 로드)를 건너뛰고
     // 새 무료 분석을 돌린다. 새로고침 시에는 플래그가 없으므로 캐시가 정상 동작.
@@ -303,7 +309,11 @@ export default function DualInputForm() {
     );
   };
 
-  const stepMeta = [
+  const stepMeta = isHap ? [
+    { label: '나의 정보', sub: '정확할수록 분석이 더 정밀해져요' },
+    { label: '상대방 정보', sub: '생년월일만 알아도 충분해요' },
+    { label: '우리 사이', sub: '지금 두 사람의 관계를 알려주세요' },
+  ] : [
     { label: '나의 정보', sub: '정확할수록 분석이 더 정밀해져요' },
     { label: '상대방 정보', sub: '생년월일만 알아도 충분해요' },
     { label: '이별 이야기', sub: '더 정확한 분석을 위해 알려주세요 (선택)' },
@@ -320,7 +330,7 @@ export default function DualInputForm() {
         display: 'flex', alignItems: 'center', padding: '14px 20px', gap: 12,
       }}>
         {step === 1
-          ? <Link href="/saju" style={{ display: 'flex', padding: 4, color: C.sub, textDecoration: 'none' }}><ArrowLeft size={22} /></Link>
+          ? <Link href={isHap ? "/hap" : "/saju"} style={{ display: 'flex', padding: 4, color: C.sub, textDecoration: 'none' }}><ArrowLeft size={22} /></Link>
           : <button onClick={() => setStep((step - 1) as 1 | 2 | 3)} style={{ display: 'flex', padding: 4, background: 'none', border: 'none', color: C.sub, cursor: 'pointer' }}><ArrowLeft size={22} /></button>
         }
         <span style={{ fontWeight: 700, fontSize: 16, color: C.ink }}>정보 입력</span>
@@ -355,6 +365,30 @@ export default function DualInputForm() {
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: 0.22 }}>
               <StepHeader icon={MessageSquare} color={C.accentBright} bg={C.accentSoft} border={C.accentBorder} label={stepMeta[2].label} sub={stepMeta[2].sub} />
+              {isHap ? (
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
+                  {[
+                    { v: 'dating', label: '연인 사이', desc: '지금 만나고 있어요' },
+                    { v: 'some', label: '썸 타는 중', desc: '아직 사귀기 전이에요' },
+                    { v: 'marriage', label: '결혼 준비 중', desc: '결혼을 진지하게 생각하고 있어요' },
+                    { v: 'etc', label: '그 외', desc: '복잡하거나 애매한 사이예요' },
+                  ].map(opt => (
+                    <button key={opt.v} onClick={() => setRelationshipStatus(opt.v)}
+                      style={{
+                        ...fieldBox, textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 3,
+                        border: `1px solid ${relationshipStatus === opt.v ? C.accentBorder : C.cardBorder}`,
+                        background: relationshipStatus === opt.v ? C.accentSoft : C.card,
+                      }}>
+                      <span style={{ fontSize: 14.5, fontWeight: 700, color: relationshipStatus === opt.v ? C.accentBright : C.ink }}>{opt.label}</span>
+                      <span style={{ fontSize: 12, color: C.muted }}>{opt.desc}</span>
+                    </button>
+                  ))}
+                  <div style={{ background: C.card, border: `1px solid ${C.lineSoft}`, borderRadius: C.r, padding: '14px 16px', display: 'flex', gap: 10, alignItems: 'flex-start', marginTop: 10 }}>
+                    <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
+                    <p style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.7, margin: 0 }}>관계 상태는 리포트의 말투와 조언 방향을 맞추는 데만 사용됩니다. 선택하지 않아도 분석은 가능해요.</p>
+                  </div>
+                </div>
+              ) : (
               <div style={{ display: 'flex', flexDirection: 'column', gap: 28 }}>
 
                 {/* 처음 사귄 날 */}
@@ -417,6 +451,7 @@ export default function DualInputForm() {
                   <p style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.7, margin: 0 }}>입력하신 내용은 리포트 생성에만 사용됩니다. 건너뛰어도 사주 데이터만으로 기본 분석이 가능해요. 자세한 처리 방침은 개인정보처리방침을 참고해 주세요.</p>
                 </div>
               </div>
+              )}
             </motion.div>
           )}
         </AnimatePresence>
@@ -438,12 +473,12 @@ export default function DualInputForm() {
         )}
         {step === 2 && (
           <button onClick={handleNextStep2} style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: C.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            다음: 이별 이야기 입력 <ChevronRight size={18} />
+            {isHap ? '다음: 우리 사이 입력' : '다음: 이별 이야기 입력'} <ChevronRight size={18} />
           </button>
         )}
         {step === 3 && (
           <button onClick={handleSubmit} style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: C.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
-            재회 가능성 분석 시작 <Heart size={16} />
+            {isHap ? '무료 궁합 미리보기' : '재회 가능성 분석 시작'} <Heart size={16} />
           </button>
         )}
       </div>

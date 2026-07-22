@@ -1,4 +1,5 @@
 import { supabaseAdmin } from "@/lib/supabase";
+import { redirect } from "next/navigation";
 import ResultClient from "./ResultClient";
 
 export const dynamic = 'force-dynamic';
@@ -17,6 +18,11 @@ export default async function ResultViewerPage({ params }: { params: Promise<{ j
 
     if (error) {
         console.error("Result fetch error:", error);
+    }
+
+    // 운명의 합(궁합 단독) 잡은 전용 뷰로 — 완료 메일 링크 호환
+    if ((job?.ai_result as any)?.packageId === 'compatibility') {
+        redirect(`/hap/result/${jobId}`);
     }
 
     return <ResultClient job={job} />;

@@ -374,3 +374,66 @@ const buildPromptSummary = ({
 
     return lines.join('\n');
 };
+
+// ========================================================================
+// 운명의 합(궁합 단독 상품) — 6항목 점수 앵커
+// AI가 점수를 지어내면 전부 S급 인플레가 나므로, 기존 결정론 점수
+// (끌림·갈등·보완)를 항목별 가중치로 섞어 시스템이 앵커를 확정한다.
+// AI는 프롬프트에서 이 값 기준 ±5 조정만 허용된다.
+// ========================================================================
+
+/** 운명의 합 6항목 점수 (0~100) */
+export interface HapScores {
+    romance: number;        // 연애궁합
+    marriage: number;       // 결혼궁합
+    wealth: number;         // 재물궁합
+    personality: number;    // 성격궁합
+    family: number;         // 가정궁합
+    communication: number;  // 소통궁합
+    total: number;          // 종합
+}
+
+/** 점수 → 등급 환산 (등급표는 AI가 아닌 코드가 확정) */
+export const hapGradeFromScore = (score: number): string => {
+    if (score >= 95) return 'S+';
+    if (score >= 90) return 'S';
+    if (score >= 84) return 'A+';
+    if (score >= 77) return 'A';
+    if (score >= 70) return 'B+';
+    if (score >= 62) return 'B';
+    if (score >= 54) return 'C+';
+    return 'C';
+};
+
+/** 종합 점수 → 별점 (5점 만점, 0.5 단위) */
+export const hapStarsFromScore = (score: number): number => {
+    return Math.max(2.5, Math.min(5, Math.round((score / 20) * 2) / 2));
+};
+
+export const calculateHapScores = (comp: CompatibilityResult): HapScores => {
+    const a = comp.attractionScore;          // 끌림
+    const h = 100 - comp.conflictScore;      // 조화 (갈등의 역)
+    const c = comp.complementScore;          // 오행 보완
+
+    // 합·충 개수 보정 — 합이 많으면 유대 가산, 충·형이 많으면 소통·가정 감산
+    const hapBonus = Math.min(6, comp.hapList.length * 2);
+    const clashPenalty = Math.min(8, (comp.chungList.length + comp.hyeongList.length) * 3);
+
+    // 상업 보정: 원(raw) 혼합값은 40~70대에 몰려 유료 궁합 시장 기대(80~90대)보다
+    // 박하게 읽힌다. 순위·편차는 그대로 두고 대역만 50+raw*0.5로 이동시킨다
+    // (나쁜 조합 → 70대 초반, 평범 → 80 안팎, 좋은 조합 → 90대 — 등급 변별력 유지).
+    const clamp = (v: number) => Math.round(Math.max(45, Math.min(97, 50 + v * 0.5)));
+    const scores = {
+        romance: clamp(a * 0.55 + h * 0.25 + c * 0.20 + hapBonus),
+        marriage: clamp(c * 0.40 + h * 0.35 + a * 0.25 + hapBonus - clashPenalty * 0.5),
+        wealth: clamp(c * 0.50 + h * 0.30 + a * 0.20),
+        personality: clamp(a * 0.35 + h * 0.40 + c * 0.25),
+        family: clamp(h * 0.45 + c * 0.35 + a * 0.20 - clashPenalty * 0.5),
+        communication: clamp(h * 0.50 + a * 0.30 + c * 0.20 - clashPenalty),
+    };
+    const total = Math.round(
+        (scores.romance + scores.marriage + scores.wealth +
+            scores.personality + scores.family + scores.communication) / 6
+    );
+    return { ...scores, total };
+};

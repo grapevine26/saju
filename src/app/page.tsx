@@ -59,10 +59,44 @@ const SERVICES = [
         cardBg: 'linear-gradient(150deg, rgba(30,26,66,0.80) 0%, rgba(13,11,22,0.85) 60%)',
         visual: 'cards' as const,
     },
+    {
+        href: '/hap',
+        label: '궁합 리포트',
+        name: '운명의 합',
+        nameSub: 'Destined Match',
+        hook: '우리는 타고나기를 맞는 사이일까.\n첫인상부터 결혼, 노년까지 — 두 사주의 합을 판정합니다.',
+        chips: ['궁합 총점 6항목', '싸움의 원인', '결혼 적기'],
+        badge: '무료 미리보기' as string | null,
+        accent: '#F08A5E',
+        accentSoft: 'rgba(240,138,94,0.10)',
+        border: 'rgba(240,138,94,0.28)',
+        glow: 'rgba(216,110,72,0.16)',
+        cardBg: 'linear-gradient(150deg, rgba(46,28,17,0.75) 0%, rgba(16,12,10,0.85) 60%)',
+        visual: 'seal' as const,
+    },
 ];
 
 /* ── 카드 미니 비주얼 ── */
-function CardVisual({ type, accent }: { type: 'heart' | 'cards'; accent: string }) {
+function CardVisual({ type, accent }: { type: 'heart' | 'cards' | 'seal'; accent: string }) {
+    if (type === 'seal') {
+        return (
+            <div style={{ position: 'relative', width: 74, height: 62, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6 }}>
+                <div style={{
+                    width: 38, height: 38, border: `2px solid ${accent}`, color: accent, borderRadius: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: "'Noto Serif KR', serif", fontSize: 17, fontWeight: 900,
+                    transform: 'rotate(-6deg)', boxShadow: `0 0 14px rgba(216,72,94,0.25)`,
+                }}>合</div>
+                <div style={{
+                    width: 38, height: 38, border: '2px solid #7FB5A0', color: '#7FB5A0', borderRadius: 6,
+                    display: 'flex', alignItems: 'center', justifyContent: 'center',
+                    fontFamily: "'Noto Serif KR', serif", fontSize: 17, fontWeight: 900,
+                    transform: 'rotate(6deg)', marginLeft: -10, marginTop: 10,
+                    boxShadow: '0 0 14px rgba(127,181,160,0.22)',
+                }}>緣</div>
+            </div>
+        );
+    }
     if (type === 'heart') {
         return (
             <div style={{

@@ -421,3 +421,192 @@ JSON 포맷:\n
   }
 }`;
 };
+
+// ─────────────────────────────────────
+// 운명의 합 — 궁합 단독 리포트 (packageId: 'compatibility')
+// 참고: 시그니처 궁합(prompt4)과 상품이 겹치지 않도록 '커플의 생애'
+// (첫 만남→연애 실전→생활·재물→최종 판정) 구성. 점수·등급은 시스템이
+// 계산해 주입하며(HapScores) AI는 해설만 쓴다.
+// ─────────────────────────────────────
+
+export const SYSTEM_INSTRUCTION_HAP = `
+${BASE_SYSTEM_INSTRUCTION}
+
+# Additional Rules (운명의 합 — 궁합 단독 리포트)
+1. 이 리포트의 독자는 현재 관계가 이어지고 있는 커플(연인·썸·결혼 준비)이다. 두 사람이 헤어졌다는 전제, '재회'라는 단어, 과거 이별 사건 언급을 절대 쓰지 마라. 단, '이별 위험 신호' 섹션처럼 미래의 위기를 예방하는 맥락의 가정형 서술은 허용된다.
+2. 점수·등급·별점은 시스템이 계산해 별도로 표시한다. 본문에 임의의 점수·등급을 만들어 쓰지 마라. 점수를 언급해야 하는 해설 항목은 프롬프트가 제공한 [궁합 6항목 점수]의 값만 참조하라.
+3. 두 사람을 계속 비교·대조하는 리포트이므로 '당신'/'상대방' 대명사 금지 — 모든 문장에서 실명(OO님) 호칭.
+4. 각 항목의 분량·형식은 프롬프트 본문의 JSON 포맷 지시를 그대로 따를 것.
+`.trim();
+
+/** 운명의 합 프롬프트 컨텍스트 */
+export interface HapPromptContext {
+    myRawInput: any;
+    partnerRawInput: any;
+    myBazi: BaziData;
+    partnerBazi: BaziData;
+    compatibilityPromptSummary: string;
+    /** 관계 상태: 'dating'(연인) | 'some'(썸) | 'marriage'(결혼 준비) | 'etc' */
+    relationshipStatus?: string;
+    /** 시스템 계산 6항목 점수 (인플레 방지 앵커) */
+    hapScores: { romance: number; marriage: number; wealth: number; personality: number; family: number; communication: number; total: number };
+}
+
+const relationshipStatusLabel = (s?: string): string => {
+    switch (s) {
+        case 'dating': return '연인 사이 (교제 중)';
+        case 'some': return '썸 타는 사이 (아직 교제 전)';
+        case 'marriage': return '결혼을 준비 중이거나 진지하게 생각하는 사이';
+        default: return '서로에게 관심이 있는 사이';
+    }
+};
+
+export const buildPromptHap = (ctx: HapPromptContext): string => {
+    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, relationshipStatus, hapScores } = ctx;
+    const myName = myRawInput.name || '나';
+    const partnerName = partnerRawInput.name || '그 사람';
+
+    return `[분석 대상]
+- ${myName} (${genderLabel(myRawInput.gender)}, 만 ${myBazi.age}세)
+- ${partnerName} (${genderLabel(partnerRawInput.gender)}, 만 ${partnerBazi.age}세)
+- 관계 상태: ${relationshipStatusLabel(relationshipStatus)}
+
+[${myName}의 사주팔자]
+${myBazi.baziStr.trim()}
+- 오행: 목(${myBazi.ohhaengCounts['목']}), 화(${myBazi.ohhaengCounts['화']}), 토(${myBazi.ohhaengCounts['토']}), 금(${myBazi.ohhaengCounts['금']}), 수(${myBazi.ohhaengCounts['수']})
+- 십성: ${myBazi.sipsinSummary}
+${myBazi.uniqueShinsal ? `- 주요 신살: ${myBazi.uniqueShinsal}` : ''}
+
+[${partnerName}의 사주팔자]
+${partnerBazi.baziStr.trim()}
+- 오행: 목(${partnerBazi.ohhaengCounts['목']}), 화(${partnerBazi.ohhaengCounts['화']}), 토(${partnerBazi.ohhaengCounts['토']}), 금(${partnerBazi.ohhaengCounts['금']}), 수(${partnerBazi.ohhaengCounts['수']})
+- 십성: ${partnerBazi.sipsinSummary}
+${partnerBazi.uniqueShinsal ? `- 주요 신살: ${partnerBazi.uniqueShinsal}` : ''}
+
+[궁합 분석 데이터]
+${compatibilityPromptSummary}
+
+[궁합 6항목 점수 — 시스템 계산 확정값, 해설에서만 참조]
+- 연애 ${hapScores.romance} · 결혼 ${hapScores.marriage} · 재물 ${hapScores.wealth} · 성격 ${hapScores.personality} · 가정 ${hapScores.family} · 소통 ${hapScores.communication} · 종합 ${hapScores.total}
+
+(중요 지침 1: 위 사주 데이터는 분석의 '재료'다. 결과 텍스트에 오행·십성·합충·신살 용어를 절대 노출하지 말고, 자연 비유(산·꽃·강·햇살 등)와 심리·관계 언어로만 번역하라. 예: "무토×을목" 대신 "단단한 산과 그 비탈에 핀 꽃")
+
+(중요 지침 2: 모바일 가독성 — 모든 긴 서술 항목은 한 문단 2~3문장으로 끊고 문단 사이 줄바꿈 두 번(\\n\\n))
+
+(중요 지침 3: him/her 대비 카드가 이 리포트의 핵심 장치다. myXxx 필드는 반드시 ${myName}님에 대한 내용, partnerXxx 필드는 반드시 ${partnerName}님에 대한 내용으로 — 뒤바뀌면 리포트 전체가 틀린 상품이 된다)
+
+(중요 지침 4: 항목이 많다고 뒤로 갈수록 짧아지는 것 금지 — part1과 final의 밀도가 같아야 유료 상품이다)
+
+위 데이터를 바탕으로 '운명의 합' 궁합 리포트를 작성해줘.
+
+JSON 포맷:\n
+{
+  "hero": {
+    "metaphorLine": "두 사람의 일간 기질을 자연물로 잇는 한 줄 (예: '깊게 뿌리내린 산 × 그 비탈에 핀 꽃', 15~30자, 사주 용어 금지)"
+  },
+  "part1": {
+    "firstImpression": "첫인상 — 처음 만났을 때 ${myName}님이 ${partnerName}님을 보는 시선과 ${partnerName}님이 ${myName}님을 보는 시선을 각각 묘사 (최소 350자, 2~3문단)",
+    "scoreComment": "6항목 점수가 왜 이렇게 나왔는지 핵심 구조 한 줄 요약 — 점수 나열 금지, '비슷해서가 아니라 채워주는 구조' 같은 본질 설명 (120~200자)",
+    "ohaengHarmony": "오행 궁합 — 두 기질의 자연 비유와 서로를 살리는(또는 부딪히는) 구조 (최소 300자, 2문단)",
+    "yinYang": "음양 균형 — 두 에너지가 만나면 어떤 역할 분담이 생기는지 (최소 200자)",
+    "attraction": {
+      "myView": "${myName}님이 ${partnerName}님에게 끌리는 이유 (120~180자)",
+      "partnerView": "${partnerName}님이 ${myName}님에게 끌리는 이유 (120~180자)"
+    },
+    "mutualGrowth": "서로가 주는 변화 — 함께하면 각자 어떤 사람이 되어가는지 (최소 200자)",
+    "conversation": "대화 궁합 — 대화 스타일 차이를 실제 대사 예시(따옴표)로 보여주고 맞추는 법 제시 (최소 300자, 2문단)",
+    "loveTemperature": {
+      "myStyle": "${myName}님의 사랑 표현 방식 (60~120자)",
+      "partnerStyle": "${partnerName}님이 사랑을 느끼는 방식 (60~120자)",
+      "comment": "온도 차이가 실제 연애에서 어떻게 나타나는지 (120~200자)"
+    },
+    "pastLife": "전생 인연 — 두 기운의 연결을 상징적으로 해석 (최소 200자, 마지막에 '상징적 해석'임을 부드럽게 한 문장으로)",
+    "charmPoints": {
+      "myCharms": ["${partnerName}님이 ${myName}님에게 느끼는 매력 5개 (각 2~8자 명사형)"],
+      "partnerCharms": ["${myName}님이 ${partnerName}님에게 느끼는 매력 5개 (각 2~8자 명사형)"]
+    },
+    "bestStrength": "이 궁합의 가장 큰 장점 (최소 180자)",
+    "biggestRisk": "가장 위험한 부분 — 콕 짚어 돌직구로 (최소 180자)",
+    "expertReview": "Part1 총평 — 역술가 시점의 종합 진단 (최소 280자, 2문단)",
+    "quote": "Part1을 요약하는 인용구 한 문장 (25~55자, 따옴표 없이)"
+  },
+  "part2": {
+    "whoOpensFirst": {
+      "comment": "누가 먼저 마음을 열 가능성이 큰지와 그 이유 (최소 180자)",
+      "myTraits": ["관계 초반 ${myName}님의 성향 3개 (각 10~25자)"],
+      "partnerTraits": ["관계 초반 ${partnerName}님의 성향 3개 (각 10~25자)"]
+    },
+    "earlyDays": {
+      "myBehaviors": ["연애 초기 ${myName}님의 모습 4개 (각 8~25자)"],
+      "partnerBehaviors": ["연애 초기 ${partnerName}님의 모습 4개 (각 8~25자)"]
+    },
+    "deepening": "사랑이 깊어질수록 관계가 어떻게 변해가는지 (최소 200자)",
+    "fightReasons": [
+      { "title": "싸움 원인 제목 (예: 해결하려는 사람 vs 공감받고 싶은 사람, 10~25자)", "detail": "이 원인이 실제로 어떤 장면·대사로 나타나는지 (최소 180자, 대사 예시 포함)" },
+      ... (정확히 3개)
+    ],
+    "reconciliation": "싸우면 누가 먼저 풀까 — 화해의 흐름과 서로에게 필요한 시간 (최소 180자)",
+    "slump": "권태기 — 언제 어떤 모습으로 오고 어떻게 넘기는지 (최소 200자)",
+    "dangerSignals": ["관계가 멀어지기 시작하는 위험 신호 3개 (각 12~30자)"],
+    "affection": "스킨십과 애정 표현 — 두 사람의 리듬 차이와 맞추는 법 (최소 200자)",
+    "marriedLife": {
+      "myRoles": ["결혼 후 ${myName}님이 자연스럽게 맡는 역할 3개 (각 5~15자)"],
+      "partnerRoles": ["결혼 후 ${partnerName}님이 자연스럽게 맡는 역할 3개 (각 5~15자)"],
+      "comment": "결혼 후 실제 생활 모습 (최소 180자)"
+    },
+    "parenting": "자녀와의 관계 — 각자 어떤 부모가 되는지와 균형 (최소 180자)",
+    "review": {
+      "strengths": ["이 궁합의 장점 3개 (각 10~25자)"],
+      "tasks": ["가장 중요한 과제 3개 (각 10~25자)"],
+      "comment": "Part2 총평 (최소 200자)"
+    }
+  },
+  "part3": {
+    "wealthStructure": {
+      "myRole": "재물에서 ${myName}님의 역할 — 만드는 사람/키우는 사람 구조로 (100~180자)",
+      "partnerRole": "재물에서 ${partnerName}님의 역할 (100~180자)",
+      "comment": "두 역할이 합쳐지면 어떤 구조가 되는지 비유로 (예: 엔진과 운전, 100~180자)"
+    },
+    "wealthComment": "재물궁합 해설 — 왜 이 점수인지, 시너지의 조건 (최소 220자)",
+    "moneyControl": "경제권 — 누가 어떤 돈을 관리하면 잘 굴러가는지 (최소 200자)",
+    "business": {
+      "goodFields": ["함께하면 잘 맞는 사업·활동 분야 6개 (각 2~10자)"],
+      "badFields": ["함께 하면 부담되는 방식 3개 (각 8~25자)"],
+      "comment": "왜 그런지 구조 설명 (최소 150자)"
+    },
+    "moneyAfterMarriage": "결혼 후 돈 관리 성향 (최소 180자)",
+    "children": {
+      "myStyle": "부모로서 ${myName}님의 스타일 (80~150자)",
+      "partnerStyle": "부모로서 ${partnerName}님의 스타일 (80~150자)",
+      "comment": "두 스타일의 균형이 아이에게 주는 것 (100~180자)"
+    },
+    "lifelong": "평생 함께할 가능성 — 시간이 갈수록 이 관계가 어디로 가는지 (최소 200자)",
+    "riskyMoment": "가장 위험한 순간 — 의외의 지점을 콕 짚어 (최소 180자)",
+    "secret": "오래가는 비결 — 구체적 일상 행동으로 (최소 180자)",
+    "oldAge": "노년운 — 나이 든 두 사람의 일상 풍경 (최소 180자)",
+    "learning": {
+      "myLearns": ["${myName}님이 ${partnerName}님에게 배우는 것 4개 (각 2~10자)"],
+      "partnerLearns": ["${partnerName}님이 ${myName}님에게 배우는 것 4개 (각 2~10자)"]
+    },
+    "review": "Part3 총평 (최소 220자, 2문단)"
+  },
+  "final": {
+    "oneLineDestiny": "두 사람의 인연을 한 문장으로 (25~55자, 따옴표 없이)",
+    "synergy": {
+      "myGifts": ["${partnerName}님이 ${myName}님에게 채워주는 것 3개 (각 3~12자)"],
+      "partnerGifts": ["${myName}님이 ${partnerName}님에게 채워주는 것 3개 (각 3~12자)"],
+      "comment": "서로의 운을 높여주는 상생 구조 해설 (최소 220자)"
+    },
+    "marriageTiming": "결혼 적기 — 특정 연도를 단정하지 말고, 어떤 조건·준비가 갖춰졌을 때가 적기인지 (최소 200자)",
+    "afterMarriage": "결혼 후의 모습 — 시간이 지날수록 만족도가 어떻게 변하는지 (최소 180자)",
+    "cautionPeriod": "가장 주의해야 할 시기 — 임의의 연도 금지, 이직·이사·육아 초기 같은 환경 변화 국면 중심 (최소 180자)",
+    "avoidActions": {
+      "myAvoid": ["${myName}님이 피해야 할 행동 3개 (각 8~25자)"],
+      "partnerAvoid": ["${partnerName}님이 피해야 할 행동 3개 (각 8~25자)"]
+    },
+    "lastingTips": ["오래가는 비결 4개 (각 6~18자)"],
+    "finalReview": "역술가 최종 총평 — 이 인연의 구조를 종합하고, 가장 주의할 습관 하나를 콕 짚어 당부 (최소 350자, 2~3문단)",
+    "lastQuote": "마지막 한 문장 (30~60자, 따옴표 없이)"
+  }
+}`;
+};

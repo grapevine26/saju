@@ -14,7 +14,7 @@ export interface ClientUtm {
 }
 
 export async function recordPaidEvent(params: {
-    service: 'saju' | 'tarot' | 'naming';
+    service: 'saju' | 'tarot' | 'naming' | 'hap';
     jobId: string;
     amount: number;
     utm?: ClientUtm | null;

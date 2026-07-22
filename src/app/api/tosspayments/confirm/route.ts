@@ -6,7 +6,7 @@ import { safeSend, markDispatchFailed } from "@/lib/jobDispatch";
 import { findValidCode, consumeCode, applyDiscount } from "@/lib/discount";
 
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
-const SAJU_PRICES: Record<string, number> = { premium: 19900, signature: 34900 };
+const SAJU_PRICES: Record<string, number> = { premium: 19900, signature: 34900, compatibility: 19900 };
 
 // 결제 건으로 이미 생성된 잡을 조회 (멱등 처리용). paymentKey는 raw_data에 저장됨.
 async function findExistingJob(paymentKey: string) {
@@ -81,7 +81,8 @@ export async function POST(req: Request) {
         const discountCode: string | null = typeof payload?.discountCode === 'string' && payload.discountCode.trim()
             ? payload.discountCode.trim().toUpperCase() : null;
         if (payload) {
-            const pkg = payload.packageId === 'signature' ? 'signature' : 'premium';
+            const pkg = payload.packageId === 'signature' ? 'signature'
+                : payload.packageId === 'compatibility' ? 'compatibility' : 'premium';
             expectedAmount = SAJU_PRICES[pkg];
             if (discountCode) {
                 const valid = await findValidCode(discountCode);
@@ -156,7 +157,7 @@ export async function POST(req: Request) {
                         const jobId = await createJobAndDispatch(payload, paymentKey);
                         if (jobId) {
                             if (discountCode) await consumeCode(discountCode, orderId);
-                            await recordPaidEvent({ service: 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
+                            await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
                             return NextResponse.json({ success: true, data: pay, jobId });
                         }
                     }
@@ -173,7 +174,7 @@ export async function POST(req: Request) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
             if (discountCode) await consumeCode(discountCode, orderId);
-            await recordPaidEvent({ service: 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
+            await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
             return NextResponse.json({ success: true, data, jobId });
         }
 
