@@ -38,8 +38,25 @@ export default function TarotHistoryPage() {
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        setHistory(loadHistory());
+        const local = loadHistory();
+        setHistory(local);
         setLoaded(true);
+
+        // 계정에 저장된 리딩 병합 — 로그인 상태면 기기가 바뀌어도 기록이 보인다
+        (async () => {
+            try {
+                const res = await fetch('/api/tarot/claim');
+                const data = await res.json();
+                const account: TarotHistoryEntry[] = data?.readings || [];
+                if (!account.length) return;
+                setHistory(prev => {
+                    const seen = new Set(prev.map(e => e.jobId));
+                    const merged = [...prev, ...account.filter(e => !seen.has(e.jobId))];
+                    merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
+                    return merged;
+                });
+            } catch { /* 비로그인/네트워크 실패 — 로컬 기록만 표시 */ }
+        })();
     }, []);
 
     const removeEntry = (jobId: string) => {

@@ -9,6 +9,7 @@ import { TarotRoundSection, TarotFinalMessage } from "@/components/tarot/TarotRe
 import { getCardById } from "@/features/tarot/cards";
 import CardBack from "@/components/tarot/CardBack";
 import ReviewForm from "@/components/ReviewForm";
+import SaveToAccountCard from "@/components/tarot/SaveToAccountCard";
 import { TarotInput, TarotFreeResult, TarotFullResult } from "@/features/tarot/types";
 import { TAROT_FREE_KEY, TAROT_INPUT_KEY, TAROT_ROUNDS_KEY } from "@/features/tarot/constants";
 
@@ -24,9 +25,10 @@ interface Props {
         ai_result: TarotFullResult | null;
         created_at: string;
     } | null;
+    hasOwner?: boolean;
 }
 
-export default function TarotResultClient({ job }: Props) {
+export default function TarotResultClient({ job, hasOwner = false }: Props) {
     const router = useRouter();
     const [currentJob, setCurrentJob] = useState(job);
     const pollRef = useRef<ReturnType<typeof setInterval> | null>(null);
@@ -433,6 +435,9 @@ export default function TarotResultClient({ job }: Props) {
                         </p>
                     </motion.div>
                 )}
+
+                {/* ── 결제 후 계정 연결 유도 (결제 전 로그인 강요 대신) ── */}
+                <SaveToAccountCard jobId={currentJob.id} hasOwner={hasOwner} />
 
                 {/* ── 후기 + 20% 할인 코드 발급 ── */}
                 <ReviewForm jobId={currentJob.id} service="tarot" />
