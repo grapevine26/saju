@@ -464,7 +464,7 @@ function Plans({ onStart }: { onStart: () => void }) {
           ))}
         </div>
         <p style={{ fontSize:11, color:C.muted, textAlign:'center', margin:'4px 4px 0', lineHeight:1.6 }}>
-          💡 타로·사주 재회상담 1회 비용은 보통 3~5만 원 — 리포트는 한 번 결제로 계속 다시 보고, PDF로 소장할 수 있어요
+          💡 사주 재회상담 1회 비용은 평균 5만 원<br />리포트는 한 번 결제로 계속 다시 보고, PDF로 소장할 수 있어요
         </p>
         <BtnPrimary onClick={onStart} style={{ marginTop: 8 }}>무료 분석으로 시작하기</BtnPrimary>
         <p style={{ fontSize:11, color:C.muted, textAlign:'center', margin:'2px 0 0' }}>결제는 무료 분석 결과를 확인한 뒤 선택할 수 있어요</p>
