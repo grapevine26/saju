@@ -76,7 +76,11 @@ function TarotPaymentSuccessContent() {
 
                 const isDev = process.env.NODE_ENV === 'development';
 
-                if (!isDev) {
+                // 100% 쿠폰(0원)은 토스 결제 자체가 없으므로 confirm을 건너뛴다 —
+                // 결제 검증은 /api/tarot/start가 코드 재검증(기대 금액 0원)으로 직접 수행
+                const zeroWonCoupon = Number(amountStr) === 0 && !!pending.discountCode;
+
+                if (!isDev && !zeroWonCoupon) {
                     const confirmRes = await fetch('/api/tosspayments/confirm', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json' },
