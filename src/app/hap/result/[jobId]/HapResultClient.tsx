@@ -7,6 +7,7 @@
  */
 import { motion } from "framer-motion";
 import Link from "next/link";
+import { useEffect, useRef, useState } from "react";
 import { ganToHanja } from "@/utils/ganHanja";
 
 // 운명의 합 — '인장과 금박' 팔레트. him은 먹빛 인장(ink), her는 금박(gold)으로
@@ -41,12 +42,70 @@ interface Props {
 
 /* ── 공용 조각 ── */
 
-const PartHead = ({ num, title }: { num: string; title: string }) => (
-    <div style={{ background: C.band, border: `1px solid ${C.cardBorder}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px' }}>
+const PartHead = ({ num, title, anchorId }: { num: string; title: string; anchorId: string }) => (
+    <div id={anchorId} data-part-anchor style={{ background: C.band, border: `1px solid ${C.cardBorder}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px', scrollMarginTop: 74 }}>
         <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.22em', color: C.accentBright, margin: '0 0 6px' }}>{num}</p>
         <h2 style={{ fontFamily: C.serif, fontSize: 19, fontWeight: 700, margin: 0, color: C.ink }}>{title}</h2>
     </div>
 );
+
+/**
+ * 파트 이동 네비 — 스크롤에 따라 현재 파트를 강조하고 클릭 시 부드럽게 이동.
+ * 루트 레이아웃의 <main>이 overflow:hidden이라 position:sticky의 기준
+ * 스크롤 컨테이너가 되어버려 sticky가 먹지 않는다 — fixed + 히어로를
+ * 지나면 나타나는 페이드인으로 우회한다 (하단 CTA 바와 같은 패턴).
+ */
+const PartNav = ({ parts }: { parts: { id: string; label: string }[] }) => {
+    const [active, setActive] = useState(parts[0]?.id);
+    const [visible, setVisible] = useState(false);
+
+    useEffect(() => {
+        const els = parts.map((p) => document.getElementById(p.id)).filter(Boolean) as HTMLElement[];
+        if (!els.length) return;
+        const io = new IntersectionObserver(
+            (entries) => {
+                const visible = entries.filter((e) => e.isIntersecting);
+                if (visible.length) setActive(visible[0].target.id);
+            },
+            { rootMargin: '-80px 0px -70% 0px', threshold: 0 }
+        );
+        els.forEach((el) => io.observe(el));
+
+        const onScroll = () => setVisible(window.scrollY > 300);
+        onScroll();
+        window.addEventListener('scroll', onScroll, { passive: true });
+
+        return () => { io.disconnect(); window.removeEventListener('scroll', onScroll); };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
+
+    return (
+        <div style={{
+            position: 'fixed', top: 0, left: 0, right: 0, maxWidth: 560, margin: '0 auto',
+            zIndex: 30, display: 'flex', gap: 6, padding: '12px 22px', overflowX: 'auto',
+            background: 'rgba(10,9,8,0.90)', backdropFilter: 'blur(10px)',
+            borderBottom: `1px solid ${C.cardBorder}`, scrollbarWidth: 'none',
+            opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none',
+            transform: visible ? 'translateY(0)' : 'translateY(-8px)',
+            transition: 'opacity 0.25s ease, transform 0.25s ease',
+        }}>
+            {parts.map((p) => {
+                const isActive = active === p.id;
+                return (
+                    <a key={p.id} href={`#${p.id}`}
+                        onClick={(e) => { e.preventDefault(); document.getElementById(p.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                        style={{
+                            flexShrink: 0, fontSize: 11.5, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
+                            textDecoration: 'none', transition: 'all 0.2s',
+                            color: isActive ? '#241C0C' : C.sub,
+                            background: isActive ? C.gold : C.card,
+                            border: `1px solid ${isActive ? C.gold : C.cardBorder}`,
+                        }}>{p.label}</a>
+                );
+            })}
+        </div>
+    );
+};
 
 const H3 = ({ children }: { children: React.ReactNode }) => (
     <h3 style={{ fontFamily: C.serif, fontSize: 16.5, fontWeight: 700, margin: '34px 0 12px', paddingBottom: 9, borderBottom: `1px solid ${C.cardBorder}`, color: C.ink }}>{children}</h3>
@@ -145,8 +204,15 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                     {rep.hero?.metaphorLine && <p style={{ fontSize: 14, color: C.sub, margin: 0, wordBreak: 'keep-all' }}>{rep.hero.metaphorLine}</p>}
                 </motion.div>
 
+                <PartNav parts={[
+                    { id: 'part1', label: 'PART 1' },
+                    { id: 'part2', label: 'PART 2' },
+                    { id: 'part3', label: 'PART 3' },
+                    { id: 'final', label: 'FINAL' },
+                ]} />
+
                 {/* ══════════ PART 1 ══════════ */}
-                <PartHead num="PART 1" title="첫 만남의 설계도" />
+                <PartHead num="PART 1" title="첫 만남의 설계도" anchorId="part1" />
 
                 <H3>첫인상</H3>
                 <P>{p1.firstImpression}</P>
@@ -214,7 +280,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <Quote>{p1.quote}</Quote>
 
                 {/* ══════════ PART 2 ══════════ */}
-                <PartHead num="PART 2" title="연애의 실전" />
+                <PartHead num="PART 2" title="연애의 실전" anchorId="part2" />
 
                 <H3>누가 먼저 마음을 열까?</H3>
                 <P>{p2.whoOpensFirst?.comment}</P>
@@ -276,7 +342,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <P>{p2.review?.comment}</P>
 
                 {/* ══════════ PART 3 ══════════ */}
-                <PartHead num="PART 3" title="함께 만드는 생활" />
+                <PartHead num="PART 3" title="함께 만드는 생활" anchorId="part3" />
 
                 <H3>두 사람의 재물운 구조</H3>
                 <PairCards
@@ -335,7 +401,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <P>{p3.review}</P>
 
                 {/* ══════════ FINAL ══════════ */}
-                <PartHead num="FINAL" title="최종 판정" />
+                <PartHead num="FINAL" title="최종 판정" anchorId="final" />
 
                 <H3>두 사람의 인연을 한 문장으로</H3>
                 <Quote>{fin.oneLineDestiny}</Quote>

@@ -1,10 +1,5 @@
 import Link from "next/link";
-import type { Metadata } from "next";
-
-export const metadata: Metadata = {
-    title: "운명의 합 | 사주로 읽는 두 사람의 궁합 리포트",
-    description: "우리는 운명의 합일까? 첫 만남의 설계도부터 연애의 실전, 함께 만드는 생활, 최종 판정까지 — 두 사람의 사주가 말하는 궁합의 모든 것.",
-};
+// 메타데이터는 layout.tsx에서 라우트 그룹 전체에 적용 (OG/트위터 카드 포함)
 
 // 운명의 합 — '인장과 금박' 팔레트. 다시,우리(로즈)·오드 타로(퍼플)와
 // 겹치지 않는 세 번째 색군: 유채색을 빼고 먹빛 인장 + 금박만 남긴 방향.

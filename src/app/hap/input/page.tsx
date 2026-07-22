@@ -1,7 +1,7 @@
 "use client";
 
-import DualInputForm from "@/components/DualInputForm";
+import HapInputForm from "@/components/hap/HapInputForm";
 
 export default function HapInputPage() {
-    return <DualInputForm mode="hap" />;
+    return <HapInputForm />;
 }
