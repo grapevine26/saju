@@ -39,7 +39,8 @@ export interface DiscountCode {
  * max_uses가 NULL이면 1회용(used_at 기준), 값이 있으면 공유 코드(use_count < max_uses).
  */
 export async function findValidCode(code: string): Promise<DiscountCode | null> {
-    const normalized = String(code || '').trim().toUpperCase();
+    // 공백 전체 제거 — 카톡 복사 과정에서 낀 공백 때문에 유효한 코드가 거절되는 것 방지
+    const normalized = String(code || '').replace(/\s+/g, '').toUpperCase();
     if (!normalized) return null;
 
     const { data } = await supabaseAdmin
@@ -64,7 +65,7 @@ export async function findValidCode(code: string): Promise<DiscountCode | null> 
  * 성공(이번 요청이 소진) 시 true.
  */
 export async function consumeCode(code: string, orderId: string): Promise<boolean> {
-    const normalized = String(code || '').trim().toUpperCase();
+    const normalized = String(code || '').replace(/\s+/g, '').toUpperCase();
     if (!normalized) return false;
 
     const { data: row } = await supabaseAdmin
