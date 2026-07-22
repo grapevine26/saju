@@ -9,17 +9,19 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { ganToHanja } from "@/utils/ganHanja";
 
+// 운명의 합 — '인장과 금박' 팔레트. him은 먹빛 인장(ink), her는 금박(gold)으로
+// 두 사람을 구분하고, accentBright/gold는 브랜드 전체를 관통하는 금 톤.
 const C = {
     bg: '#0A090C',
-    accentBright: '#F06A7E',
-    accentSoft: 'rgba(216,72,94,0.10)',
-    accentBorder: 'rgba(216,72,94,0.35)',
-    him: '#F06A7E',
-    himSoft: 'rgba(240,106,126,0.09)',
-    himBorder: 'rgba(240,106,126,0.35)',
-    her: '#7FB5A0',
-    herSoft: 'rgba(127,181,160,0.09)',
-    herBorder: 'rgba(127,181,160,0.35)',
+    accentBright: '#E8CF9C',
+    accentSoft: 'rgba(201,161,92,0.10)',
+    accentBorder: 'rgba(201,161,92,0.32)',
+    him: '#B8B4BE',
+    himSoft: 'rgba(184,180,190,0.08)',
+    himBorder: 'rgba(184,180,190,0.28)',
+    her: '#D9B872',
+    herSoft: 'rgba(217,184,114,0.09)',
+    herBorder: 'rgba(217,184,114,0.35)',
     gold: '#F5C842',
     ink: '#F0EAEB',
     sub: '#B5ABB2',
@@ -135,9 +137,9 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <motion.div initial={{ opacity: 0, y: 18 }} animate={{ opacity: 1, y: 0 }} style={{ textAlign: 'center', padding: '58px 0 8px' }}>
                     <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.3em', color: C.accentBright, marginBottom: 24 }}>운명의 합 · PREMIUM 궁합 리포트</p>
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 20 }}>
-                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.him}`, color: C.him, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(-4deg)', boxShadow: '0 0 18px rgba(240,106,126,0.22)' }}>{mySeal}</div>
+                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.him}`, color: C.him, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(-4deg)', boxShadow: '0 0 18px rgba(184,180,190,0.16)' }}>{mySeal}</div>
                         <span style={{ fontSize: 15, color: C.sub }}>✕</span>
-                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.her}`, color: C.her, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(4deg)', boxShadow: '0 0 18px rgba(127,181,160,0.22)' }}>{partnerSeal}</div>
+                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.her}`, color: C.her, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(4deg)', boxShadow: '0 0 18px rgba(217,184,114,0.22)' }}>{partnerSeal}</div>
                     </div>
                     <h1 style={{ fontFamily: C.serif, fontSize: 28, fontWeight: 900, margin: '0 0 10px' }}>{myName} ✕ {partnerName}</h1>
                     {rep.hero?.metaphorLine && <p style={{ fontSize: 14, color: C.sub, margin: 0, wordBreak: 'keep-all' }}>{rep.hero.metaphorLine}</p>}
@@ -157,7 +159,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                             <p style={{ fontFamily: C.serif, fontSize: 21, fontWeight: 900, color: C.accentBright, margin: 0 }}>{b.v ?? '-'}</p>
                         </div>
                     ))}
-                    <div style={{ gridColumn: '1 / -1', background: 'linear-gradient(150deg, rgba(216,72,94,0.16) 0%, rgba(10,9,12,0.9) 70%)', border: `1px solid ${C.accentBorder}`, borderRadius: 13, padding: '16px 10px', textAlign: 'center' }}>
+                    <div style={{ gridColumn: '1 / -1', background: 'linear-gradient(150deg, rgba(201,161,92,0.18) 0%, rgba(10,9,12,0.9) 70%)', border: `1px solid ${C.accentBorder}`, borderRadius: 13, padding: '16px 10px', textAlign: 'center' }}>
                         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.sub, margin: '0 0 5px' }}>종합점수 <span style={{ color: C.gold, letterSpacing: 2, marginLeft: 6 }}>{typeof r.stars === 'number' ? starsText(r.stars) : ''}</span></p>
                         <p style={{ fontFamily: C.serif, fontSize: 28, fontWeight: 900, color: C.ink, margin: 0 }}>{scores.total ?? '-'}점 <span style={{ fontSize: 16, color: C.accentBright }}>· {r.totalGrade}급</span></p>
                     </div>
@@ -375,7 +377,7 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                             <span style={{ fontSize: 13, color: C.muted }}>{g.score}점 <strong style={{ fontFamily: C.serif, fontSize: 15, color: C.accentBright, marginLeft: 8 }}>{g.grade}</strong></span>
                         </div>
                     ))}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: 'linear-gradient(150deg, rgba(216,72,94,0.16) 0%, rgba(10,9,12,0.9) 70%)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: 'linear-gradient(150deg, rgba(201,161,92,0.18) 0%, rgba(10,9,12,0.9) 70%)' }}>
                         <span style={{ fontSize: 14, color: C.ink, fontWeight: 800 }}>종합 등급</span>
                         <span style={{ fontFamily: C.serif, fontSize: 18, fontWeight: 900, color: C.accentBright }}>{r.totalGrade}급 궁합</span>
                     </div>

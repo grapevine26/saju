@@ -15,20 +15,22 @@ import CompatibilityChart from "@/components/CompatibilityChart";
 import { checkFreePass, makeFreePassKey } from "@/utils/freePassClient";
 import { trackFunnelEvent } from "@/utils/utm";
 
+// 운명의 합 — '인장과 금박' 팔레트 (다시,우리·오드타로와 겹치지 않는 색군)
 const C = {
     bg: '#0A090C',
-    accentBright: '#F06A7E',
-    accentSoft: 'rgba(216,72,94,0.10)',
-    accentBorder: 'rgba(216,72,94,0.35)',
-    him: '#F06A7E',
-    her: '#7FB5A0',
+    accentBright: '#E8CF9C',
+    accentSoft: 'rgba(201,161,92,0.10)',
+    accentBorder: 'rgba(201,161,92,0.32)',
+    him: '#B8B4BE',
+    her: '#D9B872',
     ink: '#F0EAEB',
     sub: '#9C9199',
     muted: '#8A8290',
     card: 'rgba(240,234,235,0.04)',
     cardBorder: 'rgba(240,234,235,0.13)',
     lineSoft: 'rgba(240,234,235,0.07)',
-    btnBg: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)',
+    btnBg: 'linear-gradient(135deg, #E8CF9C 0%, #8C6A32 100%)',
+    btnInk: '#241C0C',
     serif: "'Noto Serif KR', serif",
     r: 16,
 };
@@ -199,8 +201,17 @@ export default function HapPreviewPage() {
                     <p style={{ fontSize: 12.5, color: C.muted, marginTop: 8 }}>타고난 두 기운이 만나면 이런 관계가 됩니다</p>
                 </motion.div>
 
-                {/* 무료: 결정론 궁합 차트 */}
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}>
+                {/* 무료: 결정론 궁합 차트 — 공용 컴포넌트가 읽는 --accent-* 변수를
+                    이 블록 안에서만 금박 톤으로 덮어써서, 전역 로즈 테마(다른 페이지)는
+                    그대로 두고 이 화면만 운명의 합 색으로 보이게 한다 */}
+                <motion.div
+                    initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                    style={{
+                        ['--accent-gold' as any]: '#D9B872',
+                        ['--accent-soft' as any]: 'rgba(201,161,92,0.10)',
+                        ['--accent-border' as any]: 'rgba(201,161,92,0.32)',
+                    }}
+                >
                     <CompatibilityChart
                         attractionScore={comp.attractionScore}
                         conflictScore={comp.conflictScore}
@@ -272,7 +283,7 @@ export default function HapPreviewPage() {
 
                     <button
                         onClick={handlePay} disabled={paying}
-                        style={{ width: '100%', marginTop: 14, background: C.btnBg, color: '#FFF0F2', fontWeight: 700, fontSize: 15, padding: '16px 0', borderRadius: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 6px 30px rgba(216,72,94,0.30)', opacity: paying ? 0.6 : 1 }}
+                        style={{ width: '100%', marginTop: 14, background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '16px 0', borderRadius: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 6px 30px rgba(140,106,50,0.28)', opacity: paying ? 0.6 : 1 }}
                     >
                         {paying ? '결제 준비 중…' : payPrice === 0 ? '무료로 리포트 받기' : '전체 리포트 보기'}
                     </button>

@@ -48,6 +48,18 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
   const [step, setStep] = useState<1 | 2 | 3>(1);
   const isHap = mode === 'hap';
 
+  // 운명의 합은 '인장과 금박' 톤(먹색×금)으로 — 재회(로즈)와 시각적으로 겹치지 않게 분리.
+  // 재회 모드는 기존 C 토큰을 그대로 써서 화면이 1px도 바뀌지 않는다.
+  const accent = isHap ? {
+    solid: '#D9B872', bright: '#E8CF9C', soft: 'rgba(217,184,114,0.10)', border: 'rgba(217,184,114,0.32)',
+    btnBg: 'linear-gradient(135deg, #E8CF9C 0%, #8C6A32 100%)', btnInk: '#241C0C', btnShadow: '0 6px 30px rgba(140,106,50,0.28)',
+    step2Color: '#C9C6CE', step2Bg: 'rgba(201,198,206,0.12)', step2Border: 'rgba(201,198,206,0.30)',
+  } : {
+    solid: C.accent, bright: C.accentBright, soft: C.accentSoft, border: C.accentBorder,
+    btnBg: C.btnBg, btnInk: C.btnInk, btnShadow: C.btnShadow,
+    step2Color: '#fb7185', step2Bg: 'rgba(244,63,94,0.15)', step2Border: 'rgba(244,63,94,0.35)',
+  };
+
   const yearRef   = useRef<HTMLInputElement>(null);
   const monthRef  = useRef<HTMLInputElement>(null);
   const dayRef    = useRef<HTMLInputElement>(null);
@@ -186,12 +198,12 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
                   onClick={() => { isPartner ? setPartnerGender(g) : setGender(g); yearRef.current?.focus(); }}
                   style={{
                     flex: 1, padding: '13px 0', borderRadius: C.r, border: active
-                      ? `1px solid ${isMale ? 'rgba(99,130,220,0.6)' : C.accentBorder}`
+                      ? `1px solid ${isMale ? 'rgba(99,130,220,0.6)' : accent.border}`
                       : `1px solid ${C.cardBorder}`,
                     background: active
-                      ? isMale ? 'rgba(80,110,200,0.15)' : C.accentSoft
+                      ? isMale ? 'rgba(80,110,200,0.15)' : accent.soft
                       : C.card,
-                    color: active ? (isMale ? '#8BAAF0' : C.accentBright) : C.muted,
+                    color: active ? (isMale ? '#8BAAF0' : accent.bright) : C.muted,
                     fontWeight: 700, fontSize: 14, cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
                   }}
                 >{isMale ? '남자' : '여자'}</button>
@@ -213,9 +225,9 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
                   onClick={() => isPartner ? setPartnerCalendarType(t) : setCalendarType(t)}
                   style={{
                     padding: '6px 16px', borderRadius: 7, fontSize: 12, fontWeight: 700,
-                    background: active ? C.accentSoft : 'transparent',
-                    color: active ? C.accentBright : C.muted,
-                    border: active ? `1px solid ${C.accentBorder}` : '1px solid transparent',
+                    background: active ? accent.soft : 'transparent',
+                    color: active ? accent.bright : C.muted,
+                    border: active ? `1px solid ${accent.border}` : '1px solid transparent',
                     cursor: 'pointer', fontFamily: 'inherit', transition: 'all 0.2s',
                   }}
                 >{t === 'solar' ? '양력' : '음력'}</button>
@@ -300,7 +312,7 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
             <label style={{ display: 'flex', alignItems: 'center', gap: 12, ...fieldBox, cursor: 'pointer' }}>
               <input type="checkbox" checked={citu}
                 onChange={e => isPartner ? setPartnerBirthLocationTime(cbc, '', '', e.target.checked) : setBirthLocationTime(birthCity, '', '', e.target.checked)}
-                style={{ width: 16, height: 16, accentColor: C.accent, cursor: 'pointer' }} />
+                style={{ width: 16, height: 16, accentColor: accent.solid, cursor: 'pointer' }} />
               <span style={{ fontSize: 13, color: C.sub }}>태어난 시간을 모릅니다</span>
             </label>
           </div>
@@ -336,7 +348,7 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
         <span style={{ fontWeight: 700, fontSize: 16, color: C.ink }}>정보 입력</span>
         <div style={{ marginLeft: 'auto', display: 'flex', gap: 6 }}>
           {[1, 2, 3].map(s => (
-            <div key={s} style={{ width: 28, height: 3, borderRadius: 99, background: step >= s ? C.accent : C.card, transition: 'background 0.3s', boxShadow: step === s ? `0 0 8px ${C.accent}` : 'none' }} />
+            <div key={s} style={{ width: 28, height: 3, borderRadius: 99, background: step >= s ? accent.solid : C.card, transition: 'background 0.3s', boxShadow: step === s ? `0 0 8px ${accent.solid}` : 'none' }} />
           ))}
         </div>
       </header>
@@ -348,7 +360,7 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
           {/* Step 1 */}
           {step === 1 && (
             <motion.div key="step1" initial={{ opacity: 0, x: -24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: -24 }} transition={{ duration: 0.22 }}>
-              <StepHeader icon={User} color={C.accentBright} bg={C.accentSoft} border={C.accentBorder} label={stepMeta[0].label} sub={stepMeta[0].sub} />
+              <StepHeader icon={User} color={accent.bright} bg={accent.soft} border={accent.border} label={stepMeta[0].label} sub={stepMeta[0].sub} />
               {renderInputSection(false)}
             </motion.div>
           )}
@@ -356,7 +368,7 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
           {/* Step 2 */}
           {step === 2 && (
             <motion.div key="step2" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: 0.22 }}>
-              <StepHeader icon={Heart} color="#fb7185" bg="rgba(244,63,94,0.15)" border="rgba(244,63,94,0.35)" label={stepMeta[1].label} sub={stepMeta[1].sub} />
+              <StepHeader icon={Heart} color={accent.step2Color} bg={accent.step2Bg} border={accent.step2Border} label={stepMeta[1].label} sub={stepMeta[1].sub} />
               {renderInputSection(true)}
             </motion.div>
           )}
@@ -364,7 +376,7 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
           {/* Step 3 */}
           {step === 3 && (
             <motion.div key="step3" initial={{ opacity: 0, x: 24 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 24 }} transition={{ duration: 0.22 }}>
-              <StepHeader icon={MessageSquare} color={C.accentBright} bg={C.accentSoft} border={C.accentBorder} label={stepMeta[2].label} sub={stepMeta[2].sub} />
+              <StepHeader icon={MessageSquare} color={accent.bright} bg={accent.soft} border={accent.border} label={stepMeta[2].label} sub={stepMeta[2].sub} />
               {isHap ? (
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                   {[
@@ -376,10 +388,10 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
                     <button key={opt.v} onClick={() => setRelationshipStatus(opt.v)}
                       style={{
                         ...fieldBox, textAlign: 'left', cursor: 'pointer', display: 'flex', flexDirection: 'column', gap: 3,
-                        border: `1px solid ${relationshipStatus === opt.v ? C.accentBorder : C.cardBorder}`,
-                        background: relationshipStatus === opt.v ? C.accentSoft : C.card,
+                        border: `1px solid ${relationshipStatus === opt.v ? accent.border : C.cardBorder}`,
+                        background: relationshipStatus === opt.v ? accent.soft : C.card,
                       }}>
-                      <span style={{ fontSize: 14.5, fontWeight: 700, color: relationshipStatus === opt.v ? C.accentBright : C.ink }}>{opt.label}</span>
+                      <span style={{ fontSize: 14.5, fontWeight: 700, color: relationshipStatus === opt.v ? accent.bright : C.ink }}>{opt.label}</span>
                       <span style={{ fontSize: 12, color: C.muted }}>{opt.desc}</span>
                     </button>
                   ))}
@@ -467,17 +479,17 @@ export default function DualInputForm({ mode = 'reunion' }: { mode?: 'reunion' |
         display: keyboardOpen ? 'none' : 'block',
       }}>
         {step === 1 && (
-          <button onClick={handleNextStep1} style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: C.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button onClick={handleNextStep1} style={{ width: '100%', background: accent.btnBg, color: accent.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: accent.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             다음: 상대방 정보 입력 <ChevronRight size={18} />
           </button>
         )}
         {step === 2 && (
-          <button onClick={handleNextStep2} style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: C.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button onClick={handleNextStep2} style={{ width: '100%', background: accent.btnBg, color: accent.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: accent.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {isHap ? '다음: 우리 사이 입력' : '다음: 이별 이야기 입력'} <ChevronRight size={18} />
           </button>
         )}
         {step === 3 && (
-          <button onClick={handleSubmit} style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: C.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
+          <button onClick={handleSubmit} style={{ width: '100%', background: accent.btnBg, color: accent.btnInk, fontWeight: 700, fontSize: 15, padding: '17px 0', borderRadius: C.r, border: 'none', boxShadow: accent.btnShadow, cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 8 }}>
             {isHap ? '무료 궁합 미리보기' : '재회 가능성 분석 시작'} <Heart size={16} />
           </button>
         )}

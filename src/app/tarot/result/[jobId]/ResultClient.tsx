@@ -381,18 +381,18 @@ export default function TarotResultClient({ job, hasOwner = false }: Props) {
                             marginTop: 28,
                             borderRadius: 18,
                             padding: '24px 22px',
-                            background: 'linear-gradient(150deg, rgba(216,72,94,0.10) 0%, rgba(30,26,66,0.55) 55%)',
-                            border: '1px solid rgba(240,106,126,0.28)',
+                            background: 'linear-gradient(150deg, rgba(201,161,92,0.10) 0%, rgba(30,26,66,0.55) 55%)',
+                            border: '1px solid rgba(201,161,92,0.28)',
                             position: 'relative',
                             overflow: 'hidden',
                         }}
                     >
                         <div style={{
                             position: 'absolute', top: -40, right: -30, width: 160, height: 150,
-                            background: 'radial-gradient(circle, rgba(216,72,94,0.16) 0%, transparent 70%)',
+                            background: 'radial-gradient(circle, rgba(201,161,92,0.16) 0%, transparent 70%)',
                             pointerEvents: 'none',
                         }} />
-                        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#F06A7E', marginBottom: 10 }}>
+                        <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: '#D9B872', marginBottom: 10 }}>
                             운명의 합 · 궁합 리포트
                         </p>
                         <p className="tarot-serif" style={{ fontSize: 18, fontWeight: 700, color: 'var(--tarot-text-1)', lineHeight: 1.5, marginBottom: 10 }}>
@@ -405,17 +405,17 @@ export default function TarotResultClient({ job, hasOwner = false }: Props) {
                         <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 18 }}>
                             {['궁합 총점 6항목', '싸움의 원인과 화해 공식', '결혼 적기 · 최종 판정'].map((t) => (
                                 <span key={t} style={{
-                                    fontSize: 11, color: 'rgba(240,106,126,0.9)',
-                                    background: 'rgba(216,72,94,0.10)', border: '1px solid rgba(240,106,126,0.22)',
+                                    fontSize: 11, color: 'rgba(217,184,114,0.9)',
+                                    background: 'rgba(201,161,92,0.10)', border: '1px solid rgba(201,161,92,0.24)',
                                     padding: '4px 10px', borderRadius: 999,
                                 }}>{t}</span>
                             ))}
                         </div>
                         <Link href="/hap?utm_source=tarot&utm_medium=bridge" style={{
                             display: 'block', textAlign: 'center', padding: '15px 20px', borderRadius: 13,
-                            background: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)',
-                            color: '#FFF0F2', fontSize: 14.5, fontWeight: 700, textDecoration: 'none',
-                            boxShadow: '0 6px 24px rgba(216,72,94,0.28)',
+                            background: 'linear-gradient(135deg, #E8CF9C 0%, #8C6A32 100%)',
+                            color: '#241C0C', fontSize: 14.5, fontWeight: 700, textDecoration: 'none',
+                            boxShadow: '0 6px 24px rgba(140,106,50,0.26)',
                         }}>
                             무료로 궁합 미리보기
                         </Link>

@@ -6,21 +6,24 @@ export const metadata: Metadata = {
     description: "우리는 운명의 합일까? 첫 만남의 설계도부터 연애의 실전, 함께 만드는 생활, 최종 판정까지 — 두 사람의 사주가 말하는 궁합의 모든 것.",
 };
 
+// 운명의 합 — '인장과 금박' 팔레트. 다시,우리(로즈)·오드 타로(퍼플)와
+// 겹치지 않는 세 번째 색군: 유채색을 빼고 먹빛 인장 + 금박만 남긴 방향.
 const C = {
     bg: '#0A090C',
-    accent: '#D8485E',
-    accentBright: '#F06A7E',
-    accentSoft: 'rgba(216,72,94,0.10)',
-    accentBorder: 'rgba(216,72,94,0.35)',
-    him: '#F06A7E',
-    her: '#7FB5A0',
+    accent: '#C9A15C',
+    accentBright: '#E8CF9C',
+    accentSoft: 'rgba(201,161,92,0.10)',
+    accentBorder: 'rgba(201,161,92,0.32)',
+    him: '#B8B4BE',
+    her: '#D9B872',
     ink: '#F0EAEB',
     sub: '#9C9199',
     muted: '#8A8290',
     card: 'rgba(240,234,235,0.04)',
     cardBorder: 'rgba(240,234,235,0.13)',
     lineSoft: 'rgba(240,234,235,0.07)',
-    btnBg: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)',
+    btnBg: 'linear-gradient(135deg, #E8CF9C 0%, #8C6A32 100%)',
+    btnInk: '#241C0C',
     serif: "'Noto Serif KR', serif",
     r: 16,
 };
@@ -43,9 +46,9 @@ export default function HapLandingPage() {
 
                     {/* 인장 */}
                     <div style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', gap: 14, marginBottom: 26 }}>
-                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.him}`, color: C.him, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(-4deg)', boxShadow: '0 0 18px rgba(240,106,126,0.25)' }}>合</div>
+                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.him}`, color: C.him, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(-4deg)', boxShadow: '0 0 18px rgba(184,180,190,0.18)' }}>合</div>
                         <span style={{ fontSize: 15, color: C.sub }}>✕</span>
-                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.her}`, color: C.her, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(4deg)', boxShadow: '0 0 18px rgba(127,181,160,0.25)' }}>緣</div>
+                        <div style={{ width: 58, height: 58, border: `2.5px solid ${C.her}`, color: C.her, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 24, fontWeight: 900, transform: 'rotate(4deg)', boxShadow: '0 0 18px rgba(217,184,114,0.25)' }}>緣</div>
                     </div>
 
                     <h1 style={{ fontFamily: C.serif, fontSize: 30, fontWeight: 900, lineHeight: 1.35, marginBottom: 14, wordBreak: 'keep-all' }}>
@@ -95,9 +98,9 @@ export default function HapLandingPage() {
                 {/* CTA */}
                 <Link href="/hap/input" style={{
                     display: 'block', textAlign: 'center', marginTop: 24,
-                    background: C.btnBg, color: '#FFF0F2', fontWeight: 700, fontSize: 15,
+                    background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
                     padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
-                    boxShadow: '0 6px 30px rgba(216,72,94,0.30)',
+                    boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
                 }}>
                     무료로 궁합 미리보기
                 </Link>

@@ -11,7 +11,7 @@ import { trackPurchase } from "@/utils/metaPixel";
 
 const C = {
     bg: '#0A090C',
-    accentBright: '#F06A7E',
+    accentBright: '#D9B872',
     ink: '#F0EAEB',
     sub: '#9C9199',
     muted: '#8A8290',
@@ -129,7 +129,7 @@ function HapPaymentSuccessContent() {
                     <style>{`
                         @keyframes hap-seal-pulse { 0%,100%{ transform:rotate(-4deg) scale(1);} 50%{ transform:rotate(-4deg) scale(1.06);} }
                     `}</style>
-                    <div style={{ width: 62, height: 62, border: `2.5px solid ${C.accentBright}`, color: C.accentBright, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 26, fontWeight: 900, margin: '0 auto 22px', animation: 'hap-seal-pulse 2.4s ease-in-out infinite', boxShadow: '0 0 24px rgba(240,106,126,0.3)' }}>合</div>
+                    <div style={{ width: 62, height: 62, border: `2.5px solid ${C.accentBright}`, color: C.accentBright, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 26, fontWeight: 900, margin: '0 auto 22px', animation: 'hap-seal-pulse 2.4s ease-in-out infinite', boxShadow: '0 0 24px rgba(217,184,114,0.3)' }}>合</div>
                     <h2 style={{ fontFamily: C.serif, fontSize: 18, fontWeight: 700, marginBottom: 10 }}>두 분의 궁합을 읽고 있어요</h2>
                     <p style={{ fontSize: 13, color: C.sub, transition: 'opacity 0.3s' }}>{STEPS[stepIdx]}</p>
                     <p style={{ fontSize: 11.5, color: C.muted, marginTop: 18 }}>약 1~2분 정도 걸려요 · 완성되면 이메일로도 보내드립니다</p>
