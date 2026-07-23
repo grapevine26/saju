@@ -170,6 +170,14 @@ export default function HapLandingPage() {
                             <span style={{ color: C.accentBright, fontWeight: 700 }}>✓</span> {f}
                         </div>
                     ))}
+                    <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.cardBorder}` }}>
+                        <p style={{ fontSize: 12, color: C.sub, lineHeight: 1.75, margin: '0 0 8px', wordBreak: 'keep-all' }}>
+                            커플 궁합 상담은 보통 5~10만 원 — 이 리포트는 한 번 결제로 계속 다시 볼 수 있어요.
+                        </p>
+                        <p style={{ fontSize: 12, color: C.ink, lineHeight: 1.75, margin: 0, wordBreak: 'keep-all' }}>
+                            <strong style={{ color: C.accentBright }}>리포트 생성에 실패하면 결제 금액을 전액 자동 환불</strong>해드려요.
+                        </p>
+                    </div>
                     <p style={{ fontSize: 11, color: C.muted, marginTop: 10, marginBottom: 0 }}>무료 미리보기로 끌림·갈등 지수를 먼저 확인한 뒤 결제할 수 있어요</p>
                 </div>
 
