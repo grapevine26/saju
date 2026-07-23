@@ -10,7 +10,7 @@ import { useState, useRef } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronRight, Heart, Users, Gem, Sparkles } from "lucide-react";
+import { ArrowLeft, ChevronRight, Heart, Users, Gem, Sparkles, Eye } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSajuStore } from "@/store/useSajuStore";
 import LocationSearch from "@/components/LocationSearch";
@@ -58,6 +58,7 @@ const strictDateError = (y: string, m: string, d: string): string | null => {
 const RELATIONSHIP_OPTIONS = [
     { v: "dating", label: "연인 사이", desc: "지금 만나고 있어요", icon: Heart },
     { v: "some", label: "썸 타는 중", desc: "아직 사귀기 전이에요", icon: Sparkles },
+    { v: "crush", label: "짝사랑 중", desc: "혼자 마음을 갖고 있어요", icon: Eye },
     { v: "marriage", label: "결혼 준비 중", desc: "결혼을 진지하게 생각하고 있어요", icon: Gem },
     { v: "etc", label: "그 외", desc: "복잡하거나 애매한 사이예요", icon: Users },
 ];

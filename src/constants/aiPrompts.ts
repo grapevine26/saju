@@ -446,7 +446,7 @@ export interface HapPromptContext {
     myBazi: BaziData;
     partnerBazi: BaziData;
     compatibilityPromptSummary: string;
-    /** 관계 상태: 'dating'(연인) | 'some'(썸) | 'marriage'(결혼 준비) | 'etc' */
+    /** 관계 상태: 'dating'(연인) | 'some'(썸) | 'crush'(짝사랑) | 'marriage'(결혼 준비) | 'etc' */
     relationshipStatus?: string;
     /** 시스템 계산 6항목 점수 (인플레 방지 앵커) */
     hapScores: { romance: number; marriage: number; wealth: number; personality: number; family: number; communication: number; total: number };
@@ -456,6 +456,7 @@ const relationshipStatusLabel = (s?: string): string => {
     switch (s) {
         case 'dating': return '연인 사이 (교제 중)';
         case 'some': return '썸 타는 사이 (아직 교제 전)';
+        case 'crush': return '짝사랑 중 (아직 사귀는 사이가 아니며, 상대방은 이 마음을 모를 수 있음)';
         case 'marriage': return '결혼을 준비 중이거나 진지하게 생각하는 사이';
         default: return '서로에게 관심이 있는 사이';
     }
@@ -496,6 +497,8 @@ ${compatibilityPromptSummary}
 (중요 지침 3: him/her 대비 카드가 이 리포트의 핵심 장치다. myXxx 필드는 반드시 ${myName}님에 대한 내용, partnerXxx 필드는 반드시 ${partnerName}님에 대한 내용으로 — 뒤바뀌면 리포트 전체가 틀린 상품이 된다)
 
 (중요 지침 4: 항목이 많다고 뒤로 갈수록 짧아지는 것 금지 — part1과 final의 밀도가 같아야 유료 상품이다)
+
+${relationshipStatus === 'crush' ? `(중요 지침 5 — 짝사랑 전용: 관계 상태가 짝사랑이다. ${myName}님과 ${partnerName}님이 아직 사귀는 사이가 아니고, 상대방은 이 마음을 모를 수도 있다는 전제를 절대 잊지 마라. "연애 초기 모습"·"스킨십과 애정 표현"·"결혼 후 실제 생활" 같은 이미 관계가 진행 중임을 전제로 하는 항목들은 "만약 이 관계가 시작된다면"이라는 가정법으로 자연스럽게 풀어써라 — 이미 사귀고 있는 것처럼 단정하는 서술은 절대 금지. 반대로 "왜 서로 끌릴까"·"궁합 총점"·"최종 판정" 같은 타고난 기질 궁합을 다루는 항목은 이 전제와 무관하게 평소대로 서술하라.)` : ''}
 
 위 데이터를 바탕으로 '운명의 합' 궁합 리포트를 작성해줘.
 
