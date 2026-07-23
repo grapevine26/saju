@@ -11,6 +11,7 @@ import { motion } from "framer-motion";
 import { ArrowLeft, Sparkles, Lock } from "lucide-react";
 import Link from "next/link";
 import CompatibilityChart from "@/components/CompatibilityChart";
+import OhhaengCompareChart from "@/components/hap/OhhaengCompareChart";
 import { getHapHistoryEntry, type HapHistoryEntry } from "@/features/hap/history";
 
 const C = {
@@ -141,6 +142,16 @@ export default function HapFreeHistoryDetailPage() {
                             attractionScore={comp.attractionScore} conflictScore={comp.conflictScore} complementScore={comp.complementScore}
                             hapList={comp.hapList} chungList={comp.chungList} hyeongList={comp.hyeongList} haeList={comp.haeList}
                             dayMasterRelation={comp.dayMasterRelation} spouseHouseRelation={comp.spouseHouseRelation}
+                        />
+                    </div>
+                )}
+
+                {r.myOhhaeng && r.partnerOhhaeng && (
+                    <div style={{ marginTop: 24 }}>
+                        <OhhaengCompareChart
+                            myName={myName} partnerName={partnerName}
+                            myOhhaeng={r.myOhhaeng} partnerOhhaeng={r.partnerOhhaeng}
+                            ohhaengAnalysis={r.ohhaengAnalysis}
                         />
                     </div>
                 )}

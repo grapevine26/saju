@@ -9,7 +9,10 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ganToHanja } from "@/utils/ganHanja";
+import { classifyRelationType } from "@/utils/compatibilityCalc";
 import HapSaveToAccountCard from "@/components/hap/HapSaveToAccountCard";
+import OhhaengCompareChart from "@/components/hap/OhhaengCompareChart";
+import CompatibilityChart from "@/components/CompatibilityChart";
 
 // 운명의 합 — '인장과 금박' 팔레트. him은 먹빛 인장(ink), her는 금박(gold)으로
 // 두 사람을 구분하고, accentBright/gold는 브랜드 전체를 관통하는 금 톤.
@@ -191,6 +194,8 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
     const gradeTable: { area: string; score: number; grade: string }[] = r.gradeTable || [];
     const mySeal = ganToHanja(r.myManseryeok?.day?.gan);
     const partnerSeal = ganToHanja(r.partnerManseryeok?.day?.gan);
+    const comp = r.compatibility;
+    const relationType = comp ? classifyRelationType(comp.attractionScore, comp.conflictScore, comp.complementScore) : null;
 
     const scoreBoxes = [
         { label: '💕 연애궁합', v: scores.romance },
@@ -218,6 +223,38 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                     <h1 style={{ fontFamily: C.serif, fontSize: 28, fontWeight: 900, margin: '0 0 10px' }}>{myName} ✕ {partnerName}</h1>
                     {rep.hero?.metaphorLine && <p style={{ fontSize: 14, color: C.sub, margin: 0, wordBreak: 'keep-all' }}>{rep.hero.metaphorLine}</p>}
                 </motion.div>
+
+                {/* ── 궁합 데이터 요약 — 무료 미리보기와 같은 계산 결과, 유료에서 더 적게 보이면 안 된다 ── */}
+                {relationType && (
+                    <div style={{ textAlign: 'center', marginBottom: 14 }}>
+                        <span style={{ display: 'inline-block', fontSize: 11.5, fontWeight: 700, color: C.accentBright, background: C.accentSoft, border: `1px solid ${C.accentBorder}`, borderRadius: 99, padding: '5px 14px' }}>
+                            {relationType.badge}
+                        </span>
+                        <p style={{ fontSize: 12.5, color: C.sub, margin: '10px 0 0' }}>{relationType.desc}</p>
+                    </div>
+                )}
+                {comp && (
+                    <div style={{
+                        ['--accent-gold' as any]: '#D9B872',
+                        ['--accent-soft' as any]: 'rgba(201,161,92,0.10)',
+                        ['--accent-border' as any]: 'rgba(201,161,92,0.32)',
+                    }}>
+                        <CompatibilityChart
+                            attractionScore={comp.attractionScore} conflictScore={comp.conflictScore} complementScore={comp.complementScore}
+                            hapList={comp.hapList} chungList={comp.chungList} hyeongList={comp.hyeongList} haeList={comp.haeList}
+                            dayMasterRelation={comp.dayMasterRelation} spouseHouseRelation={comp.spouseHouseRelation}
+                        />
+                    </div>
+                )}
+                {r.myOhhaeng && r.partnerOhhaeng && (
+                    <div style={{ marginTop: 24 }}>
+                        <OhhaengCompareChart
+                            myName={myName} partnerName={partnerName}
+                            myOhhaeng={r.myOhhaeng} partnerOhhaeng={r.partnerOhhaeng}
+                            ohhaengAnalysis={comp?.ohhaengAnalysis}
+                        />
+                    </div>
+                )}
 
                 <PartNav parts={[
                     { id: 'part1', label: 'PART 1' },

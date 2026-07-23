@@ -12,6 +12,7 @@ import { ArrowLeft, Lock, Share2, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSajuStore } from "@/store/useSajuStore";
 import CompatibilityChart from "@/components/CompatibilityChart";
+import OhhaengCompareChart from "@/components/hap/OhhaengCompareChart";
 import { checkFreePass, makeFreePassKey } from "@/utils/freePassClient";
 import { trackFunnelEvent } from "@/utils/utm";
 import { upsertFreeHapHistory, getHapHistoryEntry } from "@/features/hap/history";
@@ -46,8 +47,6 @@ const SCORE_LABELS: { key: string; label: string }[] = [
     { key: 'family', label: '가정궁합' },
     { key: 'communication', label: '소통궁합' },
 ];
-
-const OHHAENG_ORDER = ['목', '화', '토', '금', '수'] as const;
 
 const LOCKED_PARTS = [
     { num: 'PART 1', title: '첫 만남의 설계도', items: '궁합 총점 6항목 · 서로 끌리는 이유 · 사랑의 온도 차이 · 전생 인연' },
@@ -444,47 +443,13 @@ export default function HapPreviewPage() {
 
                 {/* 오행 분포 비교 — 두 사람이 서로 무엇을 채워주는지 */}
                 {preview.myOhhaeng && preview.partnerOhhaeng && (
-                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.15 }}
-                        style={{ marginTop: 24, background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: 20 }}>
-                        <h3 style={{ fontSize: 13, fontWeight: 700, color: C.sub, margin: '0 0 4px' }}>타고난 기운 비교</h3>
-                        <p style={{ fontSize: 11.5, color: C.muted, margin: '0 0 16px' }}>사주 여덟 글자를 이루는 다섯 기운의 분포예요</p>
-                        <div style={{ display: 'flex', gap: 14, alignItems: 'center', marginBottom: 14, fontSize: 11 }}>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: C.sub }}>
-                                <span style={{ width: 10, height: 10, borderRadius: 3, background: C.him, display: 'inline-block' }} />{store.name || '나'}
-                            </span>
-                            <span style={{ display: 'flex', alignItems: 'center', gap: 5, color: C.sub }}>
-                                <span style={{ width: 10, height: 10, borderRadius: 3, background: C.her, display: 'inline-block' }} />{store.partnerName || '그 사람'}
-                            </span>
-                        </div>
-                        <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
-                            {OHHAENG_ORDER.map((el) => {
-                                const mine = preview.myOhhaeng[el] || 0;
-                                const theirs = preview.partnerOhhaeng[el] || 0;
-                                const max = 8; // 4기둥 × 천간+지지
-                                return (
-                                    <div key={el} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
-                                        <span style={{ fontFamily: C.serif, fontSize: 13, fontWeight: 700, color: C.ink, width: 16, flexShrink: 0 }}>{el}</span>
-                                        <div style={{ flex: 1, display: 'flex', flexDirection: 'column', gap: 3 }}>
-                                            <div style={{ height: 7, background: 'rgba(240,234,235,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                                                <motion.div initial={{ width: 0 }} animate={{ width: `${(mine / max) * 100}%` }} transition={{ duration: 0.7, delay: 0.3 }}
-                                                    style={{ height: '100%', background: C.him, borderRadius: 99 }} />
-                                            </div>
-                                            <div style={{ height: 7, background: 'rgba(240,234,235,0.05)', borderRadius: 99, overflow: 'hidden' }}>
-                                                <motion.div initial={{ width: 0 }} animate={{ width: `${(theirs / max) * 100}%` }} transition={{ duration: 0.7, delay: 0.4 }}
-                                                    style={{ height: '100%', background: C.her, borderRadius: 99 }} />
-                                            </div>
-                                        </div>
-                                        <span style={{ fontSize: 10.5, color: C.muted, width: 30, textAlign: 'right', flexShrink: 0 }}>{mine}·{theirs}</span>
-                                    </div>
-                                );
-                            })}
-                        </div>
-                        {preview.ohhaengAnalysis && (
-                            <p style={{ fontSize: 12, color: C.sub, lineHeight: 1.7, margin: '16px 0 0', paddingTop: 14, borderTop: `1px solid ${C.lineSoft}` }}>
-                                🌿 {preview.ohhaengAnalysis}
-                            </p>
-                        )}
-                    </motion.div>
+                    <div style={{ marginTop: 24 }}>
+                        <OhhaengCompareChart
+                            myName={store.name || '나'} partnerName={store.partnerName || '그 사람'}
+                            myOhhaeng={preview.myOhhaeng} partnerOhhaeng={preview.partnerOhhaeng}
+                            ohhaengAnalysis={preview.ohhaengAnalysis}
+                        />
+                    </div>
                 )}
 
                 {/* 공유 카드 */}
