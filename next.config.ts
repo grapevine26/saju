@@ -42,6 +42,17 @@ const nextConfig: NextConfig = {
         destination: "/saju?utm_source=tiktok&utm_medium=organic&utm_campaign=bio",
         permanent: false,
       },
+      // 쓰레드 — /th: 프로필 바이오 링크 · /thc: 게시물 첫 답글 링크 (tt/free와 동일한 bio·comment 구분)
+      {
+        source: "/th",
+        destination: "/saju?utm_source=threads&utm_medium=organic&utm_campaign=bio",
+        permanent: false,
+      },
+      {
+        source: "/thc",
+        destination: "/saju?utm_source=threads&utm_medium=organic&utm_campaign=comment",
+        permanent: false,
+      },
     ];
   },
 };
