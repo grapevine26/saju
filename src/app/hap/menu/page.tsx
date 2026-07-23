@@ -93,7 +93,7 @@ export default function HapMenuPage() {
             icon: <Sparkles size={19} />,
             label: "새 궁합 리포트 만들기",
             subtitle: "무료로 궁합 점수부터 확인해요",
-            href: "/hap",
+            href: "/hap/input",
             accent: C.her,
         },
         {
@@ -121,11 +121,7 @@ export default function HapMenuPage() {
 
     return (
         <div style={{ minHeight: "100vh", paddingBottom: 60, color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
-            <header style={{
-                display: "flex", alignItems: "center", padding: "16px 20px", gap: 12,
-                borderBottom: `1px solid ${C.lineSoft}`,
-                position: "sticky", top: 0, background: "rgba(10,9,8,0.88)", backdropFilter: "blur(12px)", zIndex: 10,
-            }}>
+            <header style={{ display: "flex", alignItems: "center", padding: "18px 20px 0", gap: 12 }}>
                 <button onClick={() => router.back()} style={{ background: "none", border: "none", padding: 0, cursor: "pointer", color: C.sub, display: "flex" }}>
                     <ArrowLeft size={20} />
                 </button>

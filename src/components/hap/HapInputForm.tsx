@@ -6,7 +6,7 @@
  * 결과 리포트의 골드 스파인과 같은 장치(3개 노드를 잇는 실선)를 써서
  * 입력→결과 사이의 시각적 일관성을 잇는다.
  */
-import { useState, useRef } from "react";
+import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
@@ -72,11 +72,15 @@ const STEP_META = [
 export default function HapInputForm() {
     const router = useRouter();
     const [step, setStep] = useState<1 | 2 | 3>(1);
-    const yearRef = useRef<HTMLInputElement>(null);
-    const monthRef = useRef<HTMLInputElement>(null);
-    const dayRef = useRef<HTMLInputElement>(null);
-    const hourRef = useRef<HTMLInputElement>(null);
-    const minuteRef = useRef<HTMLInputElement>(null);
+    // 나/상대방 각각 독립된 ref 세트 — 같은 ref를 공유하면 잘못된 칸으로 포커스가 튄다
+    const myRefs = {
+        year: useRef<HTMLInputElement>(null), month: useRef<HTMLInputElement>(null), day: useRef<HTMLInputElement>(null),
+        hour: useRef<HTMLInputElement>(null), minute: useRef<HTMLInputElement>(null),
+    };
+    const partnerRefs = {
+        year: useRef<HTMLInputElement>(null), month: useRef<HTMLInputElement>(null), day: useRef<HTMLInputElement>(null),
+        hour: useRef<HTMLInputElement>(null), minute: useRef<HTMLInputElement>(null),
+    };
 
     const {
         name, setName, gender, setGender,
@@ -94,6 +98,16 @@ export default function HapInputForm() {
 
     const { keyboardPadding, handleFieldFocus, handleFieldBlur } = useKeyboardAwareForm();
     const keyboardOpen = keyboardPadding > 80;
+
+    // 상대방 시간/지역 — 전역 스토어는 '모름'이 기본값이지만(재회사주 쪽 UX),
+    // 운명의 합은 결과 정밀도를 위해 처음부터 입력 가능한 상태로 연다.
+    // 재회사주(DualInputForm)의 기본값은 건드리지 않고 이 폼에서만 진입 시 한 번 전환.
+    useEffect(() => {
+        if (partnerIsTimeUnknown) {
+            setPartnerBirthLocationTime(partnerBirthCity, partnerBirthHour, partnerBirthMinute, false);
+        }
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, []);
 
     const handleNextStep1 = () => {
         if (name.trim().length < 1) { toast.error("이름을 입력해주세요."); return; }
@@ -125,6 +139,7 @@ export default function HapInputForm() {
     );
 
     const renderPersonFields = (isPartner: boolean) => {
+        const refs = isPartner ? partnerRefs : myRefs;
         const cn = isPartner ? partnerName : name;
         const cg = isPartner ? partnerGender : gender;
         const cct = isPartner ? partnerCalendarType : calendarType;
@@ -154,7 +169,7 @@ export default function HapInputForm() {
                             const active = cg === g;
                             return (
                                 <button key={g}
-                                    onClick={() => (isPartner ? setPartnerGender(g) : setGender(g))}
+                                    onClick={() => { isPartner ? setPartnerGender(g) : setGender(g); refs.year.current?.focus(); }}
                                     style={{
                                         flex: 1, padding: "13px 0", borderRadius: C.r,
                                         border: active ? `1px solid ${C.goldBorder}` : `1px solid ${C.cardBorder}`,
@@ -174,7 +189,7 @@ export default function HapInputForm() {
                             const active = cct === t;
                             return (
                                 <button key={t}
-                                    onClick={() => (isPartner ? setPartnerCalendarType(t) : setCalendarType(t))}
+                                    onClick={() => { isPartner ? setPartnerCalendarType(t) : setCalendarType(t); refs.year.current?.focus(); }}
                                     style={{
                                         padding: "6px 16px", borderRadius: 7, fontSize: 12, fontWeight: 700,
                                         background: active ? C.goldSoft : "transparent",
@@ -186,13 +201,13 @@ export default function HapInputForm() {
                         })}
                     </div>
                     <div style={{ display: "flex", gap: 8 }}>
-                        <input ref={!isPartner ? yearRef : undefined} type="number" inputMode="numeric" placeholder="YYYY" value={cby}
-                            onChange={(e) => { const v = e.target.value.slice(0, 4); isPartner ? setPartnerBirthDate(v, cbm, cbd) : setBirthDate(v, birthMonth, birthDay); if (v.length === 4) (isPartner ? undefined : monthRef.current)?.focus(); }}
+                        <input ref={refs.year} type="number" inputMode="numeric" placeholder="YYYY" value={cby}
+                            onChange={(e) => { const v = e.target.value.slice(0, 4); isPartner ? setPartnerBirthDate(v, cbm, cbd) : setBirthDate(v, birthMonth, birthDay); if (v.length === 4) refs.month.current?.focus(); }}
                             style={{ ...fieldBox, textAlign: "center" }} />
-                        <input ref={!isPartner ? monthRef : undefined} type="number" inputMode="numeric" placeholder="MM" value={cbm}
-                            onChange={(e) => { let v = e.target.value.slice(0, 2); if (parseInt(v) > 12) v = "12"; isPartner ? setPartnerBirthDate(cby, v, cbd) : setBirthDate(birthYear, v, birthDay); if (v.length === 2) (isPartner ? undefined : dayRef.current)?.focus(); }}
+                        <input ref={refs.month} type="number" inputMode="numeric" placeholder="MM" value={cbm}
+                            onChange={(e) => { let v = e.target.value.slice(0, 2); if (parseInt(v) > 12) v = "12"; isPartner ? setPartnerBirthDate(cby, v, cbd) : setBirthDate(birthYear, v, birthDay); if (v.length === 2) refs.day.current?.focus(); }}
                             style={{ ...fieldBox, textAlign: "center" }} />
-                        <input ref={!isPartner ? dayRef : undefined} type="number" inputMode="numeric" placeholder="DD" value={cbd}
+                        <input ref={refs.day} type="number" inputMode="numeric" placeholder="DD" value={cbd}
                             onChange={(e) => { let v = e.target.value.slice(0, 2); if (parseInt(v) > 31) v = "31"; isPartner ? setPartnerBirthDate(cby, cbm, v) : setBirthDate(birthYear, birthMonth, v); }}
                             style={{ ...fieldBox, textAlign: "center" }} />
                     </div>
@@ -213,14 +228,14 @@ export default function HapInputForm() {
                     </div>
                     <div style={{ display: "flex", gap: 8, marginBottom: 10 }}>
                         <div style={{ position: "relative", flex: 1 }}>
-                            <input ref={!isPartner ? hourRef : undefined} type="number" inputMode="numeric" min={0} max={23} placeholder="시 (0~23)"
+                            <input ref={refs.hour} type="number" inputMode="numeric" min={0} max={23} placeholder="시 (0~23)"
                                 disabled={citu} value={cbh}
-                                onChange={(e) => { let v = e.target.value; if (parseInt(v) > 23) v = "23"; isPartner ? setPartnerBirthLocationTime(cbc, v, cbmin, citu) : setBirthLocationTime(birthCity, v, birthMinute, isTimeUnknown); if (v.length === 2) (isPartner ? undefined : minuteRef.current)?.focus(); }}
+                                onChange={(e) => { let v = e.target.value; if (parseInt(v) > 23) v = "23"; isPartner ? setPartnerBirthLocationTime(cbc, v, cbmin, citu) : setBirthLocationTime(birthCity, v, birthMinute, isTimeUnknown); if (v.length === 2) refs.minute.current?.focus(); }}
                                 style={{ ...fieldBox, textAlign: "center", opacity: citu ? 0.3 : 1 }} />
                             <span style={{ position: "absolute", right: 12, top: "50%", transform: "translateY(-50%)", fontSize: 12, color: C.muted }}>시</span>
                         </div>
                         <div style={{ position: "relative", flex: 1 }}>
-                            <input ref={!isPartner ? minuteRef : undefined} type="number" inputMode="numeric" min={0} max={59} placeholder="분 (0~59)"
+                            <input ref={refs.minute} type="number" inputMode="numeric" min={0} max={59} placeholder="분 (0~59)"
                                 disabled={citu} value={cbmin}
                                 onChange={(e) => { let v = e.target.value; if (parseInt(v) > 59) v = "59"; isPartner ? setPartnerBirthLocationTime(cbc, cbh, v, citu) : setBirthLocationTime(birthCity, birthHour, v, isTimeUnknown); }}
                                 style={{ ...fieldBox, textAlign: "center", opacity: citu ? 0.3 : 1 }} />
