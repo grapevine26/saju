@@ -59,7 +59,23 @@ export default function HapLandingPage() {
                         두 사람의 사주가 만나면 어떤 관계가 되는지 —<br />
                         첫 만남부터 노년까지, 궁합의 모든 장면을 읽어드립니다.
                     </p>
+                    <span style={{
+                        display: 'inline-flex', alignItems: 'center', gap: 6, marginTop: 18,
+                        fontSize: 11.5, fontWeight: 700, color: C.accentBright,
+                        background: C.accentSoft, border: `1px solid ${C.accentBorder}`,
+                        padding: '6px 14px', borderRadius: 999,
+                    }}>무료로 먼저 확인 · 결제 없이 점수부터 볼 수 있어요</span>
                 </div>
+
+                {/* CTA — 무료라 부담 없이 바로 시작할 수 있다는 걸 스크롤 전에 보여준다 */}
+                <Link href="/hap/input" style={{
+                    display: 'block', textAlign: 'center', marginTop: 22,
+                    background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
+                    padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
+                    boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
+                }}>
+                    무료로 궁합 미리보기
+                </Link>
 
                 {/* 공감 — 지금 이 페이지에 온 이유 */}
                 <div style={{ marginTop: 12, marginBottom: 6 }}>
@@ -105,6 +121,16 @@ export default function HapLandingPage() {
                     ))}
                 </div>
 
+                {/* CTA — 4파트 소개와 진행 방식을 보고 마음이 선 시점의 두 번째 결정 지점 */}
+                <Link href="/hap/input" style={{
+                    display: 'block', textAlign: 'center', marginTop: 30,
+                    background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
+                    padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
+                    boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
+                }}>
+                    무료로 궁합 미리보기
+                </Link>
+
                 {/* 신뢰 요소 */}
                 <div style={{ marginTop: 22, background: C.accentSoft, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>
@@ -113,6 +139,21 @@ export default function HapLandingPage() {
                     <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>
                         가입 없이, 이메일 하나로 시작할 수 있어요. 결과는 <strong style={{ color: C.accentBright }}>링크를 아는 사람만</strong> 볼 수 있습니다.
                     </p>
+                </div>
+
+                {/* 자주 묻는 질문 — 결제 직전 남은 망설임을 풀어준다 */}
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginTop: 34, marginBottom: 12 }}>궁금하실 것 같아서</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
+                    {[
+                        { q: '사주를 안 믿는데 봐도 될까요?', a: '믿음을 요구하지 않아요. 만세력 계산 결과를 참고 자료로 보여드리는 거라, 재미 삼아 보셔도 충분해요.' },
+                        { q: '상대방도 이 결과를 알게 되나요?', a: '아니요. 결과 링크는 본인만 가지고 있고, 상대방에게 어떤 알림도 가지 않아요.' },
+                        { q: '결과가 안 좋게 나오면요?', a: '낮은 점수도 있는 그대로 보여드려요. 다만 등급표와 함께 어떤 점을 맞추면 좋을지 방향도 같이 담겨 있어요.' },
+                    ].map((f, i) => (
+                        <div key={i} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '15px 17px' }}>
+                            <p style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, margin: '0 0 6px', wordBreak: 'keep-all' }}>{f.q}</p>
+                            <p style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.7, margin: 0, wordBreak: 'keep-all' }}>{f.a}</p>
+                        </div>
+                    ))}
                 </div>
 
                 {/* 가격 */}
