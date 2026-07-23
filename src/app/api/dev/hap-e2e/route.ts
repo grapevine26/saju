@@ -10,7 +10,7 @@ export const maxDuration = 300;
 
 /**
  * [개발 전용] 운명의 합 파이프라인 E2E — Inngest compatibility 분기 미러.
- * ?my=이름,성별,YYYY-MM-DD,HH:MM,도시&partner=...&status=dating|some|marriage
+ * ?my=이름,성별,YYYY-MM-DD,HH:MM,도시&partner=...
  */
 export async function GET(req: NextRequest) {
     if (process.env.NODE_ENV === "production") {
@@ -40,8 +40,6 @@ export async function GET(req: NextRequest) {
         birthYear: "2002", birthMonth: "9", birthDay: "24",
         birthCity: "seoul", birthHour: "", birthMinute: "", isTimeUnknown: true,
     });
-    const relationshipStatus = req.nextUrl.searchParams.get("status") || "dating";
-
     // ── Inngest compatibility 분기 미러
     const myBazi = calculateBazi(myRawInput.gender as any, myRawInput.calendarType as any, myRawInput.birthYear, myRawInput.birthMonth, myRawInput.birthDay, myRawInput.birthCity, myRawInput.birthHour, myRawInput.birthMinute, myRawInput.isTimeUnknown);
     const partnerBazi = calculateBazi(partnerRawInput.gender as any, partnerRawInput.calendarType as any, partnerRawInput.birthYear, partnerRawInput.birthMonth, partnerRawInput.birthDay, partnerRawInput.birthCity, partnerRawInput.birthHour, partnerRawInput.birthMinute, partnerRawInput.isTimeUnknown);
@@ -51,7 +49,7 @@ export async function GET(req: NextRequest) {
     const report = await callTerra(SYSTEM_INSTRUCTION_HAP, buildPromptHap({
         myRawInput, partnerRawInput, myBazi, partnerBazi,
         compatibilityPromptSummary: compatibility.promptSummary,
-        relationshipStatus, hapScores,
+        hapScores,
     }), 32768);
 
     const gradeTable = [
@@ -88,7 +86,7 @@ export async function GET(req: NextRequest) {
 
     const { data: job, error } = await supabaseAdmin
         .from("premium_analysis_jobs")
-        .insert({ status: "completed", ai_result: aiResult, raw_data: { myRawInput, partnerRawInput, relationshipStatus, packageId: "compatibility", devE2E: true } })
+        .insert({ status: "completed", ai_result: aiResult, raw_data: { myRawInput, partnerRawInput, packageId: "compatibility", devE2E: true } })
         .select("id").single();
     if (error) return NextResponse.json({ error: error.message }, { status: 500 });
 

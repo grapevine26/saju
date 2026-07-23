@@ -38,14 +38,6 @@ const C = {
 
 const HAP_PRICE = 19900;
 
-/** 관계 상태별 히어로 서브카피 — 입력 스텝3 선택값을 그대로 살린다 */
-const STATUS_COPY: Record<string, string> = {
-    dating: '연인인 두 분, 타고난 합은 어떨까요',
-    some: '썸 타는 두 분, 이 설렘은 어디까지 갈까요',
-    crush: '짝사랑 중인 마음, 닿을 수 있는 인연일까요',
-    marriage: '결혼을 앞둔 두 분, 평생의 합을 확인해 보세요',
-};
-
 const SCORE_LABELS: { key: string; label: string }[] = [
     { key: 'romance', label: '연애궁합' },
     { key: 'marriage', label: '결혼궁합' },
@@ -121,7 +113,7 @@ export default function HapPreviewPage() {
                     totalScore: data.data.hapScores?.total ?? null, totalGrade: data.data.totalGrade ?? null,
                     resultData: {
                         ...data.data,
-                        rawInputs: { my: buildPerson(false), partner: buildPerson(true), relationshipStatus: store.relationshipStatus },
+                        rawInputs: { my: buildPerson(false), partner: buildPerson(true) },
                     },
                 });
             } catch {
@@ -138,7 +130,7 @@ export default function HapPreviewPage() {
             try {
                 const res = await fetch('/api/hap/preview-ai', {
                     method: 'POST', headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ my: buildPerson(false), partner: buildPerson(true), relationshipStatus: store.relationshipStatus }),
+                    body: JSON.stringify({ my: buildPerson(false), partner: buildPerson(true) }),
                 });
                 const data = await res.json();
                 if (data.success) {
@@ -286,7 +278,6 @@ export default function HapPreviewPage() {
                 orderId, amount: payPrice, customerEmail: email,
                 discountCode: discount?.code || null,
                 myRawInput: buildPerson(false), partnerRawInput: buildPerson(true),
-                relationshipStatus: store.relationshipStatus || undefined,
                 // 보관함 카드 표시용 — 결제 확정 후 같은 항목을 premium으로 승격한다
                 myName: store.name || '', partnerName: store.partnerName || '',
                 totalScore: preview.hapScores?.total ?? null, totalGrade: preview.totalGrade ?? null,
@@ -359,7 +350,7 @@ export default function HapPreviewPage() {
                         </div>
                     </div>
                     <h1 style={{ fontFamily: C.serif, fontSize: 21, fontWeight: 700, margin: 0 }}>{store.name || '나'} ✕ {store.partnerName || '그 사람'}</h1>
-                    <p style={{ fontSize: 12.5, color: C.muted, marginTop: 8 }}>{STATUS_COPY[store.relationshipStatus || ''] || '타고난 두 기운이 만나면 이런 관계가 됩니다'}</p>
+                    <p style={{ fontSize: 12.5, color: C.muted, marginTop: 8 }}>타고난 두 기운이 만나면 이런 관계가 됩니다</p>
                 </motion.div>
 
                 {/* 종합 점수 헤드라인 — 6항목 평균(유료 리포트와 같은 앵커 계산) */}

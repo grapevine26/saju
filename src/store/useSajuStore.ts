@@ -132,9 +132,6 @@ interface SajuState {
     breakupDate: string;       // 이별 날짜 (YYYY-MM 또는 YYYY-MM-DD)
     breakupReason: string;     // 이별 이유 또는 현재 고민
 
-    // 운명의 합(궁합 단독) 컨텍스트
-    relationshipStatus: string; // 'dating' | 'some' | 'marriage' | 'etc' | ''
-
     // 현재 선택된 tier
     currentTier: Tier;
 
@@ -161,7 +158,6 @@ interface SajuState {
     setMetDate: (date: string) => void;
     setBreakupDate: (date: string) => void;
     setBreakupReason: (reason: string) => void;
-    setRelationshipStatus: (status: string) => void;
 
     // Tier 선택
     setCurrentTier: (tier: Tier) => void;
@@ -189,7 +185,6 @@ const initialBreakupState = {
     metDate: '',
     breakupDate: '',
     breakupReason: '',
-    relationshipStatus: '',
 };
 
 const initialMyInputState = {
@@ -276,7 +271,6 @@ export const useSajuStore = create<SajuState>()(
             setMetDate: (metDate) => set({ metDate }),
             setBreakupDate: (breakupDate) => set({ breakupDate }),
             setBreakupReason: (breakupReason) => set({ breakupReason }),
-            setRelationshipStatus: (relationshipStatus) => set({ relationshipStatus }),
 
             // Tier 선택
             setCurrentTier: (currentTier) => set({ currentTier }),

@@ -39,7 +39,7 @@ export async function POST(request: Request) {
             });
         }
 
-        const { my, partner, relationshipStatus } = await request.json();
+        const { my, partner } = await request.json();
         if (!my?.birthYear || !partner?.birthYear) {
             return NextResponse.json({ success: false, error: "생년월일 정보가 필요합니다." }, { status: 400 });
         }
@@ -64,7 +64,7 @@ export async function POST(request: Request) {
             buildPromptHapLite({
                 myRawInput: my, partnerRawInput: partner, myBazi, partnerBazi,
                 compatibilityPromptSummary: compatibility.promptSummary,
-                relationshipStatus, hapScores,
+                hapScores,
             }),
             4096,
         );

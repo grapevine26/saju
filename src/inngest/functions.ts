@@ -105,7 +105,7 @@ export const processPremiumAnalysis = inngest.createFunction(
     // liteResult·골든윈도우·prompt1~3에 의존하지 않으며, 실패 시 throw → onFailure 자동 환불 재사용.
     if (raw_data?.packageId === 'compatibility') {
       const hapAiResult = await step.run("analyze-hap-report", async () => {
-        const { myRawInput, partnerRawInput, relationshipStatus } = raw_data;
+        const { myRawInput, partnerRawInput } = raw_data;
 
         const myBazi = calculateBazi(
           myRawInput.gender, myRawInput.calendarType,
@@ -125,7 +125,7 @@ export const processPremiumAnalysis = inngest.createFunction(
         const report = await callTerra(SYSTEM_INSTRUCTION_HAP, buildPromptHap({
           myRawInput, partnerRawInput, myBazi, partnerBazi,
           compatibilityPromptSummary: compatibility.promptSummary,
-          relationshipStatus, hapScores,
+          hapScores,
         }), 32768);
 
         // 핵심 콘텐츠가 비면 실패로 간주 (빈 리포트를 유료 완료로 저장하지 않음)

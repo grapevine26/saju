@@ -66,7 +66,6 @@ function HapPaymentSuccessContent() {
                     rawData: {
                         myRawInput: pending.myRawInput,
                         partnerRawInput: pending.partnerRawInput,
-                        relationshipStatus: pending.relationshipStatus,
                     },
                     packageId: 'compatibility',
                     customerEmail: pending.customerEmail,

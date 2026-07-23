@@ -446,31 +446,18 @@ export interface HapPromptContext {
     myBazi: BaziData;
     partnerBazi: BaziData;
     compatibilityPromptSummary: string;
-    /** 관계 상태: 'dating'(연인) | 'some'(썸) | 'crush'(짝사랑) | 'marriage'(결혼 준비) | 'etc' */
-    relationshipStatus?: string;
     /** 시스템 계산 6항목 점수 (인플레 방지 앵커) */
     hapScores: { romance: number; marriage: number; wealth: number; personality: number; family: number; communication: number; total: number };
 }
 
-const relationshipStatusLabel = (s?: string): string => {
-    switch (s) {
-        case 'dating': return '연인 사이 (교제 중)';
-        case 'some': return '썸 타는 사이 (아직 교제 전)';
-        case 'crush': return '짝사랑 중 (아직 사귀는 사이가 아니며, 상대방은 이 마음을 모를 수 있음)';
-        case 'marriage': return '결혼을 준비 중이거나 진지하게 생각하는 사이';
-        default: return '서로에게 관심이 있는 사이';
-    }
-};
-
 export const buildPromptHap = (ctx: HapPromptContext): string => {
-    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, relationshipStatus, hapScores } = ctx;
+    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, hapScores } = ctx;
     const myName = myRawInput.name || '나';
     const partnerName = partnerRawInput.name || '그 사람';
 
     return `[분석 대상]
 - ${myName} (${genderLabel(myRawInput.gender)}, 만 ${myBazi.age}세)
 - ${partnerName} (${genderLabel(partnerRawInput.gender)}, 만 ${partnerBazi.age}세)
-- 관계 상태: ${relationshipStatusLabel(relationshipStatus)}
 
 [${myName}의 사주팔자]
 ${myBazi.baziStr.trim()}
@@ -497,8 +484,6 @@ ${compatibilityPromptSummary}
 (중요 지침 3: him/her 대비 카드가 이 리포트의 핵심 장치다. myXxx 필드는 반드시 ${myName}님에 대한 내용, partnerXxx 필드는 반드시 ${partnerName}님에 대한 내용으로 — 뒤바뀌면 리포트 전체가 틀린 상품이 된다)
 
 (중요 지침 4: 항목이 많다고 뒤로 갈수록 짧아지는 것 금지 — part1과 final의 밀도가 같아야 유료 상품이다)
-
-${relationshipStatus === 'crush' ? `(중요 지침 5 — 짝사랑 전용: 관계 상태가 짝사랑이다. ${myName}님과 ${partnerName}님이 아직 사귀는 사이가 아니고, 상대방은 이 마음을 모를 수도 있다는 전제를 절대 잊지 마라. "연애 초기 모습"·"스킨십과 애정 표현"·"결혼 후 실제 생활" 같은 이미 관계가 진행 중임을 전제로 하는 항목들은 "만약 이 관계가 시작된다면"이라는 가정법으로 자연스럽게 풀어써라 — 이미 사귀고 있는 것처럼 단정하는 서술은 절대 금지. 반대로 "왜 서로 끌릴까"·"궁합 총점"·"최종 판정" 같은 타고난 기질 궁합을 다루는 항목은 이 전제와 무관하게 평소대로 서술하라.)` : ''}
 
 위 데이터를 바탕으로 '운명의 합' 궁합 리포트를 작성해줘.
 
@@ -632,14 +617,13 @@ ${BASE_SYSTEM_INSTRUCTION}
 
 /** 운명의 합 무료 미리보기 AI 티저 — 유료 buildPromptHap과 같은 컨텍스트를 재사용 */
 export const buildPromptHapLite = (ctx: HapPromptContext): string => {
-    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, relationshipStatus, hapScores } = ctx;
+    const { myRawInput, partnerRawInput, myBazi, partnerBazi, compatibilityPromptSummary, hapScores } = ctx;
     const myName = myRawInput.name || '나';
     const partnerName = partnerRawInput.name || '그 사람';
 
     return `[분석 대상]
 - ${myName} (${genderLabel(myRawInput.gender)}, 만 ${myBazi.age}세)
 - ${partnerName} (${genderLabel(partnerRawInput.gender)}, 만 ${partnerBazi.age}세)
-- 관계 상태: ${relationshipStatusLabel(relationshipStatus)}
 
 [${myName}의 사주팔자]
 ${myBazi.baziStr.trim()}
@@ -659,8 +643,6 @@ ${compatibilityPromptSummary}
 1. essence는 350~450자·정확히 2문단. 1문단은 두 사람의 궁합에서 가장 눈에 띄는 성향·궁합 패턴을 콕 짚어 "우리 얘기다" 싶게 만드는 데 집중하되, "~하는 편입니다" 같은 성향 언어로 써라. 오행·십성·합충 용어 노출 금지, 자연 비유(산·꽃·강·햇살 등)와 심리·관계 언어로만 번역.
 2. 구체적 '처방'(무엇을 언제 어떻게 하라)은 절대 쓰지 마라 — 그것은 유료 리포트의 몫이다. 진단(어떤 사이인지)까지만.
 3. 2문단의 마지막 한 문장은 이 커플의 궁합에서 가장 결정적인 통찰이 아직 남아있다는 것을 자연스럽게 암시하는 훅으로 맺어라(가장 위험한 갈등 신호 / 가장 큰 강점 / 결혼·동거 적기 중 궁합 데이터상 가장 두드러지는 것 하나를 골라 "이 부분이 왜 그런지는", "정말 중요한 건" 같은 표현으로 다음을 궁금하게 만들되, 억지 광고 문구·특수 태그·느낌표 없이 문장 안에서 자연스럽게). 오행·십성·합충 용어 절대 금지.)
-
-${relationshipStatus === 'crush' ? `(중요 지침 — 짝사랑 전용: 아직 사귀는 사이가 아니고 상대방은 이 마음을 모를 수 있다는 전제를 잊지 마라. 이미 사귀고 있는 것처럼 단정하지 말고, "이 관계가 시작된다면"이라는 가정법을 자연스럽게 섞어라.)` : ''}
 
 JSON 포맷:
 {

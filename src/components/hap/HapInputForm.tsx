@@ -3,14 +3,16 @@
 /**
  * 운명의 합 — 전용 입력 폼 (다시,우리의 DualInputForm과 별개로 설계).
  * '감정 신청서'를 채워나가는 원장(元帳) 형태 — 진행 표시도 막대바 대신
- * 결과 리포트의 골드 스파인과 같은 장치(3개 노드를 잇는 실선)를 써서
+ * 결과 리포트의 골드 스파인과 같은 장치(2개 노드를 잇는 실선)를 써서
  * 입력→결과 사이의 시각적 일관성을 잇는다.
+ * (관계 상태 질문은 뺐다 — 궁합은 어차피 재미로 보는 예측이라 이미 사귀는
+ * 사이를 전제로 서술해도 상관없다는 판단, 스텝도 하나 줄어 더 가벼워짐)
  */
 import { useState, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
 import { motion, AnimatePresence } from "framer-motion";
-import { ArrowLeft, ChevronRight, Heart, Users, Gem, Sparkles, Eye } from "lucide-react";
+import { ArrowLeft, ChevronRight, Gem } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSajuStore } from "@/store/useSajuStore";
 import LocationSearch from "@/components/LocationSearch";
@@ -55,23 +57,14 @@ const strictDateError = (y: string, m: string, d: string): string | null => {
     return null;
 };
 
-const RELATIONSHIP_OPTIONS = [
-    { v: "dating", label: "연인 사이", desc: "지금 만나고 있어요", icon: Heart },
-    { v: "some", label: "썸 타는 중", desc: "아직 사귀기 전이에요", icon: Sparkles },
-    { v: "crush", label: "짝사랑 중", desc: "혼자 마음을 갖고 있어요", icon: Eye },
-    { v: "marriage", label: "결혼 준비 중", desc: "결혼을 진지하게 생각하고 있어요", icon: Gem },
-    { v: "etc", label: "그 외", desc: "복잡하거나 애매한 사이예요", icon: Users },
-];
-
 const STEP_META = [
     { eyebrow: "STEP 1", label: "나의 정보", sub: "정확할수록 궁합 판정이 정밀해져요" },
     { eyebrow: "STEP 2", label: "상대방 정보", sub: "생년월일만 알아도 충분해요" },
-    { eyebrow: "STEP 3", label: "우리 사이", sub: "지금 두 사람의 관계를 알려주세요" },
 ];
 
 export default function HapInputForm() {
     const router = useRouter();
-    const [step, setStep] = useState<1 | 2 | 3>(1);
+    const [step, setStep] = useState<1 | 2>(1);
     // 나/상대방 각각 독립된 ref 세트 — 같은 ref를 공유하면 잘못된 칸으로 포커스가 튄다
     const myRefs = {
         year: useRef<HTMLInputElement>(null), month: useRef<HTMLInputElement>(null), day: useRef<HTMLInputElement>(null),
@@ -94,7 +87,6 @@ export default function HapInputForm() {
         partnerBirthYear, partnerBirthMonth, partnerBirthDay, setPartnerBirthDate,
         partnerBirthCity, partnerBirthHour, partnerBirthMinute, partnerIsTimeUnknown, setPartnerBirthLocationTime,
     } = useSajuStore();
-    const { relationshipStatus, setRelationshipStatus } = useSajuStore();
 
     const { keyboardPadding, handleFieldFocus, handleFieldBlur } = useKeyboardAwareForm();
     const keyboardOpen = keyboardPadding > 80;
@@ -129,10 +121,8 @@ export default function HapInputForm() {
         setPartnerBirthDate(partnerBirthYear, pm, pd);
         const dateErr = strictDateError(partnerBirthYear, pm, pd);
         if (dateErr) { toast.error(dateErr); return; }
-        setStep(3);
+        router.push("/hap/preview");
     };
-
-    const handleSubmit = () => router.push("/hap/preview");
 
     const Label = ({ children }: { children: React.ReactNode }) => (
         <p style={{ fontSize: 12, fontWeight: 700, color: C.muted, marginBottom: 10, letterSpacing: "0.05em", textTransform: "uppercase" as const }}>{children}</p>
@@ -262,14 +252,14 @@ export default function HapInputForm() {
                 <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
                     {step === 1
                         ? <Link href="/hap" style={{ display: "flex", padding: 4, color: C.sub, textDecoration: "none" }}><ArrowLeft size={22} /></Link>
-                        : <button onClick={() => setStep((step - 1) as 1 | 2 | 3)} style={{ display: "flex", padding: 4, background: "none", border: "none", color: C.sub, cursor: "pointer" }}><ArrowLeft size={22} /></button>}
+                        : <button onClick={() => setStep((step - 1) as 1 | 2)} style={{ display: "flex", padding: 4, background: "none", border: "none", color: C.sub, cursor: "pointer" }}><ArrowLeft size={22} /></button>}
                     <span style={{ fontWeight: 700, fontSize: 15 }}>감정 신청서</span>
                 </div>
-                <div style={{ position: "relative", height: 20, maxWidth: 200, margin: "0 auto" }}>
+                <div style={{ position: "relative", height: 20, maxWidth: 140, margin: "0 auto" }}>
                     <div style={{ position: "absolute", left: 10, right: 10, top: 9, height: 1, background: C.lineSoft }} />
-                    <div style={{ position: "absolute", left: 10, top: 9, height: 1, background: C.gold, width: `${((step - 1) / 2) * 100}%`, transition: "width 0.4s ease" }} />
+                    <div style={{ position: "absolute", left: 10, top: 9, height: 1, background: C.gold, width: `${(step - 1) * 100}%`, transition: "width 0.4s ease" }} />
                     <div style={{ display: "flex", justifyContent: "space-between", position: "relative" }}>
-                        {[1, 2, 3].map((s) => (
+                        {[1, 2].map((s) => (
                             <div key={s} style={{
                                 width: 20, height: 20, borderRadius: "50%", display: "flex", alignItems: "center", justifyContent: "center",
                                 fontSize: 10, fontWeight: 800,
@@ -301,37 +291,6 @@ export default function HapInputForm() {
                             {renderPersonFields(true)}
                         </motion.div>
                     )}
-                    {step === 3 && (
-                        <motion.div key="s3" initial={{ opacity: 0, x: 20 }} animate={{ opacity: 1, x: 0 }} exit={{ opacity: 0, x: 20 }} transition={{ duration: 0.25 }}>
-                            <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: "0.2em", color: C.gold, marginBottom: 6 }}>{STEP_META[2].eyebrow}</p>
-                            <h2 style={{ fontFamily: C.serif, fontSize: 19, fontWeight: 700, marginBottom: 4 }}>{STEP_META[2].label}</h2>
-                            <p style={{ fontSize: 12.5, color: C.muted, marginBottom: 26 }}>{STEP_META[2].sub}</p>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 11 }}>
-                                {RELATIONSHIP_OPTIONS.map((opt) => {
-                                    const active = relationshipStatus === opt.v;
-                                    const Icon = opt.icon;
-                                    return (
-                                        <button key={opt.v} onClick={() => setRelationshipStatus(opt.v)}
-                                            style={{
-                                                ...fieldBox, textAlign: "left", cursor: "pointer", display: "flex", alignItems: "center", gap: 14,
-                                                border: `1px solid ${active ? C.goldBorder : C.cardBorder}`,
-                                                background: active ? C.goldSoft : C.card,
-                                            }}>
-                                            <Icon size={18} style={{ color: active ? C.goldBright : C.muted, flexShrink: 0 }} />
-                                            <span style={{ display: "flex", flexDirection: "column", gap: 2 }}>
-                                                <span style={{ fontSize: 14.5, fontWeight: 700, color: active ? C.goldBright : C.ink }}>{opt.label}</span>
-                                                <span style={{ fontSize: 12, color: C.muted }}>{opt.desc}</span>
-                                            </span>
-                                        </button>
-                                    );
-                                })}
-                                <div style={{ background: C.card, border: `1px solid ${C.lineSoft}`, borderRadius: C.r, padding: "14px 16px", display: "flex", gap: 10, alignItems: "flex-start", marginTop: 8 }}>
-                                    <span style={{ fontSize: 14, flexShrink: 0 }}>🔒</span>
-                                    <p style={{ fontSize: 11.5, color: C.muted, lineHeight: 1.7, margin: 0 }}>관계 상태는 리포트의 말투와 조언 방향을 맞추는 데만 사용됩니다. 선택하지 않아도 분석은 가능해요.</p>
-                                </div>
-                            </div>
-                        </motion.div>
-                    )}
                 </AnimatePresence>
             </main>
 
@@ -347,11 +306,6 @@ export default function HapInputForm() {
                 )}
                 {step === 2 && (
                     <button onClick={handleNextStep2} style={{ width: "100%", background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: "17px 0", borderRadius: C.r, border: "none", boxShadow: "0 6px 30px rgba(140,106,50,0.28)", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
-                        다음: 우리 사이 입력 <ChevronRight size={18} />
-                    </button>
-                )}
-                {step === 3 && (
-                    <button onClick={handleSubmit} style={{ width: "100%", background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: "17px 0", borderRadius: C.r, border: "none", boxShadow: "0 6px 30px rgba(140,106,50,0.28)", cursor: "pointer", fontFamily: "inherit", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}>
                         무료 궁합 미리보기 <Gem size={16} />
                     </button>
                 )}
