@@ -99,28 +99,32 @@ const PartNav = ({ parts }: { parts: { id: string; label: string }[] }) => {
 
     return (
         <div style={{
-            position: 'fixed', top: 0, left: 0, right: 0, maxWidth: 560, margin: '0 auto',
-            zIndex: 30, display: 'flex', gap: 6, padding: '12px 22px', overflowX: 'auto',
-            background: 'rgba(10,9,8,0.90)', backdropFilter: 'blur(10px)',
-            borderBottom: `1px solid ${C.cardBorder}`, scrollbarWidth: 'none',
+            position: 'fixed', top: 0, left: 0, right: 0, zIndex: 30,
             opacity: visible ? 1 : 0, pointerEvents: visible ? 'auto' : 'none',
             transform: visible ? 'translateY(0)' : 'translateY(-8px)',
             transition: 'opacity 0.25s ease, transform 0.25s ease',
         }}>
-            {parts.map((p) => {
-                const isActive = active === p.id;
-                return (
-                    <a key={p.id} href={`#${p.id}`}
-                        onClick={(e) => { e.preventDefault(); document.getElementById(p.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
-                        style={{
-                            flexShrink: 0, fontSize: 11.5, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
-                            textDecoration: 'none', transition: 'all 0.2s',
-                            color: isActive ? '#241C0C' : C.sub,
-                            background: isActive ? C.gold : C.card,
-                            border: `1px solid ${isActive ? C.gold : C.cardBorder}`,
-                        }}>{p.label}</a>
-                );
-            })}
+            <div style={{
+                maxWidth: 560, margin: '0 auto',
+                display: 'flex', justifyContent: 'center', gap: 6, padding: '14px 22px 24px', overflowX: 'auto',
+                background: 'linear-gradient(to bottom, rgba(10,9,8,0.95) 0%, rgba(10,9,8,0.88) 60%, transparent 100%)',
+                backdropFilter: 'blur(8px)', scrollbarWidth: 'none',
+            }}>
+                {parts.map((p) => {
+                    const isActive = active === p.id;
+                    return (
+                        <a key={p.id} href={`#${p.id}`}
+                            onClick={(e) => { e.preventDefault(); document.getElementById(p.id)?.scrollIntoView({ behavior: 'smooth', block: 'start' }); }}
+                            style={{
+                                flexShrink: 0, fontSize: 11.5, fontWeight: 700, padding: '7px 13px', borderRadius: 999,
+                                textDecoration: 'none', transition: 'all 0.2s',
+                                color: isActive ? '#241C0C' : C.sub,
+                                background: isActive ? C.gold : C.card,
+                                border: `1px solid ${isActive ? C.gold : C.cardBorder}`,
+                            }}>{p.label}</a>
+                    );
+                })}
+            </div>
         </div>
     );
 };
