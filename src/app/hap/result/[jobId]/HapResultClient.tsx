@@ -34,6 +34,8 @@ const C = {
     card: 'rgba(240,234,235,0.04)',
     cardBorder: 'rgba(240,234,235,0.13)',
     band: 'rgba(240,234,235,0.07)',
+    warn: '#E4A3AE',
+    warnSoft: 'rgba(228,163,174,0.08)',
     serif: "'Noto Serif KR', serif",
     r: 16,
 };
@@ -62,7 +64,7 @@ const PartHead = ({ num, title, anchorId, tier = 0 }: { num: string; title: stri
     return (
         <div id={anchorId} data-part-anchor style={{ background: t.band, border: `1px solid ${t.border}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px', scrollMarginTop: 74, boxShadow: t.glow || 'none' }}>
             <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.22em', color: C.accentBright, margin: '0 0 6px' }}>{num}</p>
-            <h2 style={{ fontFamily: C.serif, fontSize: 19, fontWeight: 700, margin: 0, color: C.ink }}>{title}</h2>
+            <h2 style={{ fontFamily: C.serif, fontSize: 19 + tier * 0.7, fontWeight: 700, margin: 0, color: C.ink }}>{title}</h2>
         </div>
     );
 };
@@ -129,8 +131,18 @@ const PartNav = ({ parts }: { parts: { id: string; label: string }[] }) => {
     );
 };
 
-const H3 = ({ children }: { children: React.ReactNode }) => (
-    <h3 style={{ fontFamily: C.serif, fontSize: 16.5, fontWeight: 700, margin: '34px 0 12px', paddingBottom: 9, borderBottom: `1px solid ${C.cardBorder}`, color: C.ink }}>{children}</h3>
+// climax=true는 각 파트를 마무리하는 총평류 소제목 전용 — 45개 소제목이 전부 같은
+// 무게로 읽히면 리포트가 단조로워진다는 감사 결과로 도입 (major finding #1, #2).
+// 크기·색·여백을 함께 올려서 "여기가 이 파트의 결론"이라는 신호를 시각적으로 준다.
+const H3 = ({ children, climax = false }: { children: React.ReactNode; climax?: boolean }) => (
+    <h3 style={{
+        fontFamily: C.serif, fontWeight: 700, color: climax ? C.accentBright : C.ink,
+        fontSize: climax ? 20 : 16.5,
+        margin: climax ? '52px 0 14px' : '34px 0 12px',
+        paddingBottom: climax ? 12 : 9,
+        borderBottom: climax ? `2px solid ${C.accentBorder}` : `1px solid ${C.cardBorder}`,
+        letterSpacing: climax ? '-0.01em' : 'normal',
+    }}>{children}</h3>
 );
 
 const P = ({ children }: { children?: string }) => (
@@ -145,22 +157,36 @@ const Quote = ({ children }: { children?: string }) => (
     ) : null
 );
 
-/** him/her 2색 대비 카드 */
-const PairCards = ({ myTitle, partnerTitle, myBody, partnerBody }: {
+/**
+ * him/her 2색 대비 카드. tone="warn"은 두 칸 다 경고성 내용(피해야 할 행동 등)일 때만 —
+ * 평소의 먹빛/금박 대비 대신 로즈 톤으로 통일해 "여기는 주의 구간"이라는 신호를 카드
+ * 자체가 준다 (13번 전부 같은 톤으로 반복되던 걸 감사에서 지적받아 도입, major finding #3).
+ */
+const PairCards = ({ myTitle, partnerTitle, myBody, partnerBody, tone = 'default' }: {
     myTitle: string; partnerTitle: string;
     myBody: React.ReactNode; partnerBody: React.ReactNode;
-}) => (
-    <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, margin: '14px 0 18px' }}>
-        <div style={{ background: C.himSoft, border: `1px solid ${C.cardBorder}`, borderTop: `3px solid ${C.him}`, borderRadius: 13, padding: '15px 17px' }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: C.him, margin: '0 0 8px' }}>{myTitle}</p>
-            {myBody}
+    tone?: 'default' | 'warn';
+}) => {
+    const isWarn = tone === 'warn';
+    return (
+        <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: 12, margin: '14px 0 18px' }}>
+            <div style={{
+                background: isWarn ? C.warnSoft : C.himSoft, border: `1px solid ${C.cardBorder}`,
+                borderTop: `3px solid ${isWarn ? C.warn : C.him}`, borderRadius: 13, padding: '15px 17px',
+            }}>
+                <p style={{ fontSize: 13, fontWeight: 800, color: isWarn ? C.warn : C.him, margin: '0 0 8px' }}>{myTitle}</p>
+                {myBody}
+            </div>
+            <div style={{
+                background: isWarn ? C.warnSoft : C.herSoft, border: `1px solid ${C.cardBorder}`,
+                borderTop: `3px solid ${isWarn ? C.warn : C.her}`, borderRadius: 13, padding: '15px 17px',
+            }}>
+                <p style={{ fontSize: 13, fontWeight: 800, color: isWarn ? C.warn : C.her, margin: '0 0 8px' }}>{partnerTitle}</p>
+                {partnerBody}
+            </div>
         </div>
-        <div style={{ background: C.herSoft, border: `1px solid ${C.cardBorder}`, borderTop: `3px solid ${C.her}`, borderRadius: 13, padding: '15px 17px' }}>
-            <p style={{ fontSize: 13, fontWeight: 800, color: C.her, margin: '0 0 8px' }}>{partnerTitle}</p>
-            {partnerBody}
-        </div>
-    </div>
-);
+    );
+};
 
 const SmallP = ({ children }: { children?: string }) => (
     children ? <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'keep-all', margin: 0 }}>{children}</p> : null
@@ -278,12 +304,12 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                     {scoreBoxes.map((b) => (
                         <div key={b.label} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '14px 10px', textAlign: 'center' }}>
                             <p style={{ fontSize: 11.5, fontWeight: 700, color: C.muted, margin: '0 0 5px' }}>{b.label}</p>
-                            <p style={{ fontFamily: C.serif, fontSize: 21, fontWeight: 900, color: C.accentBright, margin: 0 }}>{b.v ?? '-'}</p>
+                            <p style={{ fontFamily: C.serif, fontSize: 21, fontWeight: 900, color: C.accentBright, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{b.v ?? '-'}</p>
                         </div>
                     ))}
                     <div style={{ gridColumn: '1 / -1', background: 'linear-gradient(150deg, rgba(201,161,92,0.18) 0%, rgba(10,9,12,0.9) 70%)', border: `1px solid ${C.accentBorder}`, borderRadius: 13, padding: '16px 10px', textAlign: 'center' }}>
                         <p style={{ fontSize: 11.5, fontWeight: 700, color: C.sub, margin: '0 0 5px' }}>종합점수 <span style={{ color: C.gold, letterSpacing: 2, marginLeft: 6 }}>{typeof r.stars === 'number' ? starsText(r.stars) : ''}</span></p>
-                        <p style={{ fontFamily: C.serif, fontSize: 28, fontWeight: 900, color: C.ink, margin: 0 }}>{scores.total ?? '-'}점 <span style={{ fontSize: 16, color: C.accentBright }}>· {r.totalGrade}급</span></p>
+                        <p style={{ fontFamily: C.serif, fontSize: 28, fontWeight: 900, color: C.ink, margin: 0, fontVariantNumeric: 'tabular-nums' }}>{scores.total ?? '-'}점 <span style={{ fontSize: 16, color: C.accentBright }}>· {r.totalGrade}급</span></p>
                     </div>
                 </div>
                 <P>{p1.scoreComment}</P>
@@ -331,7 +357,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                 <H3>가장 위험한 부분</H3>
                 <P>{p1.biggestRisk}</P>
 
-                <H3>총평</H3>
+                <H3 climax>총평</H3>
                 <P>{p1.expertReview}</P>
                 <Quote>{p1.quote}</Quote>
 
@@ -389,7 +415,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                 <H3>자녀와의 관계</H3>
                 <P>{p2.parenting}</P>
 
-                <H3>Part 2 총평</H3>
+                <H3 climax>Part 2 총평</H3>
                 <PairCards
                     myTitle="가장 큰 장점" partnerTitle="가장 중요한 과제"
                     myBody={<CheckList items={p2.review?.strengths} />}
@@ -453,7 +479,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                     partnerBody={<CheckList items={p3.learning?.partnerLearns} />}
                 />
 
-                <H3>Part 3 총평</H3>
+                <H3 climax>Part 3 총평</H3>
                 <P>{p3.review}</P>
 
                 {/* ══════════ FINAL ══════════ */}
@@ -480,7 +506,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                 <P>{fin.cautionPeriod}</P>
 
                 <H3>피하면 좋은 행동</H3>
-                <PairCards
+                <PairCards tone="warn"
                     myTitle={`${myName}님`} partnerTitle={`${partnerName}님`}
                     myBody={<CheckList items={fin.avoidActions?.myAvoid} tone="warn" />}
                     partnerBody={<CheckList items={fin.avoidActions?.partnerAvoid} tone="warn" />}
@@ -496,7 +522,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                     {gradeTable.map((g, i) => (
                         <div key={g.area} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '12px 18px', borderBottom: i < gradeTable.length - 1 ? `1px solid ${C.cardBorder}` : 'none', background: i % 2 ? 'transparent' : C.card }}>
                             <span style={{ fontSize: 13.5, color: C.sub, fontWeight: 600 }}>{g.area}</span>
-                            <span style={{ fontSize: 13, color: C.muted }}>{g.score}점 <strong style={{ fontFamily: C.serif, fontSize: 15, color: C.accentBright, marginLeft: 8 }}>{g.grade}</strong></span>
+                            <span style={{ fontSize: 13, color: C.muted, fontVariantNumeric: 'tabular-nums' }}>{g.score}점 <strong style={{ fontFamily: C.serif, fontSize: 15, color: C.accentBright, marginLeft: 8 }}>{g.grade}</strong></span>
                         </div>
                     ))}
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', padding: '14px 18px', background: 'linear-gradient(150deg, rgba(201,161,92,0.18) 0%, rgba(10,9,12,0.9) 70%)' }}>
@@ -505,7 +531,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                     </div>
                 </div>
 
-                <H3>역술가의 최종 총평</H3>
+                <H3 climax>역술가의 최종 총평</H3>
                 <P>{fin.finalReview}</P>
                 <Quote>{fin.lastQuote}</Quote>
 
