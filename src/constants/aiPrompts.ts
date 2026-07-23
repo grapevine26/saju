@@ -546,7 +546,8 @@ JSON 포맷:\n
     "review": {
       "strengths": ["이 궁합의 장점 3개 (각 10~25자)"],
       "tasks": ["가장 중요한 과제 3개 (각 10~25자)"],
-      "comment": "Part2 총평 (최소 200자)"
+      "comment": "Part2 총평 (최소 200자)",
+      "quote": "Part2를 요약하는 인용구 한 문장 (25~55자, 따옴표 없이)"
     }
   },
   "part3": {
@@ -576,7 +577,8 @@ JSON 포맷:\n
       "myLearns": ["${myName}님이 ${partnerName}님에게 배우는 것 4개 (각 2~10자)"],
       "partnerLearns": ["${partnerName}님이 ${myName}님에게 배우는 것 4개 (각 2~10자)"]
     },
-    "review": "Part3 총평 (최소 220자, 2문단)"
+    "review": "Part3 총평 (최소 220자, 2문단)",
+    "reviewQuote": "Part3를 요약하는 인용구 한 문장 (25~55자, 따옴표 없이)"
   },
   "final": {
     "oneLineDestiny": "두 사람의 인연을 한 문장으로 (25~55자, 따옴표 없이)",

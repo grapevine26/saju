@@ -422,6 +422,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
                     partnerBody={<CheckList items={p2.review?.tasks} tone="warn" />}
                 />
                 <P>{p2.review?.comment}</P>
+                <Quote>{p2.review?.quote}</Quote>
 
                 {/* ══════════ PART 3 ══════════ */}
                 <PartHead num="PART 3" title="함께 만드는 생활" anchorId="part3" tier={2} />
@@ -481,6 +482,7 @@ export default function HapResultClient({ job, myName, partnerName, hasOwner = f
 
                 <H3 climax>Part 3 총평</H3>
                 <P>{p3.review}</P>
+                <Quote>{p3.reviewQuote}</Quote>
 
                 {/* ══════════ FINAL ══════════ */}
                 <PartHead num="FINAL" title="최종 판정" anchorId="final" tier={3} />
