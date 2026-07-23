@@ -8,7 +8,7 @@ import { useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getUtm, getVisitorId } from "@/utils/utm";
 import { trackPurchase } from "@/utils/metaPixel";
-import { HAP_HISTORY_KEY } from "@/features/hap/constants";
+import { upgradeToPremium } from "@/features/hap/history";
 
 const C = {
     bg: '#0A090C',
@@ -88,19 +88,15 @@ function HapPaymentSuccessContent() {
 
                 trackPurchase(orderId, Number(amountStr));
 
-                // 궁합 보관함에 추가 (최대 50개) — 탭을 닫아도 /hap/history에서 다시 볼 수 있다
+                // 궁합 보관함 — 무료 미리보기 때 만든 항목을 premium으로 승격 (없으면 새로 추가)
                 try {
-                    const historyRaw = localStorage.getItem(HAP_HISTORY_KEY);
-                    const history = historyRaw ? JSON.parse(historyRaw) : [];
-                    history.unshift({
+                    upgradeToPremium(pending.freeRecordId, {
                         jobId,
                         myName: pending.myName || '',
                         partnerName: pending.partnerName || '',
                         totalScore: pending.totalScore ?? null,
                         totalGrade: pending.totalGrade ?? null,
-                        createdAt: Date.now(),
                     });
-                    localStorage.setItem(HAP_HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
                 } catch {}
 
                 localStorage.removeItem('pendingHapPayment');

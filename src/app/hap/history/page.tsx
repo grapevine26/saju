@@ -2,15 +2,15 @@
 
 /**
  * 운명의 합 — 궁합 보관함
- * 결제 완료된 리포트를 로컬에 기록해 탭을 닫아도 다시 볼 수 있게 한다
- * (다시,우리 /history · 타로 /tarot/history와 동일 원칙, 인장·금박 테마).
+ * 무료 진단도 즉시 기록하고(Free), 결제하면 같은 항목이 Premium으로 승격된다
+ * (재회사주 /history의 Lite→Premium과 동일 원칙, 인장·금박 테마).
  */
 import { useEffect, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
 import { ArrowLeft, ChevronRight, Trash2 } from "lucide-react";
 import Link from "next/link";
-import { HAP_HISTORY_KEY } from "@/features/hap/constants";
+import { getAllHapHistory, removeHapHistoryEntry, type HapHistoryEntry } from "@/features/hap/history";
 
 const C = {
     accentBright: '#E8CF9C',
@@ -27,44 +27,31 @@ const C = {
     serif: "'Noto Serif KR', serif",
 };
 
-interface HapHistoryEntry {
-    jobId: string;
-    myName: string;
-    partnerName: string;
-    totalScore: number | null;
-    totalGrade: string | null;
-    createdAt: number | null;
-}
-
-function loadHistory(): HapHistoryEntry[] {
-    try {
-        const raw = localStorage.getItem(HAP_HISTORY_KEY);
-        return raw ? JSON.parse(raw) : [];
-    } catch {
-        return [];
-    }
-}
-
 export default function HapHistoryPage() {
     const router = useRouter();
     const [history, setHistory] = useState<HapHistoryEntry[]>([]);
     const [loaded, setLoaded] = useState(false);
 
     useEffect(() => {
-        const local = loadHistory();
+        const local = getAllHapHistory();
         setHistory(local);
         setLoaded(true);
 
-        // 계정에 저장된 리포트 병합 — 로그인 상태면 기기가 바뀌어도 기록이 보인다
+        // 계정에 저장된 (premium) 리포트 병합 — 로그인 상태면 기기가 바뀌어도 기록이 보인다
         (async () => {
             try {
                 const res = await fetch('/api/hap/claim');
                 const data = await res.json();
-                const account: HapHistoryEntry[] = data?.reports || [];
+                const account: any[] = data?.reports || [];
                 if (!account.length) return;
+                const mapped: HapHistoryEntry[] = account.map(r => ({
+                    id: r.jobId, tier: 'premium', jobId: r.jobId,
+                    myName: r.myName, partnerName: r.partnerName,
+                    totalScore: r.totalScore, totalGrade: r.totalGrade, createdAt: r.createdAt,
+                }));
                 setHistory(prev => {
-                    const seen = new Set(prev.map(e => e.jobId));
-                    const merged = [...prev, ...account.filter(e => !seen.has(e.jobId))];
+                    const seen = new Set(prev.map(e => e.id));
+                    const merged = [...prev, ...mapped.filter(e => !seen.has(e.id))];
                     merged.sort((a, b) => (b.createdAt || 0) - (a.createdAt || 0));
                     return merged;
                 });
@@ -72,11 +59,9 @@ export default function HapHistoryPage() {
         })();
     }, []);
 
-    const removeEntry = (jobId: string) => {
+    const removeEntry = (id: string) => {
         if (!confirm('이 궁합 리포트 기록을 삭제하시겠습니까?')) return;
-        const next = history.filter(e => e.jobId !== jobId);
-        setHistory(next);
-        try { localStorage.setItem(HAP_HISTORY_KEY, JSON.stringify(next)); } catch {}
+        setHistory(removeHapHistoryEntry(id));
     };
 
     return (
@@ -97,9 +82,9 @@ export default function HapHistoryPage() {
                     <motion.div initial={{ opacity: 0, y: 12 }} animate={{ opacity: 1, y: 0 }}
                         style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', textAlign: 'center', marginTop: 80, gap: 8 }}>
                         <p style={{ fontFamily: C.serif, fontSize: 40, color: C.accentBright, margin: 0 }}>合</p>
-                        <p style={{ fontSize: 17, fontWeight: 700, color: C.ink, margin: '8px 0 0' }}>아직 궁합 리포트가 없어요</p>
+                        <p style={{ fontSize: 17, fontWeight: 700, color: C.ink, margin: '8px 0 0' }}>아직 궁합 기록이 없어요</p>
                         <p style={{ fontSize: 13, color: C.muted, lineHeight: 1.7, margin: '0 0 24px' }}>
-                            전체 리포트를 받으면 이곳에서<br />언제든 다시 볼 수 있어요.
+                            무료 미리보기만 받아도 이곳에 기록돼요.<br />전체 리포트는 결제 후 계속 다시 볼 수 있어요.
                         </p>
                         <Link href="/hap" style={{
                             display: 'inline-block', padding: '15px 28px', borderRadius: 14,
@@ -118,33 +103,43 @@ export default function HapHistoryPage() {
                         const title = entry.myName && entry.partnerName
                             ? `${entry.myName} ✕ ${entry.partnerName}`
                             : '운명의 합';
+                        const isPremium = entry.tier === 'premium';
+                        const href = isPremium ? `/hap/result/${entry.jobId}` : `/hap/history/${entry.id}`;
 
                         return (
-                            <motion.div key={entry.jobId} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
+                            <motion.div key={entry.id} initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: i * 0.06 }}
                                 style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 16, padding: '16px 18px' }}>
-                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 14 }}>
-                                    <div>
-                                        <p style={{ fontFamily: C.serif, fontSize: 14.5, fontWeight: 700, color: C.ink, margin: 0 }}>{title}</p>
-                                        <p style={{ fontSize: 11, color: C.muted, margin: '4px 0 0' }}>
+                                <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', marginBottom: 10 }}>
+                                    <div style={{ minWidth: 0 }}>
+                                        <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 4 }}>
+                                            <p style={{ fontFamily: C.serif, fontSize: 14.5, fontWeight: 700, color: C.ink, margin: 0 }}>{title}</p>
+                                            <span style={{
+                                                fontSize: 10, fontWeight: 800, letterSpacing: '0.04em', padding: '2px 7px', borderRadius: 99, flexShrink: 0,
+                                                color: isPremium ? C.accentBright : C.muted,
+                                                background: isPremium ? C.accentSoft : 'rgba(240,234,235,0.05)',
+                                                border: `1px solid ${isPremium ? C.accentBorder : C.cardBorder}`,
+                                            }}>{isPremium ? 'PREMIUM' : 'FREE'}</span>
+                                        </div>
+                                        <p style={{ fontSize: 11, color: C.muted, margin: 0 }}>
                                             {dateStr}{dateStr && entry.totalScore != null ? ' · ' : ''}
                                             {entry.totalScore != null && (
                                                 <span style={{ color: C.accentBright, fontWeight: 700 }}>{entry.totalScore}점 {entry.totalGrade}등급</span>
                                             )}
                                         </p>
                                     </div>
-                                    <button onClick={() => removeEntry(entry.jobId)} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', color: C.muted, opacity: 0.6 }}>
+                                    <button onClick={() => removeEntry(entry.id)} style={{ background: 'none', border: 'none', padding: 4, cursor: 'pointer', color: C.muted, opacity: 0.6, flexShrink: 0 }}>
                                         <Trash2 size={15} />
                                     </button>
                                 </div>
 
-                                <Link href={`/hap/result/${entry.jobId}`} style={{ textDecoration: 'none' }}>
+                                <Link href={href} style={{ textDecoration: 'none' }}>
                                     <div style={{
                                         display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 4,
                                         padding: '11px', borderRadius: 12,
                                         background: C.accentSoft, border: `1px solid ${C.accentBorder}`,
                                         fontSize: 13, fontWeight: 600, color: C.accentBright,
                                     }}>
-                                        다시 보기 <ChevronRight size={15} />
+                                        {isPremium ? '전체 리포트 다시 보기' : '무료 진단 다시 보기'} <ChevronRight size={15} />
                                     </div>
                                 </Link>
                             </motion.div>

@@ -14,6 +14,7 @@ import { useSajuStore } from "@/store/useSajuStore";
 import CompatibilityChart from "@/components/CompatibilityChart";
 import { checkFreePass, makeFreePassKey } from "@/utils/freePassClient";
 import { trackFunnelEvent } from "@/utils/utm";
+import { upsertFreeHapHistory, getHapHistoryEntry } from "@/features/hap/history";
 
 // 운명의 합 — '인장과 금박' 팔레트 (다시,우리·오드타로와 겹치지 않는 색군)
 const C = {
@@ -77,6 +78,8 @@ export default function HapPreviewPage() {
     const [codeError, setCodeError] = useState('');
     const [paying, setPaying] = useState(false);
     const started = useRef(false);
+    // 무료 미리보기도 보관함에 즉시 기록 — 결제하면 같은 항목이 premium으로 승격된다
+    const freeRecordId = useRef(`free_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
     const payPrice = discount ? Math.round(HAP_PRICE * (100 - discount.percent) / 100) : HAP_PRICE;
 
@@ -111,6 +114,16 @@ export default function HapPreviewPage() {
                 const data = await res.json();
                 if (!data.success) throw new Error(data.error);
                 setPreview(data.data);
+
+                // 보관함에 즉시 기록 (Free) — 서버 잡이 없으니 다시 볼 수 있게 전부 인라인으로 담는다
+                upsertFreeHapHistory(freeRecordId.current, {
+                    myName: store.name || '', partnerName: store.partnerName || '',
+                    totalScore: data.data.hapScores?.total ?? null, totalGrade: data.data.totalGrade ?? null,
+                    resultData: {
+                        ...data.data,
+                        rawInputs: { my: buildPerson(false), partner: buildPerson(true), relationshipStatus: store.relationshipStatus },
+                    },
+                });
             } catch {
                 toast.error('계산에 실패했어요. 입력 정보를 확인해 주세요.');
                 router.replace('/hap/input');
@@ -128,7 +141,14 @@ export default function HapPreviewPage() {
                     body: JSON.stringify({ my: buildPerson(false), partner: buildPerson(true), relationshipStatus: store.relationshipStatus }),
                 });
                 const data = await res.json();
-                if (data.success) setAiPreview(data.data);
+                if (data.success) {
+                    setAiPreview(data.data);
+                    // 보관함 기록에 진단 문구도 병합 — 다시 볼 때 그대로 보이도록
+                    const existing = getHapHistoryEntry(freeRecordId.current);
+                    upsertFreeHapHistory(freeRecordId.current, {
+                        resultData: { ...(existing?.resultData || {}), aiPreview: data.data },
+                    });
+                }
             } catch { /* 조용히 무시 — 무료 미리보기의 핵심 경로가 아니다 */ } finally {
                 setAiLoading(false);
             }
@@ -267,9 +287,10 @@ export default function HapPreviewPage() {
                 discountCode: discount?.code || null,
                 myRawInput: buildPerson(false), partnerRawInput: buildPerson(true),
                 relationshipStatus: store.relationshipStatus || undefined,
-                // 보관함 카드 표시용 — 결제 확정 후 히스토리에 그대로 옮겨 적는다
+                // 보관함 카드 표시용 — 결제 확정 후 같은 항목을 premium으로 승격한다
                 myName: store.name || '', partnerName: store.partnerName || '',
                 totalScore: preview.hapScores?.total ?? null, totalGrade: preview.totalGrade ?? null,
+                freeRecordId: freeRecordId.current,
             }));
 
             const goSuccess = (paymentKey: string) => {
