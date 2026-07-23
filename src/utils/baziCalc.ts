@@ -58,18 +58,21 @@ export function calculateBazi(
                 // 해당 출생일/타임존 기준의 UTC 오프셋 분(minute) 구하기
                 const dateObj = new Date(Date.UTC(y, m - 1, d, inputHour, inputMinute));
 
-                // Intl을 이용해 해당 타임존의 시간 문자열 추출 (ex: "2000-01-01T10:00:00-05:00" 형태 유도 혹은 부가 수식)
-                // 브라우저마다 파싱이 다를 수 있어 가장 안전한 방법: 
-                // 해당 타임존에서의 표시 시간을 얻고, UTC와의 차이를 분단위로 계산
-                const tzString = dateObj.toLocaleString('en-US', { timeZone: birthTimezone });
-                const tzDate = new Date(tzString);
+                // 타임존의 UTC 오프셋을 Intl.DateTimeFormat의 longOffset으로 직접 구한다.
+                // (이전 방식 — toLocaleString 문자열을 new Date()로 다시 파싱 — 은 그 파싱이
+                // 서버 프로세스의 시스템 기본 타임존에 암묵적으로 의존해서, 서버 TZ가 UTC가
+                // 아닌 환경(예: 로컬 개발 머신이 Asia/Seoul)에서는 오프셋이 완전히 틀어져
+                // 생시가 자정을 넘나들고 일주(day pillar)까지 밀리는 버그가 있었다)
+                const offsetParts = new Intl.DateTimeFormat('en-US', { timeZone: birthTimezone, timeZoneName: 'longOffset' })
+                    .formatToParts(dateObj);
+                const offsetStr = offsetParts.find(p => p.type === 'timeZoneName')?.value || 'GMT+00:00';
+                const offsetMatch = offsetStr.match(/GMT([+-])(\d{2}):(\d{2})/);
+                const offsetMinutesFromUTC = offsetMatch
+                    ? (offsetMatch[1] === '-' ? -1 : 1) * (parseInt(offsetMatch[2], 10) * 60 + parseInt(offsetMatch[3], 10))
+                    : 0;
 
-                // 기준 경도(Standard Longitude) 산출 시 사용하기 위한 대략적인 오프셋 시간 구하기
-                // 정확한 오프셋 분 산출 시, Date 파싱 차이를 피하기 위해 시간차를 비교합니다.
-                const offsetHours = (tzDate.getTime() - dateObj.getTime()) / (1000 * 60 * 60);
-
-                // 글로벌 타임존 기준 경도 = 타임존 오프셋 * 15도
-                const standardLongitude = offsetHours * 15;
+                // 글로벌 타임존 기준 경도 = 타임존 오프셋(시간) * 15도
+                const standardLongitude = (offsetMinutesFromUTC / 60) * 15;
 
                 // 진태양시 보정분 = (실제 경도 - 기준 경도) * 4분
                 // (경도 1도당 4분의 시간차 발생. 한국의 경우 127 - 135 = -8 => -32분)
