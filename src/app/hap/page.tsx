@@ -41,8 +41,19 @@ export default function HapLandingPage() {
         <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, fontFamily: 'Pretendard, -apple-system, sans-serif' }}>
             <div style={{ maxWidth: 480, margin: '0 auto', padding: '0 20px 120px' }}>
 
+                {/* 상단 바 — 메뉴(보관함 등)로 진입 */}
+                <div style={{ display: 'flex', justifyContent: 'flex-end', paddingTop: 16 }}>
+                    <Link href="/hap/menu" aria-label="메뉴" style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', width: 40, height: 40, textDecoration: 'none' }}>
+                        <svg width="18" height="14" viewBox="0 0 18 14" fill="none">
+                            <rect y="0" width="18" height="2" rx="1" fill={C.sub} />
+                            <rect y="6" width="18" height="2" rx="1" fill={C.sub} />
+                            <rect y="12" width="18" height="2" rx="1" fill={C.sub} />
+                        </svg>
+                    </Link>
+                </div>
+
                 {/* 히어로 */}
-                <div style={{ textAlign: 'center', paddingTop: 68, paddingBottom: 30 }}>
+                <div style={{ textAlign: 'center', paddingTop: 16, paddingBottom: 30 }}>
                     <p style={{ fontSize: 11.5, fontWeight: 700, letterSpacing: '0.3em', color: C.accentBright, marginBottom: 26 }}>운명의 합 · 궁합 리포트</p>
 
                     {/* 인장 */}

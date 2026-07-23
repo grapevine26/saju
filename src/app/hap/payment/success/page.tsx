@@ -8,6 +8,7 @@ import { useEffect, useRef, useState, Suspense } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
 import { getUtm, getVisitorId } from "@/utils/utm";
 import { trackPurchase } from "@/utils/metaPixel";
+import { HAP_HISTORY_KEY } from "@/features/hap/constants";
 
 const C = {
     bg: '#0A090C',
@@ -86,6 +87,22 @@ function HapPaymentSuccessContent() {
                 if (!jobId) throw new Error('분석 작업 ID를 받지 못했습니다.');
 
                 trackPurchase(orderId, Number(amountStr));
+
+                // 궁합 보관함에 추가 (최대 50개) — 탭을 닫아도 /hap/history에서 다시 볼 수 있다
+                try {
+                    const historyRaw = localStorage.getItem(HAP_HISTORY_KEY);
+                    const history = historyRaw ? JSON.parse(historyRaw) : [];
+                    history.unshift({
+                        jobId,
+                        myName: pending.myName || '',
+                        partnerName: pending.partnerName || '',
+                        totalScore: pending.totalScore ?? null,
+                        totalGrade: pending.totalGrade ?? null,
+                        createdAt: Date.now(),
+                    });
+                    localStorage.setItem(HAP_HISTORY_KEY, JSON.stringify(history.slice(0, 50)));
+                } catch {}
+
                 localStorage.removeItem('pendingHapPayment');
 
                 // 완료까지 같은 화면에서 폴링

@@ -250,6 +250,9 @@ export default function HapPreviewPage() {
                 discountCode: discount?.code || null,
                 myRawInput: buildPerson(false), partnerRawInput: buildPerson(true),
                 relationshipStatus: store.relationshipStatus || undefined,
+                // 보관함 카드 표시용 — 결제 확정 후 히스토리에 그대로 옮겨 적는다
+                myName: store.name || '', partnerName: store.partnerName || '',
+                totalScore: preview.hapScores?.total ?? null, totalGrade: preview.totalGrade ?? null,
             }));
 
             const goSuccess = (paymentKey: string) => {
