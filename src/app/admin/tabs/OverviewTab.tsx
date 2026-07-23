@@ -13,7 +13,7 @@ const won = (n: number) => "₩" + (n || 0).toLocaleString("ko-KR");
 const SERVICE_META = {
   reunion: { label: "재회 사주", color: "#f0607e" },
   tarot: { label: "타로", color: "#b07bb4" },
-  naming: { label: "작명·감명", color: "#d4a853" },
+  compatibility: { label: "궁합", color: "#F5C842" },
 } as const;
 
 export function OverviewTab({ fetchWithAuth }: Props) {
@@ -48,8 +48,8 @@ export function OverviewTab({ fetchWithAuth }: Props) {
   );
   if (!stats) return null;
 
-  const { revenue, revenueByService, ordersByService, paidCount, status, free, freeIssueCount, dailyRevenue } = stats;
-  const services = ["reunion", "tarot", "naming"] as const;
+  const { revenue, revenueByService, ordersByService, paidCount, status, free, dailyRevenue } = stats;
+  const services = ["reunion", "tarot", "compatibility"] as const;
 
   return (
     <div className="space-y-6 max-w-6xl">
@@ -83,7 +83,6 @@ export function OverviewTab({ fetchWithAuth }: Props) {
             <p className="text-xl font-bold text-white">{won(revenueByService[s])}</p>
             <p className="text-[11px] text-slate-500 mt-1">
               결제 {ordersByService[s]}건
-              {s === "naming" && freeIssueCount?.naming > 0 ? ` · 무료발급 ${freeIssueCount.naming}건` : ""}
             </p>
           </div>
         ))}
@@ -107,7 +106,7 @@ export function OverviewTab({ fetchWithAuth }: Props) {
             />
             <Legend formatter={(v) => <span className="text-[11px] text-slate-400">{SERVICE_META[v as keyof typeof SERVICE_META]?.label || v}</span>} />
             {services.map((s) => (
-              <Bar key={s} dataKey={s} stackId="rev" fill={SERVICE_META[s].color} radius={s === "naming" ? [3, 3, 0, 0] : 0} />
+              <Bar key={s} dataKey={s} stackId="rev" fill={SERVICE_META[s].color} radius={s === "compatibility" ? [3, 3, 0, 0] : 0} />
             ))}
           </BarChart>
         </ResponsiveContainer>

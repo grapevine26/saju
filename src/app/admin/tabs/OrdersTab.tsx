@@ -7,12 +7,13 @@ import toast from "react-hot-toast";
 interface Order {
   id: string;
   source: "premium" | "tarot";
-  service: "reunion" | "tarot" | "naming";
+  service: "reunion" | "tarot" | "compatibility";
   serviceLabel: string;
   plan: string;
   price: number;
   status: "pending" | "processing" | "completed" | "failed";
   isFree: boolean;
+  paymentSource: "toss" | "dev" | "free_pass" | "zero_won_coupon";
   customerName: string;
   customerEmail: string | null;
   createdAt: string;
@@ -23,7 +24,7 @@ const SERVICE_TABS = [
   { id: "", label: "전체" },
   { id: "reunion", label: "재회" },
   { id: "tarot", label: "타로" },
-  { id: "naming", label: "작명" },
+  { id: "compatibility", label: "궁합" },
 ];
 const STATUS_TABS = [
   { id: "", label: "전체" },
@@ -33,7 +34,7 @@ const STATUS_TABS = [
   { id: "completed", label: "완료" },
 ];
 
-const SERVICE_DOT: Record<string, string> = { reunion: "#f0607e", tarot: "#b07bb4", naming: "#d4a853" };
+const SERVICE_DOT: Record<string, string> = { reunion: "#f0607e", tarot: "#b07bb4", compatibility: "#F5C842" };
 const STATUS_STYLE: Record<string, string> = {
   completed: "text-emerald-400 bg-emerald-400/10",
   processing: "text-amber-400 bg-amber-400/10",
@@ -41,6 +42,7 @@ const STATUS_STYLE: Record<string, string> = {
   failed: "text-rose-400 bg-rose-400/10",
 };
 const STATUS_LABEL: Record<string, string> = { completed: "완료", processing: "생성중", pending: "대기", failed: "실패" };
+const PAYMENT_SOURCE_LABEL: Record<string, string> = { dev: "개발모드", free_pass: "프리패스", zero_won_coupon: "0원쿠폰" };
 
 const won = (n: number) => "₩" + (n || 0).toLocaleString("ko-KR");
 const fmtDate = (iso: string) => {
@@ -48,7 +50,7 @@ const fmtDate = (iso: string) => {
   return `${d.getMonth() + 1}/${d.getDate()} ${String(d.getHours()).padStart(2, "0")}:${String(d.getMinutes()).padStart(2, "0")}`;
 };
 const resultPath = (o: Order) =>
-  o.service === "tarot" ? `/tarot/result/${o.id}` : o.service === "naming" ? `/yunmyeong/result/${o.id}` : `/result/${o.id}`;
+  o.service === "tarot" ? `/tarot/result/${o.id}` : o.service === "compatibility" ? `/hap/result/${o.id}` : `/result/${o.id}`;
 
 export function OrdersTab({ fetchWithAuth }: Props) {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -165,6 +167,11 @@ export function OrdersTab({ fetchWithAuth }: Props) {
                   </td>
                   <td className="px-4 py-3 text-slate-300">
                     {o.isFree ? <span className="text-slate-600">무료</span> : won(o.price)}
+                    {PAYMENT_SOURCE_LABEL[o.paymentSource] && (
+                      <span className="ml-1.5 inline-block px-1.5 py-0.5 rounded text-[9px] font-medium text-amber-400 bg-amber-400/10" title="매출 집계에서 제외됨">
+                        {PAYMENT_SOURCE_LABEL[o.paymentSource]}
+                      </span>
+                    )}
                   </td>
                   <td className="px-4 py-3">
                     <span className={`inline-block px-2 py-0.5 rounded text-[10px] font-medium ${STATUS_STYLE[o.status]}`}>

@@ -40,29 +40,27 @@ export async function GET(req: Request) {
     const weekStr = weekAgo.toISOString().split("T")[0];
     const monthStr = `${now.getUTCFullYear()}-${String(now.getUTCMonth() + 1).padStart(2, "0")}`;
 
-    const blankService = () => ({ reunion: 0, tarot: 0, naming: 0 } as Record<ServiceKey, number>);
+    const blankService = () => ({ reunion: 0, tarot: 0, compatibility: 0 } as Record<ServiceKey, number>);
 
     const revenue = { total: 0, today: 0, week: 0, month: 0 };
     const revenueByService = blankService();
     const ordersByService = blankService();
     const paidCount = { total: 0, today: 0 };
     const status = { pending: 0, processing: 0, completed: 0, failed: 0 };
-    const freeIssueCount = { naming: 0 };
 
+    // ordersByService/revenueByService는 실토스 결제 건만 집계한다 (개발모드·관리자 프리패스·0원 쿠폰 제외)
     for (const o of orders) {
       status[o.status]++;
-      ordersByService[o.service]++;
-      if (o.isFree) { freeIssueCount.naming++; continue; }
+      if (!countsAsRevenue(o)) continue;
 
       const d = kstDate(o.createdAt);
-      if (countsAsRevenue(o)) {
-        revenue.total += o.price;
-        revenueByService[o.service] += o.price;
-        paidCount.total++;
-        if (d === todayStr) { revenue.today += o.price; paidCount.today++; }
-        if (d >= weekStr) revenue.week += o.price;
-        if (d.startsWith(monthStr)) revenue.month += o.price;
-      }
+      revenue.total += o.price;
+      revenueByService[o.service] += o.price;
+      ordersByService[o.service]++;
+      paidCount.total++;
+      if (d === todayStr) { revenue.today += o.price; paidCount.today++; }
+      if (d >= weekStr) revenue.week += o.price;
+      if (d.startsWith(monthStr)) revenue.month += o.price;
     }
 
     // 최근 14일 · 서비스별 일 매출 (스택 차트용)
@@ -82,8 +80,8 @@ export async function GET(req: Request) {
       fullDate: date,
       reunion: dayMap[date].reunion,
       tarot: dayMap[date].tarot,
-      naming: dayMap[date].naming,
-      total: dayMap[date].reunion + dayMap[date].tarot + dayMap[date].naming,
+      compatibility: dayMap[date].compatibility,
+      total: dayMap[date].reunion + dayMap[date].tarot + dayMap[date].compatibility,
     }));
 
     // 무료 사용량 (전환 퍼널 파악용)
@@ -130,7 +128,6 @@ export async function GET(req: Request) {
         ordersByService,
         paidCount,
         status,
-        freeIssueCount,
         dailyRevenue,
         free: {
           total: freeTotal,

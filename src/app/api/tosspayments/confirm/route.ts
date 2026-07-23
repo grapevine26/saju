@@ -8,6 +8,8 @@ import { findValidCode, consumeCode, applyDiscount } from "@/lib/discount";
 // 서버측 가격표 — 클라이언트가 보낸 금액을 절대 신뢰하지 않는다.
 const SAJU_PRICES: Record<string, number> = { premium: 19900, signature: 34900, compatibility: 19900 };
 
+type PaymentSource = 'toss' | 'dev' | 'free_pass' | 'zero_won_coupon';
+
 // 결제 건으로 이미 생성된 잡을 조회 (멱등 처리용). paymentKey는 raw_data에 저장됨.
 async function findExistingJob(paymentKey: string) {
     if (!paymentKey) return null;
@@ -20,9 +22,11 @@ async function findExistingJob(paymentKey: string) {
 }
 
 // 잡 생성 + 백그라운드 분석 이벤트 발송 (한 곳에서만)
-async function createJobAndDispatch(payload: any, paymentKey: string) {
+// paidAmount/paymentSource — admin 매출 집계가 정가 대신 실제 결제 금액을 쓰고,
+// 토스 실결제 건만 매출로 잡을 수 있도록 매 잡마다 기록해둔다.
+async function createJobAndDispatch(payload: any, paymentKey: string, paidAmount: number, paymentSource: PaymentSource) {
     const { phoneNumber, userId, rawData, packageId, customerEmail } = payload;
-    const enhancedRawData = { ...rawData, packageId: packageId || 'premium', paymentKey, customerEmail };
+    const enhancedRawData = { ...rawData, packageId: packageId || 'premium', paymentKey, customerEmail, paidAmount, paymentSource };
 
     const { data: job, error } = await supabaseAdmin
         .from("premium_analysis_jobs")
@@ -108,6 +112,7 @@ export async function POST(req: Request) {
         // 걸러졌고, 금액도 위에서 0원 일치를 확인했으므로 위조 여지가 없다.
         const zeroWonCoupon = !!payload && !!discountCode && expectedAmount === 0;
         const bypassToss = isDev || freePass || zeroWonCoupon;
+        const paymentSource: PaymentSource = freePass ? 'free_pass' : zeroWonCoupon ? 'zero_won_coupon' : isDev ? 'dev' : 'toss';
 
         // 2) 멱등 — 동일 결제로 이미 만든 잡이 있으면 그대로 반환 (새로고침/중복요청/StrictMode)
         if (payload && paymentKey && !bypassToss) {
@@ -154,7 +159,8 @@ export async function POST(req: Request) {
                     const pay = await verifyRes.json();
                     const valid = verifyRes.ok && pay.status === 'DONE' && pay.totalAmount === expectedAmount;
                     if (valid) {
-                        const jobId = await createJobAndDispatch(payload, paymentKey);
+                        // 이 복구 경로는 실제 토스 결제를 GET으로 재검증한 뒤에만 타므로 항상 실결제(toss)다.
+                        const jobId = await createJobAndDispatch(payload, paymentKey, expectedAmount, 'toss');
                         if (jobId) {
                             if (discountCode) await consumeCode(discountCode, orderId);
                             await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
@@ -169,7 +175,7 @@ export async function POST(req: Request) {
 
         // 3) 결제 성공 시점에 바로 잡 생성 + 백그라운드 분석 시작
         if (payload) {
-            const jobId = await createJobAndDispatch(payload, paymentKey);
+            const jobId = await createJobAndDispatch(payload, paymentKey, expectedAmount, paymentSource);
             if (!jobId) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }

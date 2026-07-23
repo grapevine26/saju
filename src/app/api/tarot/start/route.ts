@@ -60,6 +60,9 @@ export async function POST(req: Request) {
 
         // 100% 쿠폰 — 서버 검증 코드 기준 기대 금액이 0원이면 수납할 돈이 없으므로 토스 검증 생략
         const zeroWonCoupon = !!discountCode && expectedAmount === 0;
+        // admin 매출 집계가 정가 대신 실제 결제 금액을 쓰고, 토스 실결제 건만 매출로 잡을 수 있도록 기록
+        const paymentSource: 'toss' | 'dev' | 'free_pass' | 'zero_won_coupon' =
+            freePass ? 'free_pass' : zeroWonCoupon ? 'zero_won_coupon' : isDev ? 'dev' : 'toss';
 
         // 결제 검증 — paymentKey 없이 직접 호출해 유료 리딩을 생성하는 우회 차단
         let paidOrderId: string | null = null;
@@ -94,7 +97,7 @@ export async function POST(req: Request) {
             paidOrderId = pay.orderId || null;
         }
 
-        const rawData = { input, rounds, freeResult, paymentKey, customerEmail };
+        const rawData = { input, rounds, freeResult, paymentKey, customerEmail, paidAmount: expectedAmount, paymentSource };
 
         const { data: job, error } = await supabaseAdmin
             .from('tarot_reading_jobs')
