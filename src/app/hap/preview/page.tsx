@@ -8,7 +8,7 @@
 import { useEffect, useRef, useState } from "react";
 import { useRouter } from "next/navigation";
 import { motion } from "framer-motion";
-import { ArrowLeft, Lock, Share2 } from "lucide-react";
+import { ArrowLeft, Lock, Share2, Sparkles } from "lucide-react";
 import toast from "react-hot-toast";
 import { useSajuStore } from "@/store/useSajuStore";
 import CompatibilityChart from "@/components/CompatibilityChart";
@@ -68,6 +68,9 @@ export default function HapPreviewPage() {
     const store = useSajuStore();
     const [preview, setPreview] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [aiPreview, setAiPreview] = useState<{ coreLine: string | null; essence: string; secretTeaser: string } | null>(null);
+    const [aiLoading, setAiLoading] = useState(true);
+    const payCardRef = useRef<HTMLDivElement>(null);
     const [email, setEmail] = useState('');
     const [codeInput, setCodeInput] = useState('');
     const [discount, setDiscount] = useState<{ code: string; percent: number } | null>(null);
@@ -116,8 +119,42 @@ export default function HapPreviewPage() {
                 setLoading(false);
             }
         })();
+
+        // AI 진단 + 블러 티저 — 결정론 미리보기와 독립. 실패해도 무료 미리보기 자체는
+        // 정상 동작해야 하므로 에러 시 그냥 섹션을 숨긴다 (토스트 없음).
+        (async () => {
+            try {
+                const res = await fetch('/api/hap/preview-ai', {
+                    method: 'POST', headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ my: buildPerson(false), partner: buildPerson(true), relationshipStatus: store.relationshipStatus }),
+                });
+                const data = await res.json();
+                if (data.success) setAiPreview(data.data);
+            } catch { /* 조용히 무시 — 무료 미리보기의 핵심 경로가 아니다 */ } finally {
+                setAiLoading(false);
+            }
+        })();
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
+
+    const scrollToPay = () => payCardRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+
+    /** [BLUR]...[/BLUR] 구간을 블러 처리해 렌더 (재회사주 secretTeaser와 동일 패턴) */
+    const renderBlurred = (text: string) =>
+        text.split(/(\[BLUR\].*?\[\/BLUR\])/g).map((part, i) => {
+            if (part.startsWith('[BLUR]') && part.endsWith('[/BLUR]')) {
+                const hidden = part.replace('[BLUR]', '').replace('[/BLUR]', '');
+                return (
+                    <span key={i} style={{ position: 'relative', display: 'inline-flex', margin: '0 4px', verticalAlign: 'middle' }}>
+                        <span style={{ filter: 'blur(4px)', userSelect: 'none', opacity: 0.5, background: 'rgba(240,234,235,0.08)', color: 'transparent', borderRadius: 5, padding: '0 8px' }}>{hidden || '가려진 내용'}</span>
+                        <span style={{ position: 'absolute', inset: 0, display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
+                            <Lock size={12} color={C.accentBright} />
+                        </span>
+                    </span>
+                );
+            }
+            return <span key={i}>{part}</span>;
+        });
 
     const handleApplyCode = async () => {
         const code = codeInput.trim();
@@ -363,6 +400,51 @@ export default function HapPreviewPage() {
                     </motion.div>
                 )}
 
+                {/* AI 진단 — 역술가가 두 분의 사주를 보고 첫눈에 짚어주는 한마디 (짧고 강하게) */}
+                {(aiLoading || aiPreview?.essence) && (
+                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.08 }}
+                        style={{ marginBottom: 14, background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: 20 }}>
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.sub, margin: '0 0 12px' }}>
+                            <Sparkles size={13} color={C.accentBright} /> 역술가의 첫 진단
+                        </h3>
+                        {aiLoading ? (
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 8 }}>
+                                {[1, 0.85, 0.6].map((w, i) => (
+                                    <div key={i} style={{ height: 13, width: `${w * 100}%`, borderRadius: 6, background: 'rgba(240,234,235,0.06)' }} />
+                                ))}
+                            </div>
+                        ) : (
+                            <>
+                                {aiPreview?.coreLine && (
+                                    <p style={{ fontFamily: C.serif, fontSize: 16, fontWeight: 700, color: C.accentBright, margin: '0 0 10px' }}>
+                                        「 {aiPreview.coreLine} 」
+                                    </p>
+                                )}
+                                <p style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.85, margin: 0, whiteSpace: 'pre-wrap' }}>{aiPreview?.essence}</p>
+                            </>
+                        )}
+                    </motion.div>
+                )}
+
+                {/* 블러 티저 — 결제를 유도하는 핵심 인사이트, 가장 중요한 부분만 가려서 궁금증을 남긴다 */}
+                {aiPreview?.secretTeaser && (
+                    <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.1 }}
+                        style={{ marginBottom: 14, background: C.card, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: 20, position: 'relative', overflow: 'hidden' }}>
+                        <div style={{ position: 'absolute', top: 0, right: 0, width: 96, height: 96, background: C.accentSoft, borderRadius: '50%', filter: 'blur(30px)', pointerEvents: 'none' }} />
+                        <h3 style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 13, fontWeight: 700, color: C.accentBright, margin: '0 0 12px', position: 'relative' }}>
+                            <Lock size={13} /> 가장 결정적인 한 가지
+                        </h3>
+                        <p style={{ fontSize: 13.5, color: C.ink, lineHeight: 1.85, margin: 0, position: 'relative' }}>{renderBlurred(aiPreview.secretTeaser)}</p>
+                        <button onClick={scrollToPay} style={{
+                            width: '100%', marginTop: 16, background: C.accentSoft, border: `1px solid ${C.accentBorder}`,
+                            color: C.accentBright, borderRadius: 12, padding: '12px 0', fontSize: 13, fontWeight: 700,
+                            cursor: 'pointer', fontFamily: 'inherit', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: 6, position: 'relative',
+                        }}>
+                            <Lock size={13} /> 가려진 내용 확인하기
+                        </button>
+                    </motion.div>
+                )}
+
                 {/* 무료: 결정론 궁합 차트 — 공용 컴포넌트가 읽는 --accent-* 변수를
                     이 블록 안에서만 금박 톤으로 덮어써서, 전역 로즈 테마(다른 페이지)는
                     그대로 두고 이 화면만 운명의 합 색으로 보이게 한다 */}
@@ -460,7 +542,7 @@ export default function HapPreviewPage() {
                 </motion.div>
 
                 {/* 결제 */}
-                <motion.div initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
+                <motion.div ref={payCardRef} initial={{ opacity: 0, y: 16 }} animate={{ opacity: 1, y: 0 }} transition={{ delay: 0.3 }}
                     style={{ marginTop: 26, background: C.card, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: 20 }}>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'baseline', marginBottom: 14 }}>

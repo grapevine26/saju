@@ -9,6 +9,7 @@ import { motion } from "framer-motion";
 import Link from "next/link";
 import { useEffect, useRef, useState } from "react";
 import { ganToHanja } from "@/utils/ganHanja";
+import HapSaveToAccountCard from "@/components/hap/HapSaveToAccountCard";
 
 // 운명의 합 — '인장과 금박' 팔레트. him은 먹빛 인장(ink), her는 금박(gold)으로
 // 두 사람을 구분하고, accentBright/gold는 브랜드 전체를 관통하는 금 톤.
@@ -38,6 +39,7 @@ interface Props {
     job: { id: string; status: string; ai_result: any } | null;
     myName: string;
     partnerName: string;
+    hasOwner?: boolean;
 }
 
 /* ── 공용 조각 ── */
@@ -172,7 +174,7 @@ const CheckList = ({ items, tone = 'check' }: { items?: string[]; tone?: 'check'
 
 const starsText = (stars: number) => '★'.repeat(Math.floor(stars)) + (stars % 1 >= 0.5 ? '½' : '');
 
-export default function HapResultClient({ job, myName, partnerName }: Props) {
+export default function HapResultClient({ job, myName, partnerName, hasOwner = false }: Props) {
     if (!job || !job.ai_result?.hapReport) {
         return (
             <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: 14, fontFamily: 'Pretendard, sans-serif', padding: 24 }}>
@@ -465,6 +467,9 @@ export default function HapResultClient({ job, myName, partnerName }: Props) {
                 <H3>역술가의 최종 총평</H3>
                 <P>{fin.finalReview}</P>
                 <Quote>{fin.lastQuote}</Quote>
+
+                {/* 결제 후 계정 연결 유도 (결제 전 로그인 강요 대신) */}
+                {job && <HapSaveToAccountCard jobId={job.id} hasOwner={hasOwner} />}
 
                 {/* 푸터 */}
                 <p style={{ marginTop: 46, fontSize: 11, color: C.muted, textAlign: 'center', opacity: 0.75, lineHeight: 1.7 }}>
