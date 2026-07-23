@@ -24,10 +24,16 @@ const C = {
 };
 
 const PARTS = [
-    { num: 'PART 1', title: '첫 만남의 설계도', desc: '첫인상 · 궁합 총점 6항목 · 서로 끌리는 이유 · 사랑의 온도 차이 · 전생 인연' },
-    { num: 'PART 2', title: '연애의 실전', desc: '누가 먼저 마음을 열까 · 싸움의 원인 3가지 · 권태기 · 이별 위험 신호 · 스킨십 리듬' },
-    { num: 'PART 3', title: '함께 만드는 생활', desc: '재물운 구조 · 경제권 · 함께하면 잘 맞는 사업 · 자녀운 · 노년의 풍경' },
-    { num: 'FINAL', title: '최종 판정', desc: '결혼 적기 · 서로의 운을 높여줄 가능성 · 피해야 할 행동 · 궁합 등급표 · 역술가 최종 총평' },
+    { num: 'PART 1', title: '첫 만남의 설계도', benefit: '왜 유독 이 사람에게 끌렸는지 알면, 지금의 관계를 더 아낄 수 있어요', desc: '첫인상 · 궁합 총점 6항목 · 서로 끌리는 이유 · 사랑의 온도 차이 · 전생 인연' },
+    { num: 'PART 2', title: '연애의 실전', benefit: '다투는 이유를 알면, 같은 싸움을 반복하지 않을 수 있어요', desc: '누가 먼저 마음을 열까 · 싸움의 원인 3가지 · 권태기 · 이별 위험 신호 · 스킨십 리듬' },
+    { num: 'PART 3', title: '함께 만드는 생활', benefit: '돈 문제로, 미래 계획으로 삐걱대기 전에 서로의 결을 맞춰보세요', desc: '재물운 구조 · 경제권 · 함께하면 잘 맞는 사업 · 자녀운 · 노년의 풍경' },
+    { num: 'FINAL', title: '최종 판정', benefit: '결국 우리, 얼마나 잘 맞는 사이인지 — 등급으로 명확하게 확인하세요', desc: '결혼 적기 · 서로의 운을 높여줄 가능성 · 피해야 할 행동 · 궁합 등급표 · 역술가 최종 총평' },
+];
+
+const STEPS = [
+    { n: '1', title: '생년월일 입력', desc: '두 사람의 이름과 생년월일만 있으면 충분해요 (1분)' },
+    { n: '2', title: '무료로 궁합 점수 먼저 확인', desc: '끌림·갈등 지수를 결제 없이 바로 볼 수 있어요' },
+    { n: '3', title: '마음에 들면 전체 리포트 받기', desc: '19,900원 결제 후 1~2분 안에 완성돼요' },
 ];
 
 export default function HapLandingPage() {
@@ -55,21 +61,57 @@ export default function HapLandingPage() {
                     </p>
                 </div>
 
+                {/* 공감 — 지금 이 페이지에 온 이유 */}
+                <div style={{ marginTop: 12, marginBottom: 6 }}>
+                    <p style={{ fontSize: 14.5, color: C.sub, lineHeight: 2, margin: 0, wordBreak: 'keep-all' }}>
+                        썸 탈 땐 설렘 반, 불안 반이죠.<br />
+                        <span style={{ color: C.ink }}>&lsquo;이 사람, 나한테 왜 이렇게 잘해주지&rsquo;</span> 싶다가도<br />
+                        문득 <span style={{ color: C.ink }}>&lsquo;이게 진짜 잘 맞는 걸까&rsquo;</span> 하는 생각이 스쳐요.
+                    </p>
+                    <p style={{ fontSize: 14.5, color: C.sub, lineHeight: 2, marginTop: 16, wordBreak: 'keep-all' }}>
+                        연애가 길어지고, 결혼 얘기가 나올수록<br />
+                        그 질문은 자꾸 커지는데 — 답은 두 사람 안에만 있어서,<br />
+                        확인할 방법이 없어 그냥 넘기곤 하죠.
+                    </p>
+                </div>
+
                 {/* 4파트 구성 */}
-                <div style={{ display: 'flex', flexDirection: 'column', gap: 12, marginTop: 18 }}>
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginTop: 34, marginBottom: 12 }}>그 답을 4개의 장으로 읽어드립니다</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
                     {PARTS.map((p) => (
                         <div key={p.num} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '18px 20px' }}>
                             <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.2em', color: C.accentBright, marginBottom: 6 }}>{p.num}</p>
                             <h3 style={{ fontFamily: C.serif, fontSize: 16.5, fontWeight: 700, marginBottom: 7, color: C.ink }}>{p.title}</h3>
-                            <p style={{ fontSize: 12.5, color: C.sub, lineHeight: 1.7, margin: 0, wordBreak: 'keep-all' }}>{p.desc}</p>
+                            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, margin: '0 0 9px', wordBreak: 'keep-all' }}>{p.benefit}</p>
+                            <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.7, margin: 0, wordBreak: 'keep-all' }}>{p.desc}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 진행 방식 */}
+                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginTop: 34, marginBottom: 12 }}>이렇게 진행돼요</p>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
+                    {STEPS.map((s, i) => (
+                        <div key={s.n} style={{ display: 'flex', gap: 14, alignItems: 'flex-start', padding: '10px 2px' }}>
+                            <span style={{
+                                flexShrink: 0, width: 24, height: 24, borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center',
+                                fontSize: 11.5, fontWeight: 800, color: C.accentBright, border: `1.5px solid ${C.accentBorder}`, background: C.accentSoft,
+                            }}>{s.n}</span>
+                            <div>
+                                <p style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, margin: '0 0 3px' }}>{s.title}</p>
+                                <p style={{ fontSize: 12, color: C.muted, margin: 0, lineHeight: 1.6, wordBreak: 'keep-all' }}>{s.desc}</p>
+                            </div>
                         </div>
                     ))}
                 </div>
 
                 {/* 신뢰 요소 */}
-                <div style={{ marginTop: 26, background: C.accentSoft, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '18px 20px' }}>
+                <div style={{ marginTop: 22, background: C.accentSoft, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>
-                        점수와 등급은 AI의 감이 아니라 <strong style={{ color: C.accentBright }}>만세력 계산 엔진</strong>이 두 사주의 합·충·오행 구조를 직접 계산해 확정합니다. 같은 두 사람이면 언제 봐도 같은 궁합이 나와요.
+                        점수와 등급은 즉흥적인 해석이 아니라, <strong style={{ color: C.accentBright }}>만세력 계산 엔진</strong>이 두 사주의 합·충·오행 구조를 직접 계산해 확정합니다. 같은 두 사람이면 언제 봐도 같은 궁합이 나와요.
+                    </p>
+                    <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>
+                        가입 없이, 이메일 하나로 시작할 수 있어요. 결과는 <strong style={{ color: C.accentBright }}>링크를 아는 사람만</strong> 볼 수 있습니다.
                     </p>
                 </div>
 
