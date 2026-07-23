@@ -660,12 +660,16 @@ export const getOhhaengBalance = (
         // 한쪽이 1이고 다른쪽이 3이상이면 좋은 보완 (+8)
         // 둘 다 0이면 공동 부족 (-5)
         // 둘 다 3이상이면 공동 과다 (-3)
+        // 받침 유무에 따른 조사 선택 (화→를/가, 목·금→을/이)
+        const hasBatchim = (oh.charCodeAt(0) - 0xAC00) % 28 > 0;
+        const eulReul = hasBatchim ? '을' : '를';
+        const iGa = hasBatchim ? '이' : '가';
         if (c1 === 0 && c2 >= 2) {
             complementScore += 20;
-            details.push(`${oh}: 상대방이 부족한 ${oh}을 채워줌`);
+            details.push(`${oh}: 상대방이 부족한 ${oh}${eulReul} 채워줌`);
         } else if (c2 === 0 && c1 >= 2) {
             complementScore += 20;
-            details.push(`${oh}: 내가 상대방의 부족한 ${oh}을 채워줌`);
+            details.push(`${oh}: 내가 상대방의 부족한 ${oh}${eulReul} 채워줌`);
         } else if (c1 === 0 && c2 === 1) {
             complementScore += 10;
         } else if (c2 === 0 && c1 === 1) {
@@ -674,7 +678,7 @@ export const getOhhaengBalance = (
             complementScore += 8;
         } else if (c1 === 0 && c2 === 0) {
             complementScore -= 5;
-            details.push(`${oh}: 둘 다 ${oh}이 부족 (공동 약점)`);
+            details.push(`${oh}: 둘 다 ${oh}${iGa} 부족 (공동 약점)`);
         } else if (c1 >= 3 && c2 >= 3) {
             complementScore -= 3;
         } else {
