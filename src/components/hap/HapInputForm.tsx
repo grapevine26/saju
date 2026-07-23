@@ -242,8 +242,8 @@ export default function HapInputForm() {
             style={{ color: C.ink, fontFamily: "Pretendard, -apple-system, sans-serif", display: "flex", flexDirection: "column", minHeight: "100dvh", paddingBottom: 100 + keyboardPadding }}>
 
             {/* 헤더 — 진행 표시는 결과 리포트와 같은 '이어지는 실선' 장치 */}
-            <header style={{ position: "sticky", top: 0, zIndex: 40, background: "rgba(10,9,8,0.86)", backdropFilter: "blur(12px)", borderBottom: `1px solid ${C.lineSoft}`, padding: "14px 20px" }}>
-                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 14 }}>
+            <header style={{ padding: "18px 20px 0" }}>
+                <div style={{ display: "flex", alignItems: "center", gap: 12, marginBottom: 22 }}>
                     {step === 1
                         ? <Link href="/hap" style={{ display: "flex", padding: 4, color: C.sub, textDecoration: "none" }}><ArrowLeft size={22} /></Link>
                         : <button onClick={() => setStep((step - 1) as 1 | 2 | 3)} style={{ display: "flex", padding: 4, background: "none", border: "none", color: C.sub, cursor: "pointer" }}><ArrowLeft size={22} /></button>}
