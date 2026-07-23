@@ -69,7 +69,7 @@ export async function POST(request: Request) {
             4096,
         );
 
-        if (!teaser?.essence || !teaser?.secretTeaser) {
+        if (!teaser?.essence) {
             return NextResponse.json({ success: false, error: "진단 생성에 실패했습니다." }, { status: 500 });
         }
 
@@ -78,7 +78,6 @@ export async function POST(request: Request) {
             data: {
                 coreLine: teaser.coreLine || null,
                 essence: teaser.essence,
-                secretTeaser: teaser.secretTeaser,
             },
         });
     } catch (e) {
