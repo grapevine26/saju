@@ -9,6 +9,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '',
     '/saju',
     '/tarot',
+    '/hap',
     '/yunmyeong',
     '/input',
     '/menu',

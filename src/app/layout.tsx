@@ -14,8 +14,10 @@ export const viewport: Viewport = {
 
 export const metadata: Metadata = {
   metadataBase: new URL("https://dasisaju.com"),
-  title: "묘연 妙緣 | 재회 사주 · 연애 타로",
+  // title(검색 결과)은 검색어를 앞에 두고, openGraph/twitter title(소셜 카드)은 감성 카피를 유지한다 — 보는 맥락이 다르다.
+  title: "재회 사주 · 연애 타로 | 묘연 妙緣",
   description: "닿을 듯 닿지 않는 인연의 실마리를 읽습니다. 재회 사주 '다시, 우리'와 연애 타로 'ODD TAROT' — 두 가지 길로 당신의 인연을 비춥니다.",
+  alternates: { canonical: "/" },
   openGraph: {
     title: "묘연 妙緣 | 재회 사주 · 연애 타로",
     description: "재회 사주 · 연애 타로. 두 가지 길로 당신의 인연을 비춥니다.",

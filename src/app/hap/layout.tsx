@@ -2,8 +2,9 @@ import type { Metadata } from "next";
 import HapThemeWrapper from "./HapThemeWrapper";
 
 export const metadata: Metadata = {
-    title: "운명의 합 | 사주로 읽는 두 사람의 궁합 리포트",
+    title: "궁합 사주 | 두 사람의 궁합 리포트 - 운명의 합",
     description: "우리는 운명의 합일까? 첫 만남의 설계도부터 연애의 실전, 함께 만드는 생활, 최종 판정까지 — 두 사람의 사주가 말하는 궁합의 모든 것.",
+    alternates: { canonical: "/hap" },
     openGraph: {
         title: "운명의 합 | 사주로 읽는 두 사람의 궁합 리포트",
         description: "궁합 총점 6항목과 등급표, 남녀 시선을 나눈 비교 분석까지 — 두 사람의 사주가 말하는 궁합의 모든 장면.",

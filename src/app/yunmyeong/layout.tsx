@@ -8,9 +8,10 @@ import type { Metadata } from "next";
 // ─────────────────────────────────────────────
 
 export const metadata: Metadata = {
-    title: "윤명 潤名 | 정통 수리 성명학 정밀 분석",
+    title: "작명·개명 | 정통 수리 성명학 정밀 분석 - 윤명",
     description:
         "정통 수리 성명학의 규칙 연산에 명식 맞춤 풀이를 더해, 사주 명식의 빈 곳을 채우는 이름을 찾아드립니다.",
+    alternates: { canonical: "/yunmyeong" },
     openGraph: {
         title: "윤명 潤名 | 정통 수리 성명학 정밀 분석",
         description:
