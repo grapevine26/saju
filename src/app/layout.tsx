@@ -18,6 +18,15 @@ export const metadata: Metadata = {
   title: "재회 사주 · 연애 타로 | 묘연 妙緣",
   description: "닿을 듯 닿지 않는 인연의 실마리를 읽습니다. 재회 사주 '다시, 우리'와 연애 타로 'ODD TAROT' — 두 가지 길로 당신의 인연을 비춥니다.",
   alternates: { canonical: "/" },
+  // 검색엔진 소유 확인 메타태그. 값은 환경변수로 주입한다(비밀값 아님 — 코드 수정 없이
+  // Vercel 환경변수만 바꿔 재배포하면 되고, 네이버는 HTML 태그 인증이 1년마다 갱신이라 그때도 편하다).
+  // 미설정 시 undefined가 되어 태그 자체가 렌더링되지 않는다.
+  verification: {
+    google: process.env.GOOGLE_SITE_VERIFICATION,
+    other: process.env.NAVER_SITE_VERIFICATION
+      ? { "naver-site-verification": process.env.NAVER_SITE_VERIFICATION }
+      : {},
+  },
   openGraph: {
     title: "묘연 妙緣 | 재회 사주 · 연애 타로",
     description: "재회 사주 · 연애 타로. 두 가지 길로 당신의 인연을 비춥니다.",
