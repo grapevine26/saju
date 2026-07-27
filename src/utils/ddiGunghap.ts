@@ -6,15 +6,16 @@
  * sajuMapper의 합충형해 함수는 그대로 쓸 수 있어 진짜 명리 계산이 가능하다 —
  * 다만 하나의 기둥만 보므로 정밀 리포트보다 근거가 얕다는 걸 페이지에 항상 밝힌다.
  *
- * 점수 배점·등급·궁합 유형 분류는 compatibilityCalc.ts와 같은 함수(hapGradeFromScore·
- * classifyRelationType)를 그대로 재사용해 사이트 전체에서 일관된 기준을 쓴다.
+ * 등급 환산은 compatibilityCalc.ts의 hapGradeFromScore를 그대로 재사용해 사이트 전체에서
+ * 같은 기준을 쓴다. 다만 관계 배지는 정밀 엔진의 classifyRelationType을 쓰지 않고 아래
+ * classifyDdiRelation을 따로 둔다 — 이유는 그 함수 주석에 적었다.
  */
 import {
     ZHI, ZHI_ANIMAL, getZhiOhhaeng, JIJANGGAN_MAP, getCheonganHap,
     getJijiYukhap, getJijiSamhapBan, getJijiBanghapBan,
     getJijiChung, getJijiHyeong, getJijiHae,
 } from './sajuMapper';
-import { classifyRelationType, hapGradeFromScore } from './compatibilityCalc';
+import { hapGradeFromScore } from './compatibilityCalc';
 import { DDI_PROFILES, DdiProfile } from './ddiProfiles';
 
 const ANIMAL_TO_ZHI: Record<string, string> = Object.fromEntries(
@@ -93,6 +94,49 @@ export const getCanonicalPairs = (): [string, string][] =>
 
 const SAENG: Record<string, string> = { 목: '화', 화: '토', 토: '금', 금: '수', 수: '목' };
 const GEUK: Record<string, string> = { 목: '토', 토: '수', 수: '화', 화: '금', 금: '목' };
+
+/**
+ * 띠 궁합 전용 관계 배지.
+ *
+ * compatibilityCalc의 classifyRelationType은 네 기둥 전체를 쓰는 정밀 엔진의 점수 분포에
+ * 맞춰 임계값이 잡혀 있다. 띠 하나만 쓰는 약식 점수는 대역이 좁아(끌림 30~90, 갈등 8~56)
+ * 임계값을 못 넘고 전부 기본값으로 떨어졌다 — 자오충 조합이 "무리 없이 흘러가는 편안한
+ * 사이"로 표시되어 본문 서술("정면으로 부딪히는 자리")과 정면으로 모순됐다.
+ *
+ * 그래서 점수가 아니라 합·충 관계를 직접 보고 판정한다. 관계가 곧 근거이므로 더 정확하고,
+ * 배지 종류도 다양해져 조합마다 페이지 성격이 구분된다.
+ */
+const classifyDdiRelation = (
+    hapList: { type: string }[],
+    clashList: { type: string }[],
+    ohhaengRelation: '상생' | '상극' | '비화' | '무관',
+): { badge: string; desc: string } => {
+    const yukhap = hapList.some(h => h.type === '지지육합');
+    const samhap = hapList.some(h => h.type === '지지삼합(반합)');
+    const banghap = hapList.some(h => h.type === '지지방합(반합)');
+    const chung = clashList.some(c => c.type === '지지충');
+    const hyeong = clashList.some(c => c.type === '지지형');
+    const hae = clashList.some(c => c.type === '지지해');
+
+    // 합과 충돌이 동시에 있으면 그 이중성이 이 조합의 정체다.
+    // (예: 사신 — 사신합수이면서 사신형) 한쪽만 강조하면 본문 서술과 어긋난다.
+    const hasClash = chung || hyeong || hae;
+    if (hasClash && (yukhap || samhap)) return { badge: '애증 궁합', desc: '끌리면서도 부딪히는, 놓지도 잡지도 못하는 사이' };
+    if (hasClash && banghap) return { badge: '가깝고도 먼 궁합', desc: '결은 비슷한데 자꾸 어긋나는 사이' };
+
+    if (chung) return { badge: '극과 극 궁합', desc: '정반대라서 끌리고, 정반대라서 부딪히는 사이' };
+    if (hyeong) return { badge: '시험대 궁합', desc: '가까워질수록 서로를 시험하게 되는 사이' };
+    if (hae) return { badge: '엇갈림 궁합', desc: '큰 싸움은 없는데 서운함이 남는 사이' };
+
+    if (yukhap) return { badge: '천생연분 궁합', desc: '설명이 필요 없는 자연스러운 끌림' };
+    if (samhap) return { badge: '한 팀 궁합', desc: '같은 방향을 보고 걷는, 말이 통하는 사이' };
+    if (banghap) return { badge: '결이 같은 궁합', desc: '비슷한 속도로 편안하게 흘러가는 사이' };
+
+    if (ohhaengRelation === '상생') return { badge: '보완형 궁합', desc: '한쪽이 다른 쪽을 채워주는 사이' };
+    if (ohhaengRelation === '비화') return { badge: '닮은꼴 궁합', desc: '너무 닮아서 이해도 쉽고, 부딪힘도 쉬운 사이' };
+    if (ohhaengRelation === '상극') return { badge: '긴장형 궁합', desc: '팽팽한 힘겨루기가 긴장이자 매력이 되는 사이' };
+    return { badge: '무던한 궁합', desc: '첫눈에 반하기보다 천천히 깊어지는 사이' };
+};
 
 /** 지장간(지지 속에 숨은 천간) 사이의 천간합 — 겉으로 안 드러나는 끌림 */
 export interface JijangganLink {
@@ -210,7 +254,7 @@ export const calculateDdiGunghap = (zhi1: string, zhi2: string): DdiGunghapResul
         attractionScore * 0.4 + complementScore * 0.3 + (100 - conflictScore) * 0.3
     )));
     const grade = hapGradeFromScore(totalScore);
-    const { badge, desc: badgeDesc } = classifyRelationType(attractionScore, conflictScore, complementScore);
+    const { badge, desc: badgeDesc } = classifyDdiRelation(hapList, clashList, ohhaengRelation);
 
     const profile1 = DDI_PROFILES[zhi1];
     const profile2 = DDI_PROFILES[zhi2];
@@ -254,8 +298,17 @@ const buildNarrative = ({ a1, a2, sameDdi, hapList, clashList, jijangganLinks, o
     const hasHyeong = clashList.some(c => c.type === '지지형');
     const hasHae = clashList.some(c => c.type === '지지해');
 
+    const hasAnyHap = hasYukhap || hasSamhap || hasBanghap;
+    const hasAnyClash = hasChung || hasHyeong || hasHae;
+
     if (sameDdi) {
         parts.push(`같은 ${a1}띠끼리는 서로를 설명할 필요가 없어요. 말하지 않아도 왜 그러는지 알고, 그래서 초반에 빠르게 가까워져요.`);
+    } else if (hasAnyHap && hasAnyClash) {
+        // 합과 충돌이 공존하는 조합 — 한쪽만 말하면 배지 설명과 어긋난다
+        const clashWord = hasChung ? '정면으로 부딪히는 힘'
+            : hasHyeong ? '서로를 시험하게 만드는 힘'
+                : '미묘하게 어긋나는 힘';
+        parts.push(`${a1}띠와 ${a2}띠는 끌어당기는 힘과 ${clashWord}이 동시에 있는 조합이에요. 잘 맞는다고 느끼다가도 어느 지점에서 꼭 걸리는데, 그게 이 관계를 놓지도 잡지도 못하게 만들어요.`);
     } else if (hasYukhap) {
         parts.push(`${a1}띠와 ${a2}띠는 서로를 끌어당기는 짝이에요. 처음 만났을 때부터 대화가 자연스럽고, 억지로 맞추지 않아도 리듬이 맞는 편이에요.`);
     } else if (hasSamhap) {
@@ -427,10 +480,18 @@ export const calculateGenderedGunghap = (maleZhi: string, femaleZhi: string): Ge
         approach = `둘 다 먼저 나서는 성격이 아니라 시작이 느려요. 서로 마음이 있어도 확인하는 데 시간이 걸리니, 한쪽이 용기를 내야 진도가 나가요.`;
     }
 
-    const maleView = `${M}띠 남자에게 ${F}띠 여자는 — ${femaleProfile.tagline}으로 보여요. ${femaleProfile.loveStyle}`;
-    const femaleView = `${F}띠 여자에게 ${M}띠 남자는 — ${maleProfile.tagline}으로 보여요. ${maleProfile.loveStyle}`;
+    // 같은 띠끼리는 프로필이 동일해서 두 시선·두 약점을 그대로 쓰면 같은 문장이 두 번 나온다.
+    const sameDdi = maleZhi === femaleZhi;
+    const maleView = sameDdi
+        ? `서로가 거울 같아요. ${M}띠 남자가 ${F}띠 여자에게서 보는 건 결국 자기 모습이라, 좋을 때는 "이렇게 잘 통하는 사람이 있나" 싶고 나쁠 때는 자기 단점을 눈앞에서 다시 보는 기분이 들어요.`
+        : `${M}띠 남자에게 ${F}띠 여자는 — ${femaleProfile.tagline}으로 보여요. ${femaleProfile.loveStyle}`;
+    const femaleView = sameDdi
+        ? `${F}띠 여자 쪽도 마찬가지예요. 말 안 해도 알아주는 게 처음엔 편한데, 시간이 지나면 새로울 게 없다는 아쉬움으로 바뀌기도 해요.`
+        : `${F}띠 여자에게 ${M}띠 남자는 — ${maleProfile.tagline}으로 보여요. ${maleProfile.loveStyle}`;
 
-    const genderedAdvice = `${M}띠 남자는 ${maleProfile.weakness} ${F}띠 여자는 ${femaleProfile.weakness} 이 둘이 동시에 나오는 순간이 이 조합의 고비예요.`;
+    const genderedAdvice = sameDdi
+        ? `둘 다 같은 약점을 갖고 있다는 게 이 조합의 진짜 위험이에요. ${maleProfile.weakness} 한쪽이 그럴 때 다른 쪽이 붙잡아 줘야 하는데, 같은 지점에서 같이 무너지거든요.`
+        : `${M}띠 남자는 ${maleProfile.weakness} ${F}띠 여자는 ${femaleProfile.weakness} 이 둘이 동시에 나오는 순간이 이 조합의 고비예요.`;
 
     return {
         ...base,

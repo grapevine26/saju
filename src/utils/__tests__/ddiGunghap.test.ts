@@ -267,3 +267,49 @@ describe('남녀 조합 (namnyeo)', () => {
         }
     });
 });
+
+describe('회귀 — 감사에서 발견된 오류', () => {
+    it('충이 있는 조합은 "편안한 사이"로 분류되지 않는다', () => {
+        // 정밀 엔진용 classifyRelationType을 띠 점수에 쓰면 임계값을 못 넘어 전부
+        // "안정형 궁합(무리 없이 흘러가는 편안한 사이)"으로 떨어졌다
+        const CHUNG_PAIRS = [['자','오'], ['축','미'], ['인','신'], ['묘','유'], ['진','술'], ['사','해']];
+        for (const [z1, z2] of CHUNG_PAIRS) {
+            const r = calculateDdiGunghap(z1, z2);
+            expect(r.clashList.some(c => c.type === '지지충'), `${z1}${z2} 충 없음`).toBe(true);
+            expect(r.badgeDesc, `${z1}${z2} 배지가 "${r.badge}"`).not.toMatch(/편안한 사이|무리 없이/);
+        }
+    });
+
+    it('서사와 배지가 상반된 방향을 가리키지 않는다 (78쌍 전수)', () => {
+        for (const [z1, z2] of getCanonicalPairs()) {
+            const r = calculateDdiGunghap(z1, z2);
+            const narrConflict = /부딪히는 자리|시험하게|서운함이 남는/.test(r.narrative);
+            const badgeCalm = /천생연분|한 팀|결이 같은|보완형|무던한/.test(r.badge);
+            expect(narrConflict && badgeCalm, `${r.animal1}×${r.animal2}: 서사=갈등, 배지=${r.badge}`).toBe(false);
+
+            const narrHarmony = /끌어당기는 짝|같은 방향을 보는|비슷한 결/.test(r.narrative);
+            const badgeConflict = /극과 극|시험대|엇갈림/.test(r.badge);
+            expect(narrHarmony && badgeConflict, `${r.animal1}×${r.animal2}: 서사=조화, 배지=${r.badge}`).toBe(false);
+        }
+    });
+
+    it('합과 충돌이 공존하면 양쪽 다 언급한다', () => {
+        // 사신: 사신합수(육합)이면서 사신형 — 한쪽만 말하면 배지와 어긋난다
+        const r = calculateDdiGunghap('사', '신');
+        expect(r.hapList.length).toBeGreaterThan(0);
+        expect(r.clashList.length).toBeGreaterThan(0);
+        expect(r.narrative).toContain('동시에 있는');
+        expect(r.badge).toBe('애증 궁합');
+    });
+
+    it('같은 띠 남녀 조합은 같은 문장을 반복하지 않는다', () => {
+        for (const zhi of ZHI) {
+            const r = calculateGenderedGunghap(zhi, zhi);
+            expect(r.maleView, `${zhi} 시선 중복`).not.toBe(r.femaleView);
+            // 약점 문장이 두 번 들어가지 않아야 한다
+            const w = DDI_PROFILES[zhi].weakness.slice(0, 12);
+            const occurrences = r.genderedAdvice.split(w).length - 1;
+            expect(occurrences, `${zhi} 약점 ${occurrences}회 반복`).toBeLessThanOrEqual(1);
+        }
+    });
+});
