@@ -1,6 +1,7 @@
 import { MetadataRoute } from 'next'
 import { getCanonicalPairs, buildSlug, buildAnimalSlug, getAllGenderedPairs, buildGenderedSlug } from '@/utils/ddiGunghap'
 import { ZHI } from '@/utils/sajuMapper'
+import { COLUMNS } from '@/features/guide/columns'
 
 // 다시, 우리 서비스의 사이트맵 동적 생성
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -19,6 +20,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/legal/terms',
     '/legal/refund',
     '/hap/gunghap',
+    '/saju/guide',
   ]
 
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
@@ -52,5 +54,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.4,
   }))
 
-  return [...staticEntries, ...ddiEntries, ...gunghapEntries, ...namnyeoEntries]
+  // 재회 칼럼 — 편수가 적고 전환 기여가 커서 우선순위를 높게 준다
+  const guideEntries: MetadataRoute.Sitemap = COLUMNS.map((c) => ({
+    url: `${baseUrl}/saju/guide/${c.slug}`,
+    lastModified: new Date(c.publishedAt),
+    changeFrequency: 'monthly',
+    priority: 0.7,
+  }))
+
+  return [...staticEntries, ...guideEntries, ...ddiEntries, ...gunghapEntries, ...namnyeoEntries]
 }

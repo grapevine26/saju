@@ -616,6 +616,22 @@ export default function LandingPage() {
       <Divider />
       <Faq />
 
+      {/* 재회 가이드 — 검색으로 들어온 사람이 칼럼을, 칼럼 독자가 상품을 오갈 수 있게 잇는다 */}
+      <div style={{ ...px, paddingTop:10, paddingBottom:38 }}>
+        <Link href="/saju/guide" style={{
+          display:'block', background:C.card, border:`1px solid ${C.cardBorder}`,
+          borderRadius:C.r, padding:'18px 20px', textDecoration:'none',
+        }}>
+          <p style={{ fontSize:10.5, fontWeight:800, letterSpacing:'0.12em', color:C.accentBright, margin:'0 0 7px' }}>재회 가이드</p>
+          <p style={{ fontSize:14, fontWeight:700, color:C.ink, margin:'0 0 6px', wordBreak:'keep-all' }}>
+            프사, 차단, 잠수이별 — 신호 읽는 법
+          </p>
+          <p style={{ fontSize:12.5, color:C.muted, lineHeight:1.7, margin:0, wordBreak:'keep-all' }}>
+            이별 후 가장 많이 헤매는 것들을 정리했어요. 확실하지 않은 건 확실하지 않다고 적었습니다. →
+          </p>
+        </Link>
+      </div>
+
       {/* 푸터 */}
       <div style={{ ...px, paddingTop:28, paddingBottom:28, borderTop:`1px solid ${C.lineSoft}`, textAlign:'center' }}>
         <div style={{ display:'flex', justifyContent:'center', gap:14, fontSize:12, marginBottom:18 }}>
