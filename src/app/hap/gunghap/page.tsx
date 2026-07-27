@@ -45,9 +45,10 @@ export default function GunghapHubPage() {
                     </p>
                 </div>
 
-                {/* 띠별 단독 페이지로 먼저 보낸다 — 각 띠 페이지가 자기 궁합 12개를 다시 뿌리는 허브 구조 */}
+                {/* 띠별 단독 페이지로 먼저 보낸다 — 각 띠 페이지가 자기 궁합 12개와
+                    남녀 조합 24개를 다시 뿌리는 허브 구조 */}
                 <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>띠별로 보기</h2>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 30 }}>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 14 }}>
                     {ZHI.map((zhi) => (
                         <Link key={zhi} href={`/hap/ddi/${buildAnimalSlug(zhi)}`} style={{
                             fontSize: 12.5, color: C.accentBright, background: C.accentSoft,
@@ -55,6 +56,9 @@ export default function GunghapHubPage() {
                         }}>{ZHI_ANIMAL[zhi]}띠</Link>
                     ))}
                 </div>
+                <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.7, margin: '0 0 30px', wordBreak: 'keep-all' }}>
+                    각 띠 페이지에서 성격·궁합 순위와 함께 <span style={{ color: C.sub }}>&ldquo;○띠 남자 × △띠 여자&rdquo;</span> 조합도 볼 수 있어요.
+                </p>
 
                 <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>조합별로 보기</h2>
                 {ZHI.map((baseZhi, i) => (

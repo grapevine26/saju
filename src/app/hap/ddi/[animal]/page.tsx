@@ -3,7 +3,7 @@ import Link from "next/link";
 import { notFound } from "next/navigation";
 import {
     parseAnimalSlug, buildAnimalSlug, buildSlug, canonicalOrder,
-    getRankedMatches, getDdiYears, getSamhapGroupInfo, josa,
+    getRankedMatches, getDdiYears, getSamhapGroupInfo, josa, buildGenderedSlug,
 } from "@/utils/ddiGunghap";
 import { DDI_PROFILES } from "@/utils/ddiProfiles";
 import { ZHI, ZHI_ANIMAL, getZhiOhhaeng, HANJA_MAP } from "@/utils/sajuMapper";
@@ -35,7 +35,7 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
 
 const C = {
     accent: '#C9A15C', accentBright: '#E8CF9C', accentSoft: 'rgba(201,161,92,0.10)', accentBorder: 'rgba(201,161,92,0.32)',
-    her: '#D9B872', ink: '#F0EAEB', sub: '#9C9199', muted: '#8A8290',
+    him: '#B8B4BE', her: '#D9B872', ink: '#F0EAEB', sub: '#9C9199', muted: '#8A8290',
     card: 'rgba(240,234,235,0.04)', cardBorder: 'rgba(240,234,235,0.13)', lineSoft: 'rgba(240,234,235,0.07)',
     btnBg: 'linear-gradient(135deg, #E8CF9C 0%, #8C6A32 100%)', btnInk: '#241C0C',
     serif: "'Noto Serif KR', serif", r: 16,
@@ -178,6 +178,36 @@ export default async function DdiPage({ params }: { params: Promise<Params> }) {
                     <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>
                         <strong style={{ color: C.her }}>조심할 띠</strong> — {worst.map((m) => `${m.animal}띠`).join(', ')}. 다만 낮은 점수가 안 된다는 뜻은 아니에요. 부딪히는 지점을 미리 알고 있으면 오히려 오래 가기도 해요.
                     </p>
+                </div>
+
+                {/* 남녀 조합 — 이 띠를 남자로 둘 때와 여자로 둘 때 각각 12개.
+                    남녀 페이지 144개가 여기서 발견되도록 하는 유일하지 않은 입구를 만든다
+                    (전에는 궁합 조합 페이지 안에만 링크가 있어 3단계 깊이에 묻혀 있었다). */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 6 }}>남녀로 나눠서 보기</h2>
+                <p style={{ fontSize: 12, color: C.muted, lineHeight: 1.7, margin: '0 0 12px', wordBreak: 'keep-all' }}>
+                    같은 두 띠라도 어느 쪽이 남자냐에 따라 누가 이끌고 누가 먼저 다가가는지가 달라져요.
+                </p>
+                <div style={{ marginBottom: 14 }}>
+                    <p style={{ fontSize: 12.5, fontWeight: 700, color: C.him, marginBottom: 8 }}>{a}띠 남자 × 여자 띠</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {ZHI.map((f) => (
+                            <Link key={`m-${f}`} href={`/hap/namnyeo/${buildGenderedSlug(zhi, f)}`} style={{
+                                fontSize: 11.5, color: C.sub, background: C.card, border: `1px solid ${C.cardBorder}`,
+                                borderRadius: 999, padding: '6px 11px', textDecoration: 'none',
+                            }}>{ZHI_ANIMAL[f]}띠 여자</Link>
+                        ))}
+                    </div>
+                </div>
+                <div style={{ marginBottom: 24 }}>
+                    <p style={{ fontSize: 12.5, fontWeight: 700, color: C.her, marginBottom: 8 }}>{a}띠 여자 × 남자 띠</p>
+                    <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                        {ZHI.map((m) => (
+                            <Link key={`f-${m}`} href={`/hap/namnyeo/${buildGenderedSlug(m, zhi)}`} style={{
+                                fontSize: 11.5, color: C.sub, background: C.card, border: `1px solid ${C.cardBorder}`,
+                                borderRadius: 999, padding: '6px 11px', textDecoration: 'none',
+                            }}>{ZHI_ANIMAL[m]}띠 남자</Link>
+                        ))}
+                    </div>
                 </div>
 
                 {/* CTA */}
