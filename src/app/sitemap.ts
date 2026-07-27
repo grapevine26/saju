@@ -1,5 +1,5 @@
 import { MetadataRoute } from 'next'
-import { getCanonicalPairs, buildSlug, buildAnimalSlug } from '@/utils/ddiGunghap'
+import { getCanonicalPairs, buildSlug, buildAnimalSlug, getAllGenderedPairs, buildGenderedSlug } from '@/utils/ddiGunghap'
 import { ZHI } from '@/utils/sajuMapper'
 
 // 다시, 우리 서비스의 사이트맵 동적 생성
@@ -44,5 +44,13 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.5,
   }))
 
-  return [...staticEntries, ...ddiEntries, ...gunghapEntries]
+  // 남녀 조합 144개 — 같은 두 띠라도 주도권·접근 방식이 뒤집히므로 별도 페이지로 둔다
+  const namnyeoEntries: MetadataRoute.Sitemap = getAllGenderedPairs().map(({ maleZhi, femaleZhi }) => ({
+    url: `${baseUrl}/hap/namnyeo/${buildGenderedSlug(maleZhi, femaleZhi)}`,
+    lastModified: new Date(),
+    changeFrequency: 'monthly',
+    priority: 0.4,
+  }))
+
+  return [...staticEntries, ...ddiEntries, ...gunghapEntries, ...namnyeoEntries]
 }

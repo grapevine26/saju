@@ -3,6 +3,7 @@ import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
     parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap, getRankedMatches, josa, buildAnimalSlug,
+    buildGenderedSlug,
 } from "@/utils/ddiGunghap";
 import { ZHI, ZHI_ANIMAL } from "@/utils/sajuMapper";
 
@@ -254,6 +255,28 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
                 </div>
 
                 <p style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginBottom: 30 }}>가입 없이 바로 · 생년월일만 있으면 돼요</p>
+
+                {/* 남녀 배치별 페이지 — 주도권·접근 방식이 성별에 따라 뒤집히므로 따로 안내한다 */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 10 }}>남녀 배치에 따라 보기</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 26 }}>
+                    {[
+                        { m: cz1, f: cz2 },
+                        ...(sameDdi ? [] : [{ m: cz2, f: cz1 }]),
+                    ].map(({ m, f }) => (
+                        <Link key={`${m}-${f}`} href={`/hap/namnyeo/${buildGenderedSlug(m, f)}`} style={{
+                            display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 10,
+                            background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 12,
+                            padding: '13px 16px', textDecoration: 'none',
+                        }}>
+                            <span style={{ fontSize: 13, color: C.ink }}>
+                                <span style={{ color: C.him }}>{ZHI_ANIMAL[m]}띠 남자</span>
+                                <span style={{ color: C.muted }}> × </span>
+                                <span style={{ color: C.her }}>{ZHI_ANIMAL[f]}띠 여자</span>
+                            </span>
+                            <span style={{ fontSize: 12, color: C.accentBright }}>→</span>
+                        </Link>
+                    ))}
+                </div>
 
                 {/* 자주 묻는 질문 — 화면 노출 + FAQPage 스키마 양쪽에 같은 내용을 쓴다 */}
                 <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>자주 묻는 질문</h2>

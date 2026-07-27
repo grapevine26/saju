@@ -344,6 +344,102 @@ export const josa = (word: string, withBatchim: string, withoutBatchim: string):
     return code % 28 > 0 ? withBatchim : withoutBatchim;
 };
 
+// ========================================================================
+// 남녀 조합 — 같은 두 띠라도 어느 쪽이 남자냐에 따라 실제로 달라지는 것만 다룬다.
+// (합·충·점수는 대칭이라 동일하다. 방향이 있는 것은 오행 생극과 지지 음양 둘뿐이며,
+//  이 두 가지가 "누가 이끌고 누가 맞추는지"와 "누가 먼저 다가가는지"를 가른다.)
+// ========================================================================
+
+/** 지지 음양 — 자·인·진·오·신·술이 양, 축·묘·사·미·유·해가 음 */
+export const getZhiYinYang = (zhi: string): '양' | '음' =>
+    ZHI.indexOf(zhi) % 2 === 0 ? '양' : '음';
+
+/** 지지 → "쥐띠남자" 꼴 */
+const genderedPart = (zhi: string, gender: '남자' | '여자'): string => `${ZHI_ANIMAL[zhi]}띠${gender}`;
+
+export const buildGenderedSlug = (maleZhi: string, femaleZhi: string): string =>
+    `${genderedPart(maleZhi, '남자')}-${genderedPart(femaleZhi, '여자')}`;
+
+/** "쥐띠남자-소띠여자" → { maleZhi:'자', femaleZhi:'축' } | null */
+export const parseGenderedSlug = (rawSlug: string): { maleZhi: string; femaleZhi: string } | null => {
+    let slug = rawSlug;
+    try { slug = decodeURIComponent(rawSlug); } catch { /* 이미 디코딩됨 */ }
+    const parts = slug.split('-');
+    if (parts.length !== 2) return null;
+    if (!parts[0].endsWith('띠남자') || !parts[1].endsWith('띠여자')) return null;
+    const maleZhi = animalToZhi(parts[0].slice(0, -3));
+    const femaleZhi = animalToZhi(parts[1].slice(0, -3));
+    if (!maleZhi || !femaleZhi) return null;
+    return { maleZhi, femaleZhi };
+};
+
+/** 144개 남녀 조합 — 남녀가 바뀌면 다른 페이지이므로 중복 제거하지 않는다 */
+export const getAllGenderedPairs = (): { maleZhi: string; femaleZhi: string }[] => {
+    const out: { maleZhi: string; femaleZhi: string }[] = [];
+    for (const m of ZHI) for (const f of ZHI) out.push({ maleZhi: m, femaleZhi: f });
+    return out;
+};
+
+export interface GenderedGunghapResult extends DdiGunghapResult {
+    maleZhi: string; femaleZhi: string; maleAnimal: string; femaleAnimal: string;
+    maleProfile: DdiProfile; femaleProfile: DdiProfile;
+    /** 관계 주도권 — 오행 생극의 방향으로 결정된다 */
+    leadership: string;
+    /** 누가 먼저 다가가는지 — 지지 음양으로 결정된다 */
+    approach: string;
+    /** 남자 입장에서 본 여자 / 여자 입장에서 본 남자 */
+    maleView: string;
+    femaleView: string;
+    genderedAdvice: string;
+}
+
+export const calculateGenderedGunghap = (maleZhi: string, femaleZhi: string): GenderedGunghapResult => {
+    const [c1, c2] = canonicalOrder(maleZhi, femaleZhi);
+    const base = calculateDdiGunghap(c1, c2);
+    const M = ZHI_ANIMAL[maleZhi], F = ZHI_ANIMAL[femaleZhi];
+    const maleProfile = DDI_PROFILES[maleZhi], femaleProfile = DDI_PROFILES[femaleZhi];
+    const mOh = getZhiOhhaeng(maleZhi), fOh = getZhiOhhaeng(femaleZhi);
+
+    // 1) 주도권 — 생극의 방향. 남녀가 바뀌면 그대로 뒤집힌다.
+    let leadership: string;
+    if (mOh === fOh) {
+        leadership = `두 사람의 기운이 같아서 주도권이 한쪽으로 기울지 않아요. 좋게 보면 대등하고, 나쁘게 보면 서로 양보를 안 해요. ${M}띠 남자와 ${F}띠 여자 모두 자기 방식을 고집할 때 답이 안 나와요.`;
+    } else if (SAENG[mOh] === fOh) {
+        leadership = `${M}띠 남자의 기운이 ${F}띠 여자를 살리는 구조예요. 남자가 주로 내주고 챙기는 쪽이 되고, 여자는 그 안에서 편안해져요. 다만 남자가 지치지 않게, 여자가 알아채고 표현해주는 게 중요해요.`;
+    } else if (SAENG[fOh] === mOh) {
+        leadership = `${F}띠 여자의 기운이 ${M}띠 남자를 살리는 구조예요. 여자가 관계를 이끌고 남자가 기대는 모양이 돼요. 남자는 이걸 당연하게 여기지 않는 게 오래 가는 조건이에요.`;
+    } else if (GEUK[mOh] === fOh) {
+        leadership = `${M}띠 남자가 ${F}띠 여자를 누르는 구조예요. 남자가 주도권을 쥐기 쉬운 대신, 여자가 참는 시간이 길어지면 한 번에 정리해버릴 수 있어요.`;
+    } else {
+        leadership = `${F}띠 여자가 ${M}띠 남자를 누르는 구조예요. 여자가 관계의 방향을 정하는 쪽이 되고, 남자는 끌려가면서도 그게 매력으로 느껴져요. 다만 남자의 자존심이 상하는 순간이 고비예요.`;
+    }
+
+    // 2) 접근 방식 — 지지 음양. 양지는 먼저 움직이고 음지는 받는 편.
+    const mYy = getZhiYinYang(maleZhi), fYy = getZhiYinYang(femaleZhi);
+    let approach: string;
+    if (mYy === '양' && fYy === '음') {
+        approach = `${M}띠 남자가 먼저 다가가는 그림이에요. ${F}띠 여자는 바로 응하기보다 지켜보는 편이라, 남자가 몇 번은 더 두드려야 해요.`;
+    } else if (mYy === '음' && fYy === '양') {
+        approach = `${F}띠 여자가 먼저 움직이는 경우가 많아요. ${M}띠 남자는 신중해서 확신이 설 때까지 티를 안 내는데, 여자 입장에선 그게 답답하게 느껴져요.`;
+    } else if (mYy === '양' && fYy === '양') {
+        approach = `둘 다 먼저 움직이는 성향이라 시작이 빨라요. 대신 식는 속도도 빠를 수 있어서, 초반 감정만 믿고 판단하면 위험해요.`;
+    } else {
+        approach = `둘 다 먼저 나서는 성격이 아니라 시작이 느려요. 서로 마음이 있어도 확인하는 데 시간이 걸리니, 한쪽이 용기를 내야 진도가 나가요.`;
+    }
+
+    const maleView = `${M}띠 남자에게 ${F}띠 여자는 — ${femaleProfile.tagline}으로 보여요. ${femaleProfile.loveStyle}`;
+    const femaleView = `${F}띠 여자에게 ${M}띠 남자는 — ${maleProfile.tagline}으로 보여요. ${maleProfile.loveStyle}`;
+
+    const genderedAdvice = `${M}띠 남자는 ${maleProfile.weakness} ${F}띠 여자는 ${femaleProfile.weakness} 이 둘이 동시에 나오는 순간이 이 조합의 고비예요.`;
+
+    return {
+        ...base,
+        maleZhi, femaleZhi, maleAnimal: M, femaleAnimal: F,
+        maleProfile, femaleProfile,
+        leadership, approach, maleView, femaleView, genderedAdvice,
+    };
+};
+
 /** 이 띠 기준으로 12개 상대를 궁합 점수순 정렬 — 베스트/워스트 노출 및 내부 링크용 */
 export const getRankedMatches = (zhi: string): { zhi: string; animal: string; score: number; grade: string; badge: string }[] =>
     ZHI.map((other) => {

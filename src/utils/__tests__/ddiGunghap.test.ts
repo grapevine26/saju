@@ -4,6 +4,7 @@ import {
     getAllOrderedPairs, getCanonicalPairs, animalToZhi,
     analyzeJijanggan, getRankedMatches, josa,
     parseAnimalSlug, buildAnimalSlug, getDdiYears, getSamhapGroupInfo,
+    buildGenderedSlug, parseGenderedSlug, getAllGenderedPairs, calculateGenderedGunghap, getZhiYinYang,
 } from '../ddiGunghap';
 import { DDI_PROFILES } from '../ddiProfiles';
 import { ZHI } from '../sajuMapper';
@@ -198,6 +199,71 @@ describe('띠 단독 페이지 (ddi)', () => {
             expect(g, `${zhi} 삼합국 없음`).not.toBeNull();
             expect(g!.members).toContain(zhi);
             expect(g!.members.length).toBe(3);
+        }
+    });
+});
+
+describe('남녀 조합 (namnyeo)', () => {
+    it('남녀 슬러그를 왕복 변환한다', () => {
+        const slug = buildGenderedSlug('자', '축');
+        expect(slug).toBe('쥐띠남자-소띠여자');
+        expect(parseGenderedSlug(slug)).toEqual({ maleZhi: '자', femaleZhi: '축' });
+    });
+
+    it('성별 표기가 없는 슬러그는 받지 않는다', () => {
+        expect(parseGenderedSlug('쥐띠-소띠')).toBeNull();
+        expect(parseGenderedSlug('쥐띠')).toBeNull();
+        expect(parseGenderedSlug('쥐띠여자-소띠남자')).toBeNull(); // 남자-여자 순서 고정
+    });
+
+    it('144개 조합 전부 슬러그 왕복이 성립한다', () => {
+        for (const { maleZhi, femaleZhi } of getAllGenderedPairs()) {
+            const slug = buildGenderedSlug(maleZhi, femaleZhi);
+            expect(parseGenderedSlug(slug), `${slug} 왕복 실패`).toEqual({ maleZhi, femaleZhi });
+        }
+        expect(getAllGenderedPairs().length).toBe(144);
+    });
+
+    it('점수·합충은 남녀를 바꿔도 동일하다 (대칭 항목)', () => {
+        const a = calculateGenderedGunghap('자', '오');
+        const b = calculateGenderedGunghap('오', '자');
+        expect(a.totalScore).toBe(b.totalScore);
+        expect(a.grade).toBe(b.grade);
+        expect(a.clashList.length).toBe(b.clashList.length);
+    });
+
+    it('주도권 서술은 남녀를 바꾸면 실제로 달라진다 (비대칭 항목)', () => {
+        // 자(수) × 오(화): 수극화 — 남자가 쥐띠면 남자가 누르고, 말띠면 여자가 누른다
+        const maleJa = calculateGenderedGunghap('자', '오');
+        const maleO = calculateGenderedGunghap('오', '자');
+        expect(maleJa.leadership).not.toBe(maleO.leadership);
+        expect(maleJa.leadership).toContain('쥐띠 남자가 말띠 여자를 누르는');
+        expect(maleO.leadership).toContain('쥐띠 여자가 말띠 남자를 누르는');
+    });
+
+    it('접근 방식도 음양 배치에 따라 뒤집힌다', () => {
+        // 자(양) × 축(음)
+        const maleYang = calculateGenderedGunghap('자', '축');
+        const maleEum = calculateGenderedGunghap('축', '자');
+        expect(maleYang.approach).not.toBe(maleEum.approach);
+        expect(maleYang.approach).toContain('남자가 먼저');
+        expect(maleEum.approach).toContain('여자가 먼저');
+    });
+
+    it('지지 음양이 교대로 배치된다', () => {
+        expect(getZhiYinYang('자')).toBe('양');
+        expect(getZhiYinYang('축')).toBe('음');
+        expect(getZhiYinYang('술')).toBe('양');
+        expect(getZhiYinYang('해')).toBe('음');
+    });
+
+    it('144개 전부 성별 서술이 비어있지 않다', () => {
+        for (const { maleZhi, femaleZhi } of getAllGenderedPairs()) {
+            const r = calculateGenderedGunghap(maleZhi, femaleZhi);
+            expect(r.leadership.length).toBeGreaterThan(20);
+            expect(r.approach.length).toBeGreaterThan(20);
+            expect(r.maleView.length).toBeGreaterThan(20);
+            expect(r.femaleView.length).toBeGreaterThan(20);
         }
     });
 });
