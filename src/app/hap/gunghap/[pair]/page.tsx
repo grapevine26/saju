@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
-    parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap,
+    parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap, getRankedMatches,
 } from "@/utils/ddiGunghap";
 import { ZHI, ZHI_ANIMAL } from "@/utils/sajuMapper";
 
@@ -62,17 +62,40 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
     }
 
     const r = calculateDdiGunghap(cz1, cz2);
+    // 같은 띠 조합(쥐띠×쥐띠 등 12개)은 두 쪽이 동일하므로 프로필·베스트궁합·링크를 한 번만 그린다
+    const sameDdi = cz1 === cz2;
+
+    // 각 띠 기준 베스트 궁합 3개 — 내부 링크와 "그럼 누가 제일 잘 맞나" 수요를 같이 받는다
+    const best1 = getRankedMatches(cz1).filter((m) => m.zhi !== cz2).slice(0, 3);
+    const best2 = getRankedMatches(cz2).filter((m) => m.zhi !== cz1).slice(0, 3);
+
+    const faqs = [
+        {
+            q: `${r.animal1}띠와 ${r.animal2}띠는 궁합이 좋은가요?`,
+            a: `${r.badge} — ${r.badgeDesc}. 태어난 해 기준 약식 궁합 점수는 ${r.totalScore}점(${r.grade}등급)이에요. ${r.narrative}`,
+        },
+        {
+            q: `${r.animal1}띠 ${r.animal2}띠 커플이 조심할 점은 뭔가요?`,
+            a: r.frictionPoint,
+        },
+        {
+            q: `${r.animal1}띠와 ${r.animal2}띠가 오래 만나려면 어떻게 해야 하나요?`,
+            a: r.advice,
+        },
+        {
+            q: '띠만 보고 궁합을 판단해도 되나요?',
+            a: '띠는 태어난 해 하나만 반영한 정보예요. 실제 궁합은 태어난 달·날짜·시간까지 함께 봐야 정확해요. 같은 띠라도 생년월일이 다르면 결과가 달라지니, 이 점수는 참고용으로만 보시는 게 좋아요.',
+        },
+    ];
+
     const jsonLd = {
         '@context': 'https://schema.org',
         '@type': 'FAQPage',
-        mainEntity: [{
+        mainEntity: faqs.map((f) => ({
             '@type': 'Question',
-            name: `${r.animal1}띠와 ${r.animal2}띠는 궁합이 좋은가요?`,
-            acceptedAnswer: {
-                '@type': 'Answer',
-                text: `${r.badge} — ${r.badgeDesc}. 년지 기준 약식 궁합 점수는 ${r.totalScore}점(${r.grade}등급)이에요. ${r.ohhaengDesc}`,
-            },
-        }],
+            name: f.q,
+            acceptedAnswer: { '@type': 'Answer', text: f.a },
+        })),
     };
 
     return (
@@ -103,14 +126,62 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
                 </div>
 
                 {/* 점수 카드 */}
-                <div style={{ background: C.card, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '22px', textAlign: 'center', marginBottom: 18 }}>
+                <div style={{ background: C.card, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '22px', textAlign: 'center', marginBottom: 12 }}>
                     <p style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.1em', color: C.muted, marginBottom: 8 }}>약식 궁합 점수</p>
                     <p style={{ fontFamily: C.serif, fontSize: 44, fontWeight: 900, color: C.accentBright, margin: '0 0 4px' }}>{r.totalScore}<span style={{ fontSize: 20, color: C.sub }}>점</span></p>
-                    <p style={{ fontSize: 13, color: C.sub, margin: 0 }}>{r.grade}등급 · {r.badgeDesc}</p>
+                    <p style={{ fontSize: 13, color: C.sub, margin: '0 0 16px' }}>{r.grade}등급 · {r.badgeDesc}</p>
+
+                    {/* 세부 지표 — 총점만 보여주면 근거가 안 보인다 */}
+                    <div style={{ display: 'flex', flexDirection: 'column', gap: 9, textAlign: 'left', paddingTop: 14, borderTop: `1px solid ${C.lineSoft}` }}>
+                        {[
+                            { label: '끌림', value: r.attractionScore },
+                            { label: '갈등', value: r.conflictScore },
+                            { label: '보완', value: r.complementScore },
+                        ].map((m) => (
+                            <div key={m.label} style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                                <span style={{ flexShrink: 0, width: 28, fontSize: 11.5, color: C.muted }}>{m.label}</span>
+                                <div style={{ flex: 1, height: 5, borderRadius: 3, background: 'rgba(240,234,235,0.08)', overflow: 'hidden' }}>
+                                    <div style={{ width: `${m.value}%`, height: '100%', background: C.accent, borderRadius: 3 }} />
+                                </div>
+                                <span style={{ flexShrink: 0, width: 26, fontSize: 11.5, color: C.sub, textAlign: 'right' }}>{m.value}</span>
+                            </div>
+                        ))}
+                    </div>
+                </div>
+
+                {/* 관계 서사 — 점수를 사람 말로 옮긴 부분 */}
+                <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '18px 20px', marginBottom: 22 }}>
+                    <h2 style={{ fontFamily: C.serif, fontSize: 15.5, fontWeight: 700, color: C.ink, margin: '0 0 10px' }}>두 사람은 어떤 관계가 될까요</h2>
+                    <p style={{ fontSize: 13.5, color: C.sub, lineHeight: 1.85, margin: 0, wordBreak: 'keep-all' }}>{r.narrative}</p>
+                </div>
+
+                {/* 띠별 연애 성향 — 조합마다 두 프로필이 다르게 짝지어진다 */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>
+                    {sameDdi ? `${r.animal1}띠는 연애할 때 이런 사람이에요` : '각자 연애할 때 이런 사람이에요'}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 22 }}>
+                    {[
+                        { animal: r.animal1, profile: r.profile1, color: C.him },
+                        ...(sameDdi ? [] : [{ animal: r.animal2, profile: r.profile2, color: C.her }]),
+                    ].map(({ animal, profile, color }) => (
+                        <div key={animal} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '18px 20px' }}>
+                            <h3 style={{ fontFamily: C.serif, fontSize: 16, fontWeight: 700, color, margin: '0 0 4px' }}>{animal}띠</h3>
+                            <p style={{ fontSize: 12.5, color: C.muted, margin: '0 0 12px', wordBreak: 'keep-all' }}>{profile.tagline}</p>
+                            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: '0 0 10px', wordBreak: 'keep-all' }}>{profile.loveStyle}</p>
+                            <p style={{ fontSize: 12.5, color: C.sub, lineHeight: 1.75, margin: '0 0 12px', wordBreak: 'keep-all' }}>
+                                <span style={{ color: C.muted }}>약한 지점 —</span> {profile.weakness}
+                            </p>
+                            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
+                                {profile.keywords.map((k) => (
+                                    <span key={k} style={{ fontSize: 11, color: C.sub, background: 'rgba(240,234,235,0.05)', border: `1px solid ${C.lineSoft}`, borderRadius: 999, padding: '4px 10px' }}>{k}</span>
+                                ))}
+                            </div>
+                        </div>
+                    ))}
                 </div>
 
                 {/* 지지 관계 */}
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 10 }}>왜 이렇게 나왔나요</p>
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 10 }}>왜 이렇게 나왔나요</h2>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 8, marginBottom: 20 }}>
                     {r.hapList.length === 0 && r.clashList.length === 0 ? (
                         <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '14px 16px' }}>
@@ -139,6 +210,28 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
                             <strong style={{ color: C.accentBright }}>오행 관계 ({r.ohhaengRelation})</strong> — {r.ohhaengDesc}
                         </p>
                     </div>
+
+                    {/* 지장간 — 겉으로 안 드러나는 끌림. 조합에 따라 있기도 없기도 하다 */}
+                    {r.jijangganLinks.length > 0 && (
+                        <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '14px 16px' }}>
+                            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, margin: 0, wordBreak: 'keep-all' }}>
+                                <strong style={{ color: C.accentBright }}>숨은 끌림</strong> — 두 띠 안쪽에 숨은 기운끼리 {r.jijangganLinks.map((l) => l.description).join(', ')}으로 맞물려요. 겉으로는 드러나지 않지만 서로 신경 쓰이게 만드는 구조예요.
+                            </p>
+                        </div>
+                    )}
+                </div>
+
+                {/* 주의점 · 조언 */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 10 }}>이 조합이 알아두면 좋은 것</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 24 }}>
+                    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '16px 18px' }}>
+                        <h3 style={{ fontSize: 13, fontWeight: 700, color: C.her, margin: '0 0 8px' }}>부딪히기 쉬운 지점</h3>
+                        <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>{r.frictionPoint}</p>
+                    </div>
+                    <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '16px 18px' }}>
+                        <h3 style={{ fontSize: 13, fontWeight: 700, color: C.accentBright, margin: '0 0 8px' }}>오래 만나려면</h3>
+                        <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>{r.advice}</p>
+                    </div>
                 </div>
 
                 {/* 정밀 분석 CTA */}
@@ -156,10 +249,52 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
 
                 <p style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginBottom: 30 }}>가입 없이 바로 · 생년월일만 있으면 돼요</p>
 
+                {/* 자주 묻는 질문 — 화면 노출 + FAQPage 스키마 양쪽에 같은 내용을 쓴다 */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>자주 묻는 질문</h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 10, marginBottom: 30 }}>
+                    {faqs.map((f, i) => (
+                        <div key={i} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '15px 17px' }}>
+                            <h3 style={{ fontSize: 13.5, fontWeight: 700, color: C.ink, margin: '0 0 7px', wordBreak: 'keep-all' }}>{f.q}</h3>
+                            <p style={{ fontSize: 12.5, color: C.muted, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>{f.a}</p>
+                        </div>
+                    ))}
+                </div>
+
+                {/* 각 띠의 베스트 궁합 — "그럼 누가 제일 잘 맞나" 수요를 받으면서 내부 링크를 늘린다 */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>
+                    {sameDdi ? `${r.animal1}띠와 가장 잘 맞는 띠` : '각 띠와 가장 잘 맞는 띠'}
+                </h2>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: 16, marginBottom: 24 }}>
+                    {[
+                        { zhi: cz1, animal: r.animal1, list: best1 },
+                        ...(sameDdi ? [] : [{ zhi: cz2, animal: r.animal2, list: best2 }]),
+                    ].map(({ zhi, animal, list }) => (
+                        <div key={zhi}>
+                            <p style={{ fontSize: 12.5, fontWeight: 700, color: C.accentBright, marginBottom: 8 }}>{animal}띠와 잘 맞는 띠</p>
+                            <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                                {list.map((m, idx) => {
+                                    const [lz1, lz2] = canonicalOrder(zhi, m.zhi);
+                                    return (
+                                        <Link key={m.zhi} href={`/hap/gunghap/${buildSlug(lz1, lz2)}`} style={{
+                                            display: 'flex', alignItems: 'center', gap: 10, textDecoration: 'none',
+                                            background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 11, padding: '11px 14px',
+                                        }}>
+                                            <span style={{ flexShrink: 0, fontSize: 11, fontWeight: 800, color: C.muted, width: 12 }}>{idx + 1}</span>
+                                            <span style={{ flex: 1, fontSize: 13, color: C.ink }}>{m.animal}띠</span>
+                                            <span style={{ fontSize: 11.5, color: C.muted }}>{m.badge}</span>
+                                            <span style={{ fontSize: 12.5, fontWeight: 700, color: C.accentBright }}>{m.score}점</span>
+                                        </Link>
+                                    );
+                                })}
+                            </div>
+                        </div>
+                    ))}
+                </div>
+
                 {/* 다른 조합 — 현재 페이지의 두 띠 각각을 기준으로, 순서상 가까운 다른 띠 4개씩 연결 */}
-                <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>다른 띠 궁합도 보기</p>
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>다른 띠 궁합도 보기</h2>
                 <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8 }}>
-                    {[cz1, cz2].flatMap((baseZhi) => {
+                    {[cz1, ...(sameDdi ? [] : [cz2])].flatMap((baseZhi) => {
                         const baseIdx = ZHI.indexOf(baseZhi);
                         // 현재 페이지 자체를 "다른 조합"으로 다시 추천하지 않도록 cz1·cz2 둘 다 제외
                         return ZHI.filter((z) => z !== cz1 && z !== cz2).slice(0, 4).map((otherZhi) => {
