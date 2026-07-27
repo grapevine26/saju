@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
-    parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap, getRankedMatches,
+    parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap, getRankedMatches, josa,
 } from "@/utils/ddiGunghap";
 import { ZHI, ZHI_ANIMAL } from "@/utils/sajuMapper";
 
@@ -212,13 +212,17 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
                     </div>
 
                     {/* 지장간 — 겉으로 안 드러나는 끌림. 조합에 따라 있기도 없기도 하다 */}
-                    {r.jijangganLinks.length > 0 && (
-                        <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '14px 16px' }}>
-                            <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, margin: 0, wordBreak: 'keep-all' }}>
-                                <strong style={{ color: C.accentBright }}>숨은 끌림</strong> — 두 띠 안쪽에 숨은 기운끼리 {r.jijangganLinks.map((l) => l.description).join(', ')}으로 맞물려요. 겉으로는 드러나지 않지만 서로 신경 쓰이게 만드는 구조예요.
-                            </p>
-                        </div>
-                    )}
+                    {r.jijangganLinks.length > 0 && (() => {
+                        // 천간합 이름은 토·금·수·목·화로 끝나는데 받침이 있는 건 금·목뿐이라 조사를 계산해서 붙인다
+                        const names = r.jijangganLinks.map((l) => l.description).join(', ');
+                        return (
+                            <div style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: 13, padding: '14px 16px' }}>
+                                <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.7, margin: 0, wordBreak: 'keep-all' }}>
+                                    <strong style={{ color: C.accentBright }}>숨은 끌림</strong> — 두 띠 안쪽에 숨은 기운끼리 {names}{josa(names, '으로', '로')} 맞물려요. 겉으로는 드러나지 않지만 서로 신경 쓰이게 만드는 구조예요.
+                                </p>
+                            </div>
+                        );
+                    })()}
                 </div>
 
                 {/* 주의점 · 조언 */}

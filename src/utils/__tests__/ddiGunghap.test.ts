@@ -2,7 +2,7 @@ import { describe, it, expect } from 'vitest';
 import {
     calculateDdiGunghap, buildSlug, parseSlug, canonicalOrder,
     getAllOrderedPairs, getCanonicalPairs, animalToZhi,
-    analyzeJijanggan, getRankedMatches,
+    analyzeJijanggan, getRankedMatches, josa,
 } from '../ddiGunghap';
 import { DDI_PROFILES } from '../ddiProfiles';
 import { ZHI } from '../sajuMapper';
@@ -128,6 +128,20 @@ describe('띠 궁합 콘텐츠 생성', () => {
         expect(noHap.ohhaengRelation).toBe('상극');
         expect(noHap.hapList.length).toBe(0);
         expect(noHap.complementScore).toBe(38);
+    });
+
+    it('조사 헬퍼가 받침을 정확히 판정한다 — 천간합 5종 전부', () => {
+        // 받침 없음 → 로 / 받침 있음 → 으로
+        expect(josa('갑기합토', '으로', '로')).toBe('로');
+        expect(josa('병신합수', '으로', '로')).toBe('로');
+        expect(josa('무계합화', '으로', '로')).toBe('로');
+        expect(josa('을경합금', '으로', '로')).toBe('으로');
+        expect(josa('정임합목', '으로', '로')).toBe('으로');
+    });
+
+    it('조사 헬퍼는 여러 합을 이어 붙인 문자열도 마지막 글자 기준으로 판정한다', () => {
+        expect(josa('을경합금, 병신합수', '으로', '로')).toBe('로');
+        expect(josa('병신합수, 을경합금', '으로', '로')).toBe('으로');
     });
 
     it('궁합 순위는 어느 쪽에서 봐도 같은 점수가 나온다 (대칭성)', () => {

@@ -297,6 +297,18 @@ const buildAdvice = ({ a1, a2, sameDdi, hapList, clashList, ohhaengRelation }: A
     return `극적인 끌림이 없는 대신 부딪힘도 적어요. 이런 조합은 시간을 들여 쌓는 쪽이 맞고, 첫인상만으로 판단하면 놓치기 쉬워요.`;
 };
 
+/**
+ * 받침 유무에 따라 조사를 고른다. 천간합 이름이 토·금·수·목·화로 끝나는데
+ * 받침이 있는 건 금·목뿐이라, 조사를 고정하면 5개 중 3개가 틀린 문장이 된다.
+ * (sajuMapper.getOhhaengBalance가 쓰는 판정과 같은 방식)
+ */
+export const josa = (word: string, withBatchim: string, withoutBatchim: string): string => {
+    const last = word.trim().slice(-1);
+    const code = last.charCodeAt(0) - 0xAC00;
+    if (code < 0 || code > 11171) return withoutBatchim; // 한글이 아니면 기본형
+    return code % 28 > 0 ? withBatchim : withoutBatchim;
+};
+
 /** 이 띠 기준으로 12개 상대를 궁합 점수순 정렬 — 베스트/워스트 노출 및 내부 링크용 */
 export const getRankedMatches = (zhi: string): { zhi: string; animal: string; score: number; grade: string; badge: string }[] =>
     ZHI.map((other) => {
