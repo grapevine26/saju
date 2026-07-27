@@ -3,6 +3,7 @@ import {
     calculateDdiGunghap, buildSlug, parseSlug, canonicalOrder,
     getAllOrderedPairs, getCanonicalPairs, animalToZhi,
     analyzeJijanggan, getRankedMatches, josa,
+    parseAnimalSlug, buildAnimalSlug, getDdiYears, getSamhapGroupInfo,
 } from '../ddiGunghap';
 import { DDI_PROFILES } from '../ddiProfiles';
 import { ZHI } from '../sajuMapper';
@@ -149,6 +150,54 @@ describe('띠 궁합 콘텐츠 생성', () => {
             const fromJa = getRankedMatches('자').find(m => m.zhi === other)!;
             const fromOther = getRankedMatches(other).find(m => m.zhi === '자')!;
             expect(fromJa.score, `자↔${other} 비대칭`).toBe(fromOther.score);
+        }
+    });
+});
+
+describe('띠 단독 페이지 (ddi)', () => {
+    it('띠 슬러그를 왕복 변환한다', () => {
+        expect(buildAnimalSlug('자')).toBe('쥐띠');
+        expect(parseAnimalSlug('쥐띠')).toBe('자');
+        expect(parseAnimalSlug('돼지띠')).toBe('해');
+    });
+
+    it('궁합 조합 슬러그는 띠 슬러그로 받지 않는다 (라우트 혼선 방지)', () => {
+        expect(parseAnimalSlug('쥐띠-소띠')).toBeNull();
+    });
+
+    it('알 수 없는 띠는 null이다', () => {
+        expect(parseAnimalSlug('불사조띠')).toBeNull();
+    });
+
+    it('12띠 전부 슬러그 왕복이 성립한다', () => {
+        for (const zhi of ZHI) {
+            expect(parseAnimalSlug(buildAnimalSlug(zhi)), `${zhi} 왕복 실패`).toBe(zhi);
+        }
+    });
+
+    it('띠별 출생 연도를 정확히 계산한다', () => {
+        // 2020년은 경자년(쥐띠), 2021년은 신축년(소띠)
+        expect(getDdiYears('자')).toContain(2020);
+        expect(getDdiYears('축')).toContain(2021);
+        expect(getDdiYears('자')).not.toContain(2021);
+        // 12년 주기
+        expect(getDdiYears('자')).toContain(2008);
+        expect(getDdiYears('자')).toContain(1996);
+    });
+
+    it('모든 연도는 정확히 하나의 띠에만 속한다', () => {
+        for (let y = 1936; y <= 2032; y++) {
+            const owners = ZHI.filter((z) => getDdiYears(z).includes(y));
+            expect(owners.length, `${y}년이 ${owners.length}개 띠에 속함`).toBe(1);
+        }
+    });
+
+    it('12띠 모두 삼합국에 속한다', () => {
+        for (const zhi of ZHI) {
+            const g = getSamhapGroupInfo(zhi);
+            expect(g, `${zhi} 삼합국 없음`).not.toBeNull();
+            expect(g!.members).toContain(zhi);
+            expect(g!.members.length).toBe(3);
         }
     });
 });

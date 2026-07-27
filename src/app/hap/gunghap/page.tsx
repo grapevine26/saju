@@ -1,7 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { ZHI, ZHI_ANIMAL } from "@/utils/sajuMapper";
-import { buildSlug, canonicalOrder } from "@/utils/ddiGunghap";
+import { buildSlug, canonicalOrder, buildAnimalSlug } from "@/utils/ddiGunghap";
 
 export const metadata: Metadata = {
     title: "띠 궁합 전체보기 | 12띠 궁합 사주 - 묘연",
@@ -45,9 +45,23 @@ export default function GunghapHubPage() {
                     </p>
                 </div>
 
+                {/* 띠별 단독 페이지로 먼저 보낸다 — 각 띠 페이지가 자기 궁합 12개를 다시 뿌리는 허브 구조 */}
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>띠별로 보기</h2>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7, marginBottom: 30 }}>
+                    {ZHI.map((zhi) => (
+                        <Link key={zhi} href={`/hap/ddi/${buildAnimalSlug(zhi)}`} style={{
+                            fontSize: 12.5, color: C.accentBright, background: C.accentSoft,
+                            border: `1px solid ${C.accentBorder}`, borderRadius: 999, padding: '8px 14px', textDecoration: 'none',
+                        }}>{ZHI_ANIMAL[zhi]}띠</Link>
+                    ))}
+                </div>
+
+                <h2 style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginBottom: 12 }}>조합별로 보기</h2>
                 {ZHI.map((baseZhi, i) => (
                     <div key={baseZhi} style={{ marginBottom: 22 }}>
-                        <p style={{ fontSize: 13, fontWeight: 700, color: C.accentBright, marginBottom: 10 }}>{ZHI_ANIMAL[baseZhi]}띠 궁합</p>
+                        <p style={{ fontSize: 13, fontWeight: 700, color: C.accentBright, marginBottom: 10 }}>
+                            <Link href={`/hap/ddi/${buildAnimalSlug(baseZhi)}`} style={{ color: C.accentBright, textDecoration: 'none' }}>{ZHI_ANIMAL[baseZhi]}띠</Link> 궁합
+                        </p>
                         <div style={{ display: 'flex', flexWrap: 'wrap', gap: 7 }}>
                             {ZHI.map((otherZhi) => {
                                 const [z1, z2] = canonicalOrder(baseZhi, otherZhi);

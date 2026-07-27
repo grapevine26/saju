@@ -45,6 +45,41 @@ export const parseSlug = (rawSlug: string): [string, string] | null => {
     return [zhi1, zhi2];
 };
 
+/** "쥐띠" → '자' | null. 띠 단독 페이지(/hap/ddi/[animal])용 */
+export const parseAnimalSlug = (rawSlug: string): string | null => {
+    let slug = rawSlug;
+    try { slug = decodeURIComponent(rawSlug); } catch { /* 이미 디코딩된 문자열이면 그대로 */ }
+    if (slug.includes('-')) return null;              // 궁합 조합 슬러그는 여기서 받지 않는다
+    return animalToZhi(slug.replace(/띠$/, ''));
+};
+
+/** 지지 → 띠 슬러그 ("자" → "쥐띠") */
+export const buildAnimalSlug = (zhi: string): string => slugPart(zhi);
+
+/**
+ * 이 띠에 해당하는 출생 연도들.
+ * 년지는 (연도 - 4) % 12 로 정해진다 (2020년 = 경자년 → (2020-4)%12 = 0 = 자).
+ * 주의: 실제 띠는 양력 1월 1일이 아니라 입춘(2월 4일경)에 바뀐다 — 페이지에 이 단서를 함께 표기한다.
+ */
+export const getDdiYears = (zhi: string, from = 1936, to = 2032): number[] => {
+    const idx = ZHI.indexOf(zhi);
+    if (idx < 0) return [];
+    const years: number[] = [];
+    for (let y = from; y <= to; y++) if ((y - 4) % 12 === idx) years.push(y);
+    return years;
+};
+
+/** 이 지지가 속한 삼합국 (신자진 수국 등) */
+export const getSamhapGroupInfo = (zhi: string): { members: string[]; name: string; element: string } | null => {
+    const GROUPS = [
+        { members: ['신', '자', '진'], name: '신자진 수국', element: '수' },
+        { members: ['해', '묘', '미'], name: '해묘미 목국', element: '목' },
+        { members: ['인', '오', '술'], name: '인오술 화국', element: '화' },
+        { members: ['사', '유', '축'], name: '사유축 금국', element: '금' },
+    ];
+    return GROUPS.find((g) => g.members.includes(zhi)) ?? null;
+};
+
 /** 전체 144개 순서쌍 (자기자신 포함) — 정적 생성용. 정규 순서가 아닌 것도 포함해 리다이렉트 처리한다 */
 export const getAllOrderedPairs = (): [string, string][] => {
     const pairs: [string, string][] = [];

@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { notFound, permanentRedirect } from "next/navigation";
 import {
-    parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap, getRankedMatches, josa,
+    parseSlug, buildSlug, canonicalOrder, getAllOrderedPairs, calculateDdiGunghap, getRankedMatches, josa, buildAnimalSlug,
 } from "@/utils/ddiGunghap";
 import { ZHI, ZHI_ANIMAL } from "@/utils/sajuMapper";
 
@@ -165,7 +165,9 @@ export default async function DdiGunghapPage({ params }: { params: Promise<Param
                         ...(sameDdi ? [] : [{ animal: r.animal2, profile: r.profile2, color: C.her }]),
                     ].map(({ animal, profile, color }) => (
                         <div key={animal} style={{ background: C.card, border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '18px 20px' }}>
-                            <h3 style={{ fontFamily: C.serif, fontSize: 16, fontWeight: 700, color, margin: '0 0 4px' }}>{animal}띠</h3>
+                            <h3 style={{ fontFamily: C.serif, fontSize: 16, fontWeight: 700, margin: '0 0 4px' }}>
+                                <Link href={`/hap/ddi/${buildAnimalSlug(animal === r.animal1 ? cz1 : cz2)}`} style={{ color, textDecoration: 'none' }}>{animal}띠 →</Link>
+                            </h3>
                             <p style={{ fontSize: 12.5, color: C.muted, margin: '0 0 12px', wordBreak: 'keep-all' }}>{profile.tagline}</p>
                             <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: '0 0 10px', wordBreak: 'keep-all' }}>{profile.loveStyle}</p>
                             <p style={{ fontSize: 12.5, color: C.sub, lineHeight: 1.75, margin: '0 0 12px', wordBreak: 'keep-all' }}>
