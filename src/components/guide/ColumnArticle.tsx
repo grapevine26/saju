@@ -56,8 +56,15 @@ export function ColumnArticle({
                         fontFamily: T.serif, fontSize: 25, fontWeight: 900, lineHeight: 1.45,
                         color: T.ink, margin: '0 0 14px', wordBreak: 'keep-all',
                     }}>{column.heading}</h1>
+                    {/* 최신성 표기 — AI 검색 엔진이 최종 수정일을 크게 반영한다 */}
                     <p style={{ fontSize: 13, color: T.muted, margin: 0 }}>
                         <time dateTime={column.publishedAt}>{column.publishedAt.replace(/-/g, '.')}</time>
+                        {column.updatedAt && column.updatedAt !== column.publishedAt && (
+                            <>
+                                <span style={{ margin: '0 6px' }}>·</span>
+                                최종 수정 <time dateTime={column.updatedAt}>{column.updatedAt.replace(/-/g, '.')}</time>
+                            </>
+                        )}
                     </p>
                 </header>
 
@@ -124,7 +131,7 @@ export function buildColumnJsonLd(column: Column, config: GuideConfig) {
                 description: column.description,
                 image: 'https://dasisaju.com/og-image.png',
                 datePublished: column.publishedAt,
-                dateModified: column.publishedAt,
+                dateModified: column.updatedAt ?? column.publishedAt,
                 inLanguage: 'ko-KR',
                 mainEntityOfPage: { '@type': 'WebPage', '@id': url },
                 author: { '@type': 'Organization', name: '묘연', url: 'https://dasisaju.com' },

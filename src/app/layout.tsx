@@ -67,6 +67,41 @@ import UtmTracker from "@/components/UtmTracker";
 import MotionProvider from "@/components/MotionProvider";
 import MetaPixel from "@/components/MetaPixel";
 
+// 사이트 전역 엔티티 정보 — AI 검색 엔진이 "묘연"이 무엇인지 인식하는 근거가 된다.
+// 개별 페이지의 Article·FAQPage 스키마와 별개로, 브랜드 자체를 하나의 엔티티로 등록하는 역할.
+const SITE_JSON_LD = {
+  '@context': 'https://schema.org',
+  '@graph': [
+    {
+      '@type': 'Organization',
+      '@id': 'https://dasisaju.com/#organization',
+      name: '묘연',
+      alternateName: ['묘연 妙緣', 'Myoyeon'],
+      url: 'https://dasisaju.com',
+      logo: { '@type': 'ImageObject', url: 'https://dasisaju.com/og-image.png' },
+      description: '헤어진 사람과의 재회 가능성과 연락하기 좋은 시기를 사주로 진단하고, 연애 타로로 상대의 속마음을 읽어주는 서비스.',
+      founder: { '@type': 'Person', name: '최혁준' },
+      email: 'support@dasisaju.com',
+      telephone: '+82-70-8098-4109',
+      address: {
+        '@type': 'PostalAddress',
+        streetAddress: '난곡로 284, 603호',
+        addressLocality: '관악구',
+        addressRegion: '서울특별시',
+        addressCountry: 'KR',
+      },
+    },
+    {
+      '@type': 'WebSite',
+      '@id': 'https://dasisaju.com/#website',
+      url: 'https://dasisaju.com',
+      name: '묘연',
+      inLanguage: 'ko-KR',
+      publisher: { '@id': 'https://dasisaju.com/#organization' },
+    },
+  ],
+};
+
 export default function RootLayout({
   children,
 }: Readonly<{
@@ -79,6 +114,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.googleapis.com" />
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+KR:wght@700;900&display=swap" rel="stylesheet" />
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(SITE_JSON_LD) }} />
       </head>
       <body className="antialiased flex justify-center min-h-screen" style={{background:'radial-gradient(ellipse 1200px 700px at 50% 10%, #1E0C12 0%, #0F080B 45%, #0A090C 75%)'}}>
         <ChannelTalk />

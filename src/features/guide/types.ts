@@ -20,6 +20,12 @@ export interface Column {
     excerpt: string;
     keywords: string[];
     publishedAt: string;
+    /**
+     * 최종 수정일. 없으면 발행일과 같은 것으로 본다.
+     * AI 검색 엔진은 최신성을 크게 반영하므로 내용을 고칠 때마다 갱신할 것 —
+     * 화면 표기와 Article 스키마의 dateModified 양쪽에 쓰인다.
+     */
+    updatedAt?: string;
     blocks: Block[];
     /** 본문 아래 CTA 문구 */
     ctaLead: string;
