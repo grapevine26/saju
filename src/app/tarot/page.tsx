@@ -857,6 +857,22 @@ export default function TarotLandingPage() {
                     </motion.div>
                 </section>
 
+                {/* ── 타로 가이드: 검색으로 들어온 사람이 칼럼을, 칼럼 독자가 리딩을 오갈 수 있게 잇는다 ── */}
+                <section style={{ padding:"0 24px 38px" }}>
+                    <Link href="/tarot/guide" style={{
+                        display:"block", background:`${P}0.04)`, border:`1px solid ${P}0.13)`,
+                        borderRadius:16, padding:"18px 20px", textDecoration:"none",
+                    }}>
+                        <p style={{ fontSize:10.5, fontWeight:800, letterSpacing:"0.12em", color:LAV, margin:"0 0 7px" }}>타로 가이드</p>
+                        <p style={{ fontSize:14, fontWeight:700, color:"#EDE8F8", margin:"0 0 6px", wordBreak:"keep-all" }}>
+                            속마음, 썸, 짝사랑 — 물어볼 수 없는 것들
+                        </p>
+                        <p style={{ fontSize:12.5, color:`${P}0.5)`, lineHeight:1.7, margin:0, wordBreak:"keep-all" }}>
+                            직접 묻기 어려운 것들을 어떻게 읽는지 정리했어요. 확실하지 않은 건 확실하지 않다고 적었습니다. →
+                        </p>
+                    </Link>
+                </section>
+
                 {/* ── 푸터: 전자상거래법 필수 표기 + 약관 링크 ── */}
                 <footer style={{ padding:"28px 24px 40px", borderTop:`1px solid ${P}0.12)`, textAlign:"center" }}>
                     <div style={{ display:"flex", justifyContent:"center", gap:14, fontSize:12, marginBottom:18 }}>

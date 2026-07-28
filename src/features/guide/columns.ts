@@ -9,30 +9,7 @@
  * 화자 경험담 금지, 과대 약속 금지. 위로로 시작해 실행 조언으로 끝낸다.
  */
 
-/** 문단 블록 — p 안의 **굵게**는 렌더링 시 강조로 변환된다 */
-export type Block =
-    | { t: 'h2'; text: string }
-    | { t: 'p'; text: string }
-    | { t: 'hr' };
-
-export interface Column {
-    slug: string;
-    /** 검색 결과용 제목 */
-    title: string;
-    /** 페이지 안에서 보이는 제목 (H1) */
-    heading: string;
-    description: string;
-    /** 목록·카드에 쓰는 한 줄 요약 */
-    excerpt: string;
-    keywords: string[];
-    publishedAt: string;
-    blocks: Block[];
-    /** 본문 아래 CTA 문구 */
-    ctaLead: string;
-    /** 이어 읽을 칼럼 슬러그 */
-    related: string[];
-    faqs: { q: string; a: string }[];
-}
+import { type Column, findColumn } from './types';
 
 export const COLUMNS: Column[] = [
     // ── 1 ───────────────────────────────────────────────────────────
@@ -490,8 +467,4 @@ export const COLUMNS: Column[] = [
     },
 ];
 
-export const getColumn = (slug: string): Column | undefined => {
-    let decoded = slug;
-    try { decoded = decodeURIComponent(slug); } catch { /* 이미 디코딩됨 */ }
-    return COLUMNS.find((c) => c.slug === decoded);
-};
+export const getColumn = (slug: string): Column | undefined => findColumn(COLUMNS, slug);

@@ -2,6 +2,7 @@ import { MetadataRoute } from 'next'
 import { getCanonicalPairs, buildSlug, buildAnimalSlug, getAllGenderedPairs, buildGenderedSlug } from '@/utils/ddiGunghap'
 import { ZHI } from '@/utils/sajuMapper'
 import { COLUMNS } from '@/features/guide/columns'
+import { TAROT_COLUMNS } from '@/features/guide/tarotColumns'
 
 // 다시, 우리 서비스의 사이트맵 동적 생성
 export default function sitemap(): MetadataRoute.Sitemap {
@@ -21,6 +22,7 @@ export default function sitemap(): MetadataRoute.Sitemap {
     '/legal/refund',
     '/hap/gunghap',
     '/saju/guide',
+    '/tarot/guide',
   ]
 
   const staticEntries: MetadataRoute.Sitemap = routes.map((route) => ({
@@ -54,11 +56,14 @@ export default function sitemap(): MetadataRoute.Sitemap {
     priority: 0.4,
   }))
 
-  // 재회 칼럼 — 편수가 적고 전환 기여가 커서 우선순위를 높게 준다
-  const guideEntries: MetadataRoute.Sitemap = COLUMNS.map((c) => ({
-    url: `${baseUrl}/saju/guide/${c.slug}`,
-    lastModified: new Date(c.publishedAt),
-    changeFrequency: 'monthly',
+  // 칼럼 — 편수가 적고 전환 기여가 커서 우선순위를 높게 준다
+  const guideEntries: MetadataRoute.Sitemap = [
+    ...COLUMNS.map((c) => ({ path: `/saju/guide/${c.slug}`, publishedAt: c.publishedAt })),
+    ...TAROT_COLUMNS.map((c) => ({ path: `/tarot/guide/${c.slug}`, publishedAt: c.publishedAt })),
+  ].map(({ path, publishedAt }) => ({
+    url: `${baseUrl}${path}`,
+    lastModified: new Date(publishedAt),
+    changeFrequency: 'monthly' as const,
     priority: 0.7,
   }))
 

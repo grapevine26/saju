@@ -1,38 +1,40 @@
 import type { Metadata } from "next";
 import { notFound } from "next/navigation";
-import { COLUMNS, getColumn } from "@/features/guide/columns";
-import type { GuideConfig, GuideTheme } from "@/features/guide/types";
+import { TAROT_COLUMNS } from "@/features/guide/tarotColumns";
+import { findColumn, type GuideConfig, type GuideTheme } from "@/features/guide/types";
 import { ColumnArticle, buildColumnJsonLd } from "@/components/guide/ColumnArticle";
 
 export function generateStaticParams() {
-    return COLUMNS.map((c) => ({ slug: c.slug }));
+    return TAROT_COLUMNS.map((c) => ({ slug: c.slug }));
 }
 
 type Params = { slug: string };
 
-// 재회 사주 팔레트(로즈) — /saju 랜딩과 같은 세계관을 유지한다
+const getCol = (slug: string) => findColumn(TAROT_COLUMNS, slug);
+
+// 타로 팔레트(보랏빛 밤하늘) — /tarot 랜딩과 같은 세계관. 재회 사주(로즈)와 섞지 않는다.
 const THEME: GuideTheme = {
     card: 'rgba(240,234,235,0.04)', cardBorder: 'rgba(240,234,235,0.13)',
-    accentBorder: 'rgba(216,72,94,0.35)', accentSoft: 'rgba(216,72,94,0.10)',
-    accentBright: '#F06A7E',
+    accentBorder: 'rgba(176,123,180,0.35)', accentSoft: 'rgba(176,123,180,0.10)',
+    accentBright: '#C89BCC',
     ink: '#F0EAEB', sub: '#9C9199', muted: '#5F565D', lineSoft: 'rgba(240,234,235,0.07)',
-    btnBg: 'linear-gradient(135deg, #F06A7E 0%, #A82E42 100%)', btnInk: '#FFF0F2',
+    btnBg: 'linear-gradient(135deg, #C89BCC 0%, #6E4574 100%)', btnInk: '#FBF4FC',
     serif: "'Noto Serif KR', serif", r: 16,
 };
 
 const CONFIG: GuideConfig = {
-    basePath: '/saju/guide',
-    servicePath: '/saju',
-    serviceName: '재회 사주',
-    guideName: '재회 가이드',
-    ctaLabel: '두 분의 흐름 무료로 확인하기',
-    ctaNote: '생년월일만 있으면 3분 · 상대방은 알 수 없어요',
-    siteName: '묘연',
+    basePath: '/tarot/guide',
+    servicePath: '/tarot',
+    serviceName: '연애 타로',
+    guideName: '타로 가이드',
+    ctaLabel: '그 사람 마음 무료로 확인하기',
+    ctaNote: '첫 두 장은 결제 없이 · 가입도 필요 없어요',
+    siteName: 'ODD TAROT',
 };
 
 export async function generateMetadata({ params }: { params: Promise<Params> }): Promise<Metadata> {
     const { slug } = await params;
-    const col = getColumn(slug);
+    const col = getCol(slug);
     if (!col) return {};
     return {
         title: `${col.title} - 묘연`,
@@ -53,12 +55,12 @@ export async function generateMetadata({ params }: { params: Promise<Params> }):
     };
 }
 
-export default async function ColumnPage({ params }: { params: Promise<Params> }) {
+export default async function TarotColumnPage({ params }: { params: Promise<Params> }) {
     const { slug } = await params;
-    const col = getColumn(slug);
+    const col = getCol(slug);
     if (!col) notFound();
 
-    const related = col.related.map((s) => getColumn(s)).filter((c): c is NonNullable<typeof c> => !!c);
+    const related = col.related.map((s) => getCol(s)).filter((c): c is NonNullable<typeof c> => !!c);
 
     return (
         <>
