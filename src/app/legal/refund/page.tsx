@@ -15,7 +15,7 @@ export default function RefundPage() {
                 <Link href="/" className="p-2 -ml-2 text-[var(--text-secondary)] hover:text-[var(--text-primary)] rounded-full transition-colors">
                     <ArrowLeft className="w-6 h-6" />
                 </Link>
-                <span className="font-semibold text-[var(--text-primary)] ml-2">취소 및 환불 정책</span>
+                <h1 className="font-semibold text-[var(--text-primary)] ml-2">취소 및 환불 정책</h1>
             </header>
 
             <main className="p-6 space-y-8 text-sm leading-relaxed">

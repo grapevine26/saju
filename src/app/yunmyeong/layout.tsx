@@ -10,7 +10,7 @@ import type { Metadata } from "next";
 export const metadata: Metadata = {
     title: "작명·개명 | 정통 수리 성명학 정밀 분석 - 윤명",
     description:
-        "정통 수리 성명학의 규칙 연산에 명식 맞춤 풀이를 더해, 사주 명식의 빈 곳을 채우는 이름을 찾아드립니다.",
+        "정통 수리 성명학의 규칙 연산에 명식 맞춤 풀이를 더해, 사주 명식의 빈 곳을 채우는 이름을 찾아드립니다. 신생아 작명부터 개명, 지금 쓰는 이름의 감명까지 한 번에 확인하실 수 있어요.",
     alternates: { canonical: "/yunmyeong" },
     openGraph: {
         title: "윤명 潤名 | 정통 수리 성명학 정밀 분석",
