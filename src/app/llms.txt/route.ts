@@ -1,5 +1,9 @@
 import { COLUMNS } from '@/features/guide/columns';
 import { TAROT_COLUMNS } from '@/features/guide/tarotColumns';
+import { TAROT_PRICE } from '@/features/tarot/constants';
+import { REUNION_PREMIUM_PRICE, REUNION_SIGNATURE_PRICE, COMPATIBILITY_PRICE } from '@/lib/adminOrders';
+import { getCanonicalPairs, getAllGenderedPairs } from '@/utils/ddiGunghap';
+import { ZHI } from '@/utils/sajuMapper';
 
 /**
  * /llms.txt — AI 시스템(ChatGPT·Claude·Perplexity 등)이 사이트를 빠르게 파악하도록 돕는 컨텍스트 파일.
@@ -15,6 +19,13 @@ export const dynamic = 'force-static';
 export function GET() {
     const line = (c: { heading: string; excerpt: string }, base: string, slug: string) =>
         `- [${c.heading}](https://dasisaju.com${base}/${slug}): ${c.excerpt}`;
+    const won = (n: number) => `${n.toLocaleString('ko-KR')}원`;
+
+    // 가격·페이지 수는 실제 상수와 계산 결과에서 가져온다.
+    // 글로 적어두면 값이 바뀔 때 여기만 옛 정보가 남아 AI에 틀린 가격을 알려주게 된다.
+    const ddiCount = ZHI.length;
+    const pairCount = getCanonicalPairs().length;
+    const genderedCount = getAllGenderedPairs().length;
 
     const body = `# 묘연 (Myoyeon)
 
@@ -32,10 +43,10 @@ export function GET() {
 
 ## 가격
 
-- 재회 사주 프리미엄: 19,900원 (무료 분석으로 점수·핵심 카드 2장 먼저 확인 가능)
-- 재회 사주 시그니처: 34,900원 (프리미엄 + 궁합 심층 리포트)
-- 연애 타로 전체 해석: 3,900원 (1라운드 2장 무료)
-- 궁합 리포트: 19,900원 (무료 미리보기로 6항목 점수·등급 확인 가능)
+- 재회 사주 프리미엄: ${won(REUNION_PREMIUM_PRICE)} (무료 분석으로 점수·핵심 카드 2장 먼저 확인 가능)
+- 재회 사주 시그니처: ${won(REUNION_SIGNATURE_PRICE)} (프리미엄 + 궁합 심층 리포트)
+- 연애 타로 전체 해석: ${won(TAROT_PRICE)} (1라운드 2장 무료)
+- 궁합 리포트: ${won(COMPATIBILITY_PRICE)} (무료 미리보기로 6항목 점수·등급 확인 가능)
 
 가입 불필요, 이메일만 입력, 결제는 토스페이먼츠. 상대방에게는 어떤 알림도 가지 않습니다.
 
@@ -55,8 +66,8 @@ ${TAROT_COLUMNS.map((c) => line(c, '/tarot/guide', c.slug)).join('\n')}
 
 ## 띠 궁합
 
-- [12띠 궁합 전체보기](https://dasisaju.com/hap/gunghap): 12띠 조합 78가지의 약식 궁합. 태어난 해(년지)만으로 계산하며, 정확한 궁합은 생년월일 전체가 필요하다는 점을 각 페이지에 명시하고 있습니다.
-- 띠별 페이지 12개(/hap/ddi/[띠]), 조합별 78개, 남녀 배치별 144개로 구성됩니다.
+- [${ddiCount}띠 궁합 전체보기](https://dasisaju.com/hap/gunghap): ${ddiCount}띠 조합 ${pairCount}가지의 약식 궁합. 태어난 해(년지)만으로 계산하며, 정확한 궁합은 생년월일 전체가 필요하다는 점을 각 페이지에 명시하고 있습니다.
+- 띠별 페이지 ${ddiCount}개(/hap/ddi/[띠]), 조합별 ${pairCount}개(/hap/gunghap/[띠-띠]), 남녀 배치별 ${genderedCount}개(/hap/namnyeo/[띠남자-띠여자])로 구성됩니다.
 
 ## 주요 페이지
 
