@@ -71,6 +71,9 @@ function HapPaymentSuccessContent() {
                     customerEmail: pending.customerEmail,
                     discountCode: pending.discountCode || null,
                     phoneNumber: 'hap-guest',
+                    // 결제 전 로그인을 선택했다면 잡 생성 시점부터 계정에 연결 —
+                    // 게스트 결제는 기존처럼 결과 페이지의 '계정에 저장하기'로 나중에 연결한다.
+                    userId: pending.identifier?.type === 'member' ? pending.identifier.value : undefined,
                     utm: getUtm(), visitorId: getVisitorId(),
                 };
 

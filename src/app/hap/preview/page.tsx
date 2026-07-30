@@ -13,9 +13,21 @@ import toast from "react-hot-toast";
 import { useSajuStore } from "@/store/useSajuStore";
 import CompatibilityChart from "@/components/CompatibilityChart";
 import OhhaengCompareChart from "@/components/hap/OhhaengCompareChart";
+import UpgradeModal from "@/components/UpgradeModal";
+import HapPaymentModal from "@/components/hap/HapPaymentModal";
 import { checkFreePass, makeFreePassKey } from "@/utils/freePassClient";
 import { trackFunnelEvent } from "@/utils/utm";
 import { upsertFreeHapHistory, getHapHistoryEntry } from "@/features/hap/history";
+
+// 두 분의 사주를 맞춰보는 동안 순서대로 보여줄 문구 — AI가 빨리 응답해도
+// 최소 이 정도는 "분석 중"처럼 느껴지게 붙잡아 둔다 (MIN_LOADING_MS와 짝).
+const LOADING_STEPS = [
+    '두 분의 만세력을 계산하고 있어요',
+    '타고난 기운의 합을 맞춰보고 있어요',
+    '역술가가 첫인상을 정리하고 있어요',
+    '궁합 리포트를 준비하고 있어요',
+];
+const MIN_LOADING_MS = 10000;
 
 // 운명의 합 — '인장과 금박' 팔레트 (다시,우리·오드타로와 겹치지 않는 색군)
 const C = {
@@ -63,12 +75,14 @@ export default function HapPreviewPage() {
     const [aiPreview, setAiPreview] = useState<{ coreLine: string | null; essence: string } | null>(null);
     const [aiLoading, setAiLoading] = useState(true);
     const [email, setEmail] = useState('');
-    const [codeInput, setCodeInput] = useState('');
     const [discount, setDiscount] = useState<{ code: string; percent: number } | null>(null);
-    const [codeChecking, setCodeChecking] = useState(false);
-    const [codeError, setCodeError] = useState('');
     const [paying, setPaying] = useState(false);
+    const [minDelayDone, setMinDelayDone] = useState(false);
+    const [loadingStepIdx, setLoadingStepIdx] = useState(0);
+    const [showPaymentModal, setShowPaymentModal] = useState(false);
+    const [showUpgradeModal, setShowUpgradeModal] = useState(false);
     const started = useRef(false);
+    const hasResumedPayment = useRef(false);
     // 무료 미리보기도 보관함에 즉시 기록 — 결제하면 같은 항목이 premium으로 승격된다
     const freeRecordId = useRef(`free_${Date.now()}_${Math.random().toString(36).slice(2, 8)}`);
 
@@ -147,24 +161,44 @@ export default function HapPreviewPage() {
         // eslint-disable-next-line react-hooks/exhaustive-deps
     }, []);
 
-    const handleApplyCode = async () => {
-        const code = codeInput.trim();
-        if (!code) return;
-        setCodeChecking(true); setCodeError('');
+    // AI가 빨리 응답해도 "성의 없이 즉답"처럼 보이지 않도록 로딩 화면을 최소 시간 붙잡아 둔다.
+    useEffect(() => {
+        const t = setTimeout(() => setMinDelayDone(true), MIN_LOADING_MS);
+        const stepTimer = setInterval(() => {
+            setLoadingStepIdx((i) => Math.min(i + 1, LOADING_STEPS.length - 1));
+        }, MIN_LOADING_MS / LOADING_STEPS.length);
+        return () => { clearTimeout(t); clearInterval(stepTimer); };
+    }, []);
+
+    // 결제 1단계(이메일 입력) 후 로그인을 선택해 OAuth로 나갔다가 돌아온 경우,
+    // 저장해 둔 결제 정보로 결제창을 자동으로 다시 연다 (재회사주와 동일한 패턴).
+    useEffect(() => {
+        if (!preview || hasResumedPayment.current) return;
+        const pendingRaw = localStorage.getItem('pendingOAuthPayment');
+        if (!pendingRaw) return;
+
         try {
-            const res = await fetch('/api/discount/validate', {
-                method: 'POST', headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ code }),
-            });
-            const data = await res.json();
-            if (data.valid) setDiscount({ code, percent: data.percent });
-            else setCodeError(data.error || '유효하지 않은 코드입니다.');
+            const pending = JSON.parse(pendingRaw);
+            if (Date.now() - pending.timestamp > 10 * 60 * 1000) {
+                localStorage.removeItem('pendingOAuthPayment');
+                return;
+            }
+            (async () => {
+                if (hasResumedPayment.current) return;
+                hasResumedPayment.current = true;
+                const { createClient } = await import("@/utils/supabase/client");
+                const { data: { user } } = await createClient().auth.getUser();
+                if (!user) { hasResumedPayment.current = false; return; }
+                localStorage.removeItem('pendingOAuthPayment');
+                setEmail(pending.email);
+                toast.success('로그인 완료! 결제창을 열고 있습니다...', { duration: 2000, id: 'hap-oauth-resume' });
+                setTimeout(() => proceedToPay({ type: 'member', value: user.id }, pending.email, discount), 800);
+            })();
         } catch {
-            setCodeError('확인에 실패했어요. 잠시 후 다시 시도해 주세요.');
-        } finally {
-            setCodeChecking(false);
+            localStorage.removeItem('pendingOAuthPayment');
         }
-    };
+        // eslint-disable-next-line react-hooks/exhaustive-deps
+    }, [preview]);
 
     // 인스타 스토리용 공유 카드 (1080×1920) — 캔버스로 그려서 공유/저장
     const handleShare = async () => {
@@ -267,15 +301,19 @@ export default function HapPreviewPage() {
         }
     };
 
-    const handlePay = async () => {
-        if (!email.includes('@')) { toast.error('결과 링크를 받을 이메일을 입력해 주세요.'); return; }
-        if (paying) return;
+    // 결제 1단계(HapPaymentModal, 이메일·할인코드) → 2단계(UpgradeModal, 로그인/비회원)를
+    // 거쳐 최종 확정된 identifier로 실제 결제를 연다 (재회사주 startPremiumAnalysis와 동일 구조).
+    const proceedToPay = async (identifier: { type: 'guest' | 'member'; value: string }, finalEmail: string, finalDiscount: { code: string; percent: number } | null) => {
+        if (!finalEmail.includes('@') || paying) return;
+        setShowUpgradeModal(false);
         setPaying(true);
+        const price = finalDiscount ? Math.round(HAP_PRICE * (100 - finalDiscount.percent) / 100) : HAP_PRICE;
         try {
             const orderId = `hap${Date.now()}${Math.random().toString(36).slice(2, 6)}`;
             localStorage.setItem('pendingHapPayment', JSON.stringify({
-                orderId, amount: payPrice, customerEmail: email,
-                discountCode: discount?.code || null,
+                orderId, amount: price, customerEmail: finalEmail,
+                discountCode: finalDiscount?.code || null,
+                identifier,
                 myRawInput: buildPerson(false), partnerRawInput: buildPerson(true),
                 // 보관함 카드 표시용 — 결제 확정 후 같은 항목을 premium으로 승격한다
                 myName: store.name || '', partnerName: store.partnerName || '',
@@ -284,26 +322,26 @@ export default function HapPreviewPage() {
             }));
 
             const goSuccess = (paymentKey: string) => {
-                window.location.href = `/hap/payment/success?paymentKey=${paymentKey}&orderId=${orderId}&amount=${payPrice}`;
+                window.location.href = `/hap/payment/success?paymentKey=${paymentKey}&orderId=${orderId}&amount=${price}`;
             };
 
             if (process.env.NODE_ENV === 'development') { goSuccess(`dev_payment_key_${Date.now()}`); return; }
             if (await checkFreePass()) { goSuccess(makeFreePassKey()); return; }
             // 100% 할인 쿠폰 — 결제할 금액이 없으므로 토스 없이 성공 플로우로 직행
-            if (discount && payPrice === 0) { goSuccess(`coupon_free_${Date.now()}`); return; }
+            if (finalDiscount && price === 0) { goSuccess(`coupon_free_${Date.now()}`); return; }
 
             const clientKey = process.env.NEXT_PUBLIC_TOSS_CLIENT_KEY;
             if (!clientKey) { toast.error('결제 설정 오류입니다. 잠시 후 다시 시도해 주세요.'); setPaying(false); return; }
             const { loadTossPayments, ANONYMOUS } = await import('@tosspayments/tosspayments-sdk');
             const tossPayments = await loadTossPayments(clientKey);
-            const payment = tossPayments.payment({ customerKey: ANONYMOUS });
+            const payment = tossPayments.payment({ customerKey: identifier.value || ANONYMOUS });
             await payment.requestPayment({
                 method: 'CARD',
-                amount: { currency: 'KRW', value: payPrice },
+                amount: { currency: 'KRW', value: price },
                 orderId,
                 orderName: '운명의 합 궁합 리포트',
                 customerName: store.name || '익명',
-                customerEmail: email,
+                customerEmail: finalEmail,
                 successUrl: `${window.location.origin}/hap/payment/success`,
                 failUrl: `${window.location.origin}/hap?payfail=1`,
             });
@@ -313,10 +351,28 @@ export default function HapPreviewPage() {
         }
     };
 
-    if (loading || !preview) {
+    // HapPaymentModal(이메일·할인코드) 제출 → 로그인 여부 확인 →
+    // 로그인 상태면 바로 결제, 아니면 UpgradeModal(로그인/비회원)로 이어준다.
+    const handlePaymentModalNext = async (finalEmail: string, finalDiscount: { code: string; percent: number } | null) => {
+        setEmail(finalEmail);
+        setDiscount(finalDiscount);
+        setShowPaymentModal(false);
+        const { createClient } = await import("@/utils/supabase/client");
+        const { data: { user } } = await createClient().auth.getUser();
+        if (user) {
+            proceedToPay({ type: 'member', value: user.id }, finalEmail, finalDiscount);
+        } else {
+            setShowUpgradeModal(true);
+        }
+    };
+
+    if (loading || !preview || !minDelayDone) {
         return (
-            <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, sans-serif' }}>
-                <p style={{ color: C.sub, fontSize: 14 }}>두 분의 사주를 맞춰보는 중…</p>
+            <div style={{ background: 'transparent', minHeight: '100dvh', color: C.ink, display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', fontFamily: 'Pretendard, -apple-system, sans-serif', padding: 24 }}>
+                <style>{`@keyframes hap-preview-seal-pulse { 0%,100%{ transform:rotate(-4deg) scale(1);} 50%{ transform:rotate(-4deg) scale(1.06);} }`}</style>
+                <div style={{ width: 60, height: 60, border: `2.5px solid ${C.accentBright}`, color: C.accentBright, borderRadius: 8, display: 'flex', alignItems: 'center', justifyContent: 'center', fontFamily: C.serif, fontSize: 25, fontWeight: 900, marginBottom: 22, animation: 'hap-preview-seal-pulse 2.4s ease-in-out infinite', boxShadow: '0 0 24px rgba(217,184,114,0.28)' }}>合</div>
+                <h2 style={{ fontFamily: C.serif, fontSize: 17, fontWeight: 700, margin: '0 0 10px' }}>두 분의 궁합을 읽고 있어요</h2>
+                <p style={{ fontSize: 13, color: C.sub, transition: 'opacity 0.3s' }}>{LOADING_STEPS[loadingStepIdx]}</p>
             </div>
         );
     }
@@ -491,40 +547,36 @@ export default function HapPreviewPage() {
                         </span>
                     </div>
 
-                    <p style={{ fontSize: 11.5, color: C.muted, marginBottom: 6 }}>결과를 언제든 다시 볼 수 있는 링크를 이메일로 보내드려요</p>
-                    <input
-                        type="email" placeholder="이메일 주소" value={email}
-                        onChange={e => setEmail(e.target.value)}
-                        style={{ width: '100%', boxSizing: 'border-box', background: 'rgba(240,234,235,0.05)', border: `1px solid ${C.cardBorder}`, borderRadius: 12, padding: '13px 14px', color: C.ink, fontSize: 14, fontFamily: 'inherit', outline: 'none', marginBottom: 10 }}
-                    />
-
-                    <div style={{ display: 'flex', gap: 8, marginBottom: 4 }}>
-                        <input
-                            type="text" placeholder="할인 코드 (선택)" value={codeInput}
-                            disabled={!!discount}
-                            onChange={e => { setCodeInput(e.target.value.toUpperCase()); setCodeError(''); if (discount) setDiscount(null); }}
-                            style={{ flex: 1, minWidth: 0, boxSizing: 'border-box', background: 'rgba(240,234,235,0.05)', border: `1px solid ${C.cardBorder}`, borderRadius: 12, padding: '13px 14px', color: C.ink, fontSize: 14, fontFamily: 'inherit', outline: 'none', opacity: discount ? 0.6 : 1 }}
-                        />
-                        <button
-                            onClick={discount ? () => { setDiscount(null); setCodeInput(''); } : handleApplyCode}
-                            disabled={!discount && (!codeInput.trim() || codeChecking)}
-                            style={{ padding: '0 18px', borderRadius: 12, border: `1px solid ${C.accentBorder}`, background: discount ? 'transparent' : C.accentSoft, color: C.accentBright, fontSize: 13, fontWeight: 700, cursor: 'pointer', fontFamily: 'inherit' }}
-                        >
-                            {discount ? '해제' : '적용'}
-                        </button>
-                    </div>
-                    {codeError && <p style={{ fontSize: 11.5, color: '#f87171', margin: '4px 0 0' }}>{codeError}</p>}
-                    {discount && <p style={{ fontSize: 11.5, color: C.accentBright, margin: '4px 0 0' }}>✓ {discount.percent}% 할인이 적용되었어요</p>}
+                    <p style={{ fontSize: 11.5, color: C.muted, marginBottom: 14 }}>결과를 언제든 다시 볼 수 있는 링크를 이메일로 보내드려요</p>
 
                     <button
-                        onClick={handlePay} disabled={paying}
-                        style={{ width: '100%', marginTop: 14, background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '16px 0', borderRadius: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 6px 30px rgba(140,106,50,0.28)', opacity: paying ? 0.6 : 1 }}
+                        onClick={() => setShowPaymentModal(true)} disabled={paying}
+                        style={{ width: '100%', background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15, padding: '16px 0', borderRadius: 13, border: 'none', cursor: 'pointer', fontFamily: 'inherit', boxShadow: '0 6px 30px rgba(140,106,50,0.28)', opacity: paying ? 0.6 : 1 }}
                     >
-                        {paying ? '결제 준비 중…' : payPrice === 0 ? '무료로 리포트 받기' : '전체 리포트 보기'}
+                        {paying ? '결제 준비 중…' : '전체 리포트 보기'}
                     </button>
                     <p style={{ fontSize: 10.5, color: C.muted, textAlign: 'center', marginTop: 9, marginBottom: 0 }}>결제 즉시 분석이 시작되고, 완성까지 약 1~2분 걸려요</p>
                 </motion.div>
             </div>
+
+            {showPaymentModal && (
+                <HapPaymentModal
+                    price={HAP_PRICE}
+                    onClose={() => setShowPaymentModal(false)}
+                    onNext={handlePaymentModalNext}
+                />
+            )}
+
+            {showUpgradeModal && (
+                <div style={{ ['--btn-bg' as any]: C.btnBg, ['--btn-ink' as any]: C.btnInk, ['--btn-shadow' as any]: '0 6px 30px rgba(140,106,50,0.28)' }}>
+                    <UpgradeModal
+                        onClose={() => setShowUpgradeModal(false)}
+                        onStartGuest={() => proceedToPay({ type: 'guest', value: 'anonymous' }, email, discount)}
+                        onStartMember={(userId) => proceedToPay({ type: 'member', value: userId }, email, discount)}
+                        pendingPaymentInfo={{ packageId: 'compatibility', email }}
+                    />
+                </div>
+            )}
         </div>
     );
 }

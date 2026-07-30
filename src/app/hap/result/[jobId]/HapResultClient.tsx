@@ -21,18 +21,25 @@ const C = {
     accentBright: '#E8CF9C',
     accentSoft: 'rgba(201,161,92,0.10)',
     accentBorder: 'rgba(201,161,92,0.32)',
-    him: '#B8B4BE',
-    himSoft: 'rgba(184,180,190,0.08)',
-    himBorder: 'rgba(184,180,190,0.28)',
-    her: '#D9B872',
-    herSoft: 'rgba(217,184,114,0.09)',
-    herBorder: 'rgba(217,184,114,0.35)',
+    // him은 먹물의 푸른 그림자(먹색은 순수 회색이 아니라 살짝 남색이 돈다)로,
+    // her는 더 짙은 금박으로 — 기존엔 둘 다 저채도라 곁에 놓으면 위치로만 구분됐다.
+    // 색상 자체가 갈라져야 한다는 참고 HTML 대조에서 확인, 톤 간격을 벌림.
+    him: '#8891BE',
+    himSoft: 'rgba(136,145,190,0.09)',
+    himBorder: 'rgba(136,145,190,0.30)',
+    her: '#E3BB5C',
+    herSoft: 'rgba(227,187,92,0.10)',
+    herBorder: 'rgba(227,187,92,0.36)',
     gold: '#F5C842',
     ink: '#F0EAEB',
+    // body는 실제로 읽는 본문(총평·체크리스트) 전용 — sub보다 훨씬 밝게 두어
+    // "종이 위 잉크"에 가까운 대비를 준다. sub는 캡션·라벨 등 짧은 보조 텍스트로 남김.
+    body: '#DBD4D8',
     sub: '#B5ABB2',
     muted: '#8A8290',
     card: 'rgba(240,234,235,0.04)',
     cardBorder: 'rgba(240,234,235,0.13)',
+    ruleSolid: 'rgba(240,234,235,0.26)',
     band: 'rgba(240,234,235,0.07)',
     warn: '#E4A3AE',
     warnSoft: 'rgba(228,163,174,0.08)',
@@ -52,17 +59,20 @@ interface Props {
 // 파트가 진행될수록(첫 만남 → 최종 판정) 밴드 톤이 점점 짙은 금으로 깊어진다 —
 // 네 파트가 다 똑같은 카드로 보이지 않게, 그리고 리포트가 결론을 향해
 // '무르익는' 감각을 배경 톤 하나로 표현.
+// 참고 HTML의 part-head는 배경이 통째로 ink색으로 뒤집히는 '도장 판넬'이라 파트 전환이
+// 뚜렷했다. 우리 배경은 이미 어두워서 완전한 반전은 못 주지만, 옅은 그라디언트 워시 대신
+// 훨씬 불투명한 판을 깔고 위쪽에 두꺼운 리본형 테두리를 얹어 같은 역할(전환의 도장)을 준다.
 const PART_TIERS = [
-    { band: 'linear-gradient(135deg, rgba(180,172,160,0.05) 0%, rgba(240,234,235,0.05) 100%)', border: 'rgba(240,234,235,0.13)', glow: null },
-    { band: 'linear-gradient(135deg, rgba(201,161,92,0.07) 0%, rgba(240,234,235,0.045) 100%)', border: 'rgba(201,161,92,0.20)', glow: null },
-    { band: 'linear-gradient(135deg, rgba(201,161,92,0.11) 0%, rgba(240,234,235,0.04) 100%)', border: 'rgba(201,161,92,0.26)', glow: null },
-    { band: 'linear-gradient(135deg, rgba(217,184,114,0.16) 0%, rgba(10,9,8,0.5) 100%)', border: 'rgba(217,184,114,0.4)', glow: '0 0 40px rgba(217,184,114,0.12)' },
+    { band: 'rgba(20,18,23,0.7)', border: 'rgba(240,234,235,0.16)', top: 'rgba(240,234,235,0.4)', glow: null },
+    { band: 'rgba(28,21,13,0.66)', border: 'rgba(201,161,92,0.28)', top: 'rgba(201,161,92,0.55)', glow: null },
+    { band: 'rgba(32,23,12,0.72)', border: 'rgba(201,161,92,0.34)', top: 'rgba(201,161,92,0.65)', glow: null },
+    { band: 'rgba(38,26,10,0.8)', border: 'rgba(217,184,114,0.46)', top: 'rgba(217,184,114,0.85)', glow: '0 0 40px rgba(217,184,114,0.12)' },
 ];
 
 const PartHead = ({ num, title, anchorId, tier = 0 }: { num: string; title: string; anchorId: string; tier?: number }) => {
     const t = PART_TIERS[tier] || PART_TIERS[0];
     return (
-        <div id={anchorId} data-part-anchor style={{ background: t.band, border: `1px solid ${t.border}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px', scrollMarginTop: 74, boxShadow: t.glow || 'none' }}>
+        <div id={anchorId} data-part-anchor style={{ background: t.band, border: `1px solid ${t.border}`, borderTop: `4px solid ${t.top}`, borderRadius: 14, padding: '18px 22px', margin: '54px 0 24px', scrollMarginTop: 74, boxShadow: t.glow || 'none' }}>
             <p style={{ fontSize: 10.5, fontWeight: 800, letterSpacing: '0.22em', color: C.accentBright, margin: '0 0 6px' }}>{num}</p>
             <h2 style={{ fontFamily: C.serif, fontSize: 19 + tier * 0.7, fontWeight: 700, margin: 0, color: C.ink }}>{title}</h2>
         </div>
@@ -140,13 +150,13 @@ const H3 = ({ children, climax = false }: { children: React.ReactNode; climax?: 
         fontSize: climax ? 20 : 16.5,
         margin: climax ? '52px 0 14px' : '34px 0 12px',
         paddingBottom: climax ? 12 : 9,
-        borderBottom: climax ? `2px solid ${C.accentBorder}` : `1px solid ${C.cardBorder}`,
+        borderBottom: climax ? `2px solid ${C.accentBorder}` : `1.5px solid ${C.ruleSolid}`,
         letterSpacing: climax ? '-0.01em' : 'normal',
     }}>{children}</h3>
 );
 
 const P = ({ children }: { children?: string }) => (
-    children ? <p style={{ fontSize: 14, color: C.sub, lineHeight: 1.9, whiteSpace: 'pre-wrap', wordBreak: 'keep-all', margin: '0 0 12px' }}>{children}</p> : null
+    children ? <p style={{ fontSize: 14, color: C.body, lineHeight: 1.9, whiteSpace: 'pre-wrap', wordBreak: 'keep-all', margin: '0 0 12px' }}>{children}</p> : null
 );
 
 const Quote = ({ children }: { children?: string }) => (
@@ -189,14 +199,14 @@ const PairCards = ({ myTitle, partnerTitle, myBody, partnerBody, tone = 'default
 };
 
 const SmallP = ({ children }: { children?: string }) => (
-    children ? <p style={{ fontSize: 13, color: C.sub, lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'keep-all', margin: 0 }}>{children}</p> : null
+    children ? <p style={{ fontSize: 13, color: C.body, lineHeight: 1.8, whiteSpace: 'pre-wrap', wordBreak: 'keep-all', margin: 0 }}>{children}</p> : null
 );
 
 const CheckList = ({ items, tone = 'check' }: { items?: string[]; tone?: 'check' | 'warn' }) => (
     Array.isArray(items) && items.length ? (
         <ul style={{ listStyle: 'none', margin: '4px 0 0', padding: 0 }}>
             {items.map((it, i) => (
-                <li key={i} style={{ fontSize: 13, color: C.sub, lineHeight: 1.75, padding: '3px 0 3px 22px', position: 'relative', wordBreak: 'keep-all' }}>
+                <li key={i} style={{ fontSize: 13, color: C.body, lineHeight: 1.75, padding: '3px 0 3px 22px', position: 'relative', wordBreak: 'keep-all' }}>
                     <span style={{ position: 'absolute', left: 0, color: tone === 'check' ? C.gold : C.him, fontSize: 11 }}>{tone === 'check' ? '✔' : '✖'}</span>
                     {it}
                 </li>

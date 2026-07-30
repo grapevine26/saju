@@ -78,14 +78,16 @@ export default function HapLandingPage() {
                     }}>무료로 먼저 확인 · 결제 없이 점수부터 볼 수 있어요</span>
                 </div>
 
-                {/* CTA — 무료라 부담 없이 바로 시작할 수 있다는 걸 스크롤 전에 보여준다 */}
+                {/* CTA — 무료라 부담 없이 바로 시작할 수 있다는 걸 스크롤 전에 보여준다.
+                    재회사주 첫 CTA("우리 사이의 실 확인하기")와 같은 자리 — 상품 자체의
+                    핵심 개념(합)으로 은유해 감정적으로 끌어당기고, 마지막 CTA는 담백하게 남긴다. */}
                 <Link href="/hap/input" style={{
                     display: 'block', textAlign: 'center', marginTop: 22,
                     background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
                     padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
                     boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
                 }}>
-                    무료로 궁합 미리보기
+                    우리 사이의 합 확인하기
                 </Link>
 
                 {/* 공감 — 지금 이 페이지에 온 이유 */}
@@ -132,16 +134,6 @@ export default function HapLandingPage() {
                     ))}
                 </div>
 
-                {/* CTA — 4파트 소개와 진행 방식을 보고 마음이 선 시점의 두 번째 결정 지점 */}
-                <Link href="/hap/input" style={{
-                    display: 'block', textAlign: 'center', marginTop: 30,
-                    background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
-                    padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
-                    boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
-                }}>
-                    무료로 궁합 미리보기
-                </Link>
-
                 {/* 신뢰 요소 */}
                 <div style={{ marginTop: 22, background: C.accentSoft, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '18px 20px', display: 'flex', flexDirection: 'column', gap: 12 }}>
                     <p style={{ fontSize: 13, color: C.ink, lineHeight: 1.8, margin: 0, wordBreak: 'keep-all' }}>
@@ -152,7 +144,57 @@ export default function HapLandingPage() {
                     </p>
                 </div>
 
-                {/* 자주 묻는 질문 — 결제 직전 남은 망설임을 풀어준다 */}
+                {/* 가격 — 미리보기(무료)와 전체 리포트(유료)를 나란히 두어 위계를 보여준다.
+                    재회사주 Lite/Premium 플랜 박스와 같은 구조: 무료가 뭘 주는지 먼저 보여주고,
+                    유료 목록 맨 위에 "미리보기 전체 포함"을 붙여 포함 관계를 드러낸다. */}
+                <div style={{ marginTop: 26, background: 'transparent', border: `1px solid ${C.cardBorder}`, borderRadius: C.r, padding: '18px 22px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 10 }}>
+                        <div>
+                            <p style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', color: C.muted, marginBottom: 6 }}>무료 미리보기</p>
+                            <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0, color: C.ink }}>궁합 점수 먼저 보기</h3>
+                        </div>
+                        <span style={{ fontFamily: C.serif, fontSize: 18, fontWeight: 700, color: C.ink }}>무료</span>
+                    </div>
+                    {['궁합 총점 6항목 + 종합 등급', '역술가의 첫 진단 한 줄', '끌림·갈등 지수 분석', '두 사람의 오행 분포 비교'].map((f, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 9, fontSize: 12.5, color: C.sub, padding: '4px 0' }}>
+                            <span style={{ color: C.muted, fontWeight: 700 }}>✓</span> {f}
+                        </div>
+                    ))}
+                </div>
+
+                <div style={{ marginTop: 12, background: C.card, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '22px' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
+                        <div>
+                            <p style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', color: C.accentBright, marginBottom: 6 }}>PREMIUM 궁합 리포트</p>
+                            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>4파트 전체 리포트</h3>
+                        </div>
+                        <span style={{ fontFamily: C.serif, fontSize: 22, fontWeight: 700, color: C.accentBright }}>19,900원</span>
+                    </div>
+                    {['미리보기 전체 포함', '남녀 시선을 나눈 비교 분석 카드', '싸움 원인 · 이별 위험 신호 · 화해 공식', '재물·사업·자녀·노년까지 생애 전체', '역술가 총평과 마지막 한 문장'].map((f, i) => (
+                        <div key={i} style={{ display: 'flex', gap: 9, fontSize: 12.5, color: C.sub, padding: '4px 0' }}>
+                            <span style={{ color: C.accentBright, fontWeight: 700 }}>✓</span> {f}
+                        </div>
+                    ))}
+                    <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.cardBorder}` }}>
+                        <p style={{ fontSize: 12, color: C.sub, lineHeight: 1.75, margin: 0, wordBreak: 'keep-all' }}>
+                            커플 궁합 상담은 보통 5~10만 원 — 이 리포트는 한 번 결제로 계속 다시 볼 수 있어요.
+                        </p>
+                    </div>
+                    <p style={{ fontSize: 11, color: C.muted, marginTop: 10, marginBottom: 0 }}>무료 미리보기로 끌림·갈등 지수를 먼저 확인한 뒤 결제할 수 있어요</p>
+                </div>
+
+                {/* CTA — 가격 상자를 본 직후 바로 이어지는 결정 지점 */}
+                <Link href="/hap/input" style={{
+                    display: 'block', textAlign: 'center', marginTop: 16,
+                    background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
+                    padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
+                    boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
+                }}>
+                    무료로 궁합 미리보기
+                </Link>
+                <p style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 10 }}>가입 없이 바로 · 생년월일만 있으면 돼요</p>
+
+                {/* 자주 묻는 질문 — 결정을 내린 뒤에도 남는 망설임을 풀어준다 */}
                 <p style={{ fontSize: 11, fontWeight: 700, letterSpacing: '0.14em', color: C.muted, textTransform: 'uppercase', marginTop: 34, marginBottom: 12 }}>궁금하실 것 같아서</p>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: 10 }}>
                     {[
@@ -167,43 +209,27 @@ export default function HapLandingPage() {
                     ))}
                 </div>
 
-                {/* 가격 */}
-                <div style={{ marginTop: 26, background: C.card, border: `1px solid ${C.accentBorder}`, borderRadius: C.r, padding: '22px' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 12 }}>
-                        <div>
-                            <p style={{ fontSize: 10.5, fontWeight: 700, letterSpacing: '0.06em', color: C.accentBright, marginBottom: 6 }}>PREMIUM 궁합 리포트</p>
-                            <h3 style={{ fontSize: 16, fontWeight: 700, margin: 0 }}>4파트 전체 리포트</h3>
-                        </div>
-                        <span style={{ fontFamily: C.serif, fontSize: 22, fontWeight: 700, color: C.accentBright }}>19,900원</span>
-                    </div>
-                    {['궁합 총점 6항목 + 종합 등급표', '남녀 시선을 나눈 비교 분석 카드', '싸움 원인 · 이별 위험 신호 · 화해 공식', '재물·사업·자녀·노년까지 생애 전체', '역술가 총평과 마지막 한 문장'].map((f, i) => (
-                        <div key={i} style={{ display: 'flex', gap: 9, fontSize: 12.5, color: C.sub, padding: '4px 0' }}>
-                            <span style={{ color: C.accentBright, fontWeight: 700 }}>✓</span> {f}
-                        </div>
-                    ))}
-                    <div style={{ marginTop: 14, paddingTop: 14, borderTop: `1px dashed ${C.cardBorder}` }}>
-                        <p style={{ fontSize: 12, color: C.sub, lineHeight: 1.75, margin: '0 0 8px', wordBreak: 'keep-all' }}>
-                            커플 궁합 상담은 보통 5~10만 원 — 이 리포트는 한 번 결제로 계속 다시 볼 수 있어요.
-                        </p>
-                        <p style={{ fontSize: 12, color: C.ink, lineHeight: 1.75, margin: 0, wordBreak: 'keep-all' }}>
-                            <strong style={{ color: C.accentBright }}>리포트 생성에 실패하면 결제 금액을 전액 자동 환불</strong>해드려요.
-                        </p>
-                    </div>
-                    <p style={{ fontSize: 11, color: C.muted, marginTop: 10, marginBottom: 0 }}>무료 미리보기로 끌림·갈등 지수를 먼저 확인한 뒤 결제할 수 있어요</p>
+            </div>
+
+            {/* 푸터 — 재회사주 푸터를 그대로 이식, 브랜드명 줄만 이 서비스 것으로 교체 */}
+            <div style={{ paddingTop: 28, paddingBottom: 28, marginTop: 28, borderTop: `1px solid ${C.lineSoft}`, textAlign: 'center' }}>
+                <div style={{ display: 'flex', justifyContent: 'center', gap: 14, fontSize: 12, marginBottom: 18 }}>
+                    <Link href="/legal/terms" style={{ color: C.sub, textDecoration: 'none' }}>이용약관</Link>
+                    <span style={{ color: C.muted }}>|</span>
+                    <Link href="/legal/privacy" style={{ color: C.sub, textDecoration: 'none' }}>개인정보처리방침</Link>
+                    <span style={{ color: C.muted }}>|</span>
+                    <Link href="/legal/refund" style={{ color: C.sub, textDecoration: 'none' }}>환불정책</Link>
                 </div>
-
-                {/* CTA */}
-                <Link href="/hap/input" style={{
-                    display: 'block', textAlign: 'center', marginTop: 24,
-                    background: C.btnBg, color: C.btnInk, fontWeight: 700, fontSize: 15,
-                    padding: '17px 0', borderRadius: C.r, textDecoration: 'none',
-                    boxShadow: '0 6px 30px rgba(140,106,50,0.28)',
-                }}>
-                    무료로 궁합 미리보기
-                </Link>
-                <p style={{ fontSize: 11, color: C.muted, textAlign: 'center', marginTop: 10 }}>가입 없이 바로 · 생년월일만 있으면 돼요</p>
-
-                <p style={{ marginTop: 44, fontSize: 11, color: C.muted, textAlign: 'center', opacity: 0.7 }}>운명의 합 · 전통 명리학적 해석을 바탕으로 한 참고 자료입니다</p>
+                <div style={{ fontSize: 11, color: C.muted, lineHeight: 1.8 }}>
+                    <p style={{ fontWeight: 700, color: C.sub, margin: '0 0 6px' }}>운명의 합 · 묘연</p>
+                    <p style={{ margin: 0 }}>상호명 : 인사이트랩 | 대표자 : 최혁준</p>
+                    <p style={{ margin: 0 }}>사업자등록번호 : 207-30-92414</p>
+                    <p style={{ margin: 0 }}>통신판매업신고번호 : 제 2026-서울관악-0869호</p>
+                    <p style={{ margin: 0 }}>이메일 : support@dasisaju.com | 전화 : 070-8098-4109</p>
+                    <p style={{ margin: 0 }}>주소 : 서울특별시 관악구 난곡로 284, 603호</p>
+                    <p style={{ margin: 0 }}>호스팅 서비스 제공자 : Vercel Inc.</p>
+                    <p style={{ margin: '10px 0 0', opacity: 0.7 }}>© 2026 인사이트랩. All rights reserved.</p>
+                </div>
             </div>
         </div>
     );
