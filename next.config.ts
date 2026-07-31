@@ -42,6 +42,14 @@ const nextConfig: NextConfig = {
         destination: "/saju?utm_source=tiktok&utm_medium=organic&utm_campaign=bio",
         permanent: false,
       },
+      // v7 훅 실험 편별 DM 링크 — /h1~/h5: 해당 편 키워드 댓글에 보내는 DM 전용
+      // campaign을 comment-hN으로 나눠 편별 유입→무료→결제를 funnel_events에서 분리 집계
+      // (기존 /free는 원본 10편 시리즈 DM용으로 유지)
+      ...[1, 2, 3, 4, 5].map((n) => ({
+        source: `/h${n}`,
+        destination: `/saju?utm_source=instagram&utm_medium=organic&utm_campaign=comment-h${n}`,
+        permanent: false,
+      })),
       // 쓰레드 — /th: 프로필 바이오 링크 · /thc: 게시물 첫 답글 링크 (tt/free와 동일한 bio·comment 구분)
       {
         source: "/th",
