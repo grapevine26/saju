@@ -120,7 +120,7 @@ export async function POST(req: Request) {
             await consumeCode(discountCode, paidOrderId || `tarot_job_${job.id}`);
         }
 
-        await recordPaidEvent({ service: 'tarot', jobId: job.id, amount: expectedAmount, utm: body.utm, visitorId: body.visitorId });
+        await recordPaidEvent({ service: 'tarot', jobId: job.id, amount: expectedAmount, source: paymentSource, utm: body.utm, visitorId: body.visitorId });
 
         if (isDev) {
             // 개발 모드: Inngest 없이 직접 처리

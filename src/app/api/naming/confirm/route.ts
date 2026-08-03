@@ -127,7 +127,7 @@ export async function POST(req: Request) {
                     if (valid) {
                         const jobId = await createJobAndDispatch(payload, paymentKey);
                         if (jobId) {
-                            await recordPaidEvent({ service: 'naming', jobId, amount: expectedPriceFor(payload), utm: payload.utm, visitorId: payload.visitorId });
+                            await recordPaidEvent({ service: 'naming', jobId, amount: expectedPriceFor(payload), source: 'toss', utm: payload.utm, visitorId: payload.visitorId });
                             return NextResponse.json({ success: true, data: pay, jobId });
                         }
                     }
@@ -143,7 +143,7 @@ export async function POST(req: Request) {
             if (!jobId) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 작명을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
-            await recordPaidEvent({ service: 'naming', jobId, amount: expectedPriceFor(payload), utm: payload.utm, visitorId: payload.visitorId });
+            await recordPaidEvent({ service: 'naming', jobId, amount: expectedPriceFor(payload), source: freePass ? 'free_pass' : isDev ? 'dev' : 'toss', utm: payload.utm, visitorId: payload.visitorId });
             return NextResponse.json({ success: true, data, jobId });
         }
 

@@ -163,7 +163,7 @@ export async function POST(req: Request) {
                         const jobId = await createJobAndDispatch(payload, paymentKey, expectedAmount, 'toss');
                         if (jobId) {
                             if (discountCode) await consumeCode(discountCode, orderId);
-                            await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
+                            await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, source: 'toss', utm: payload.utm, visitorId: payload.visitorId });
                             return NextResponse.json({ success: true, data: pay, jobId });
                         }
                     }
@@ -180,7 +180,7 @@ export async function POST(req: Request) {
                 return NextResponse.json({ success: false, message: "시스템 오류로 분석을 시작하지 못했습니다. 카카오톡 채널로 문의해 주시면 즉시 환불 처리해 드리겠습니다." }, { status: 500 });
             }
             if (discountCode) await consumeCode(discountCode, orderId);
-            await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, utm: payload.utm, visitorId: payload.visitorId });
+            await recordPaidEvent({ service: payload.packageId === 'compatibility' ? 'hap' : 'saju', jobId, amount: expectedAmount, source: paymentSource, utm: payload.utm, visitorId: payload.visitorId });
             return NextResponse.json({ success: true, data, jobId });
         }
 

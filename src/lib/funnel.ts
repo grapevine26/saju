@@ -13,14 +13,21 @@ export interface ClientUtm {
     campaign?: string | null;
 }
 
+/** 결제 유형 — admin 매출 집계(countsAsRevenue)와 동일한 구분 */
+export type PaidSource = 'toss' | 'dev' | 'free_pass' | 'zero_won_coupon';
+
 export async function recordPaidEvent(params: {
     service: 'saju' | 'tarot' | 'naming' | 'hap';
     jobId: string;
     amount: number;
+    source: PaidSource;
     utm?: ClientUtm | null;
     visitorId?: string | null;
 }): Promise<void> {
     try {
+        // 개발모드·관리자 프리패스는 실고객 전환이 아니므로 퍼널에서 제외.
+        // (0원 쿠폰은 실고객이 결제 플로우를 완주한 것이므로 기록한다)
+        if (params.source === 'dev' || params.source === 'free_pass') return;
         const { error } = await supabaseAdmin.from('funnel_events').insert({
             event: 'paid',
             service: params.service,

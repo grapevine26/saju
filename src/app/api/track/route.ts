@@ -1,5 +1,6 @@
 import { NextResponse } from 'next/server';
 import { supabaseAdmin } from '@/lib/supabase';
+import { isFreePassSession } from '@/lib/freePass';
 
 // ─────────────────────────────────────────────
 // 퍼널 이벤트 기록 API (visit / free)
@@ -23,6 +24,11 @@ export async function POST(req: Request) {
 
         if (!ALLOWED_EVENTS.has(event) || !ALLOWED_SERVICES.has(service)) {
             return NextResponse.json({ ok: false });
+        }
+
+        // 개발환경·관리자 프리패스 세션의 방문/무료 이벤트는 실고객이 아니므로 제외
+        if (process.env.NODE_ENV === 'development' || (await isFreePassSession())) {
+            return NextResponse.json({ ok: true });
         }
 
         await supabaseAdmin.from('funnel_events').insert({
